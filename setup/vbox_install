@@ -3,11 +3,28 @@
 IMG="/tmp/Ubuntu64Base.ova"
 NAME=`basename $IMG .ova`
 
+OS=`uname -s`
+if [ "$OS" = "Linux" ]; then
+    PLATFORM="Linux"
+elif [ "$OS" = "Darwin" ]; then
+    PLATFORM="MacOSX"
+else
+    echo "Unknown System, cancelling setup"
+    exit 1
+fi
+
 set -e
 
-if [[ `md5 -q "$IMG"` != 'a7ad85e2088bad4a7087f7795c2651cd' ]]; then
+if [ "$PLATFORM"="MacOSX" ]; then
+  if [ -a "$(md5 -q $IMG)" != 'a7ad85e2088bad4a7087f7795c2651cd' ]; then
+    echo 'Downloading base image...'
+    curl https://s3.amazonaws.com/mashion/$NAME.ova > "$IMG"
+  else
+    echo 'Image already downloaded.'
+  fi
+elif [ ! -f "$IMG" -o "$(md5sum --quiet --check $IMG)" != 'a7ad85e2088bad4a7087f7795c2651cd' ]; then
   echo 'Downloading base image...'
-  curl https://s3.amazonaws.com/mashion/$NAME.ova > "$IMG"
+  wget https://s3.amazonaws.com/mashion/$NAME.ova > "$IMG"
 else
   echo 'Image already downloaded.'
 fi
@@ -20,8 +37,8 @@ fi
 
 NIC=$(echo $(VBoxManage list bridgedifs | grep -m1 Name | awk '{ $1=""; print $0 }'))
 echo "Bridging networking to $NIC"
-VBoxManage modifyvm "$NAME" --nic1 bridged --bridgeadapter1 "$NIC"
-VBoxManage startvm "$NAME" --type headless
+#VBoxManage modifyvm "$NAME" --nic1 bridged --bridgeadapter1 "$NIC"
+#VBoxManage startvm "$NAME" --type headless
 
 echo 'Waiting for IP address...'
 ip_info() {
@@ -35,11 +52,11 @@ done
 IP=`ip_info | cut -d' ' -f2`
 
 KEY=`ls -f "$HOME/.ssh/id_dsa.pub" "$HOME/.ssh/id_rsa.pub" 2>/dev/null | head -n1`
-if [[ ! -f "$KEY" ]]; then
+if [ ! -f "$KEY" ]; then
   read -p "Couldn't find SSH key, please enter the path to your SSH keyfile: " KEY
 fi
 
-if [[ -f "$KEY" ]]; then
+if [ -f "$KEY" ]; then
   echo "Installing key $KEY..."
   cat $KEY | ssh -o StrictHostKeyChecking=no ubuntu@$IP 'mkdir .ssh; cat > .ssh/authorized_keys; chmod -R go-rw .ssh; sudo passwd -d ubuntu'
 else
