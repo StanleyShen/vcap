@@ -23,7 +23,7 @@ sudo ls > /dev/null
 
 echo "Installing dependencies"
 if [[ $PLATFORM == 'Linux' ]]; then
-  sudo apt-get -y install coreutils autoconf curl git-core ruby bison build-essential zlib1g-dev libssl-dev libreadline5-dev
+  sudo apt-get -y install wget coreutils autoconf curl git-core ruby bison build-essential zlib1g-dev libssl-dev libreadline5-dev
 else
   echo "Sorry, we can't install dependencies for your system yet."
 fi
