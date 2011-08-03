@@ -382,7 +382,7 @@ module Run
   end
 
   def self.services
-    %w(redis mysql mongodb)
+    %w(redis mysql mongodb postgres)
   end
 
   def self.alias_args(args)
