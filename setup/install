@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Allow VCAP_REPO to be overriden for testing
+# Allow VCAP_REPO to be overriden for testing and to use a branch
 VCAP_REPO=${VCAP_REPO:-https://github.com/cloudfoundry/vcap.git}
+VCAP_BRANCH=${VCAP_BRANCH:-master}
 
+echo "Using cloudfoundry at $VCAP_REPO on the branch $VCAP_BRANCH"
+exit 0
 export rvm_trust_rvmrcs_flag=1 # Trust all rmvrcs we find
 
 OS=`uname -s`
@@ -109,6 +112,7 @@ cd ~/cloudfoundry
 
 [ -d vcap ] || git clone $VCAP_REPO
 cd vcap
+[ -n "$VCAP_BRANCH" ] && git checkout -b $VCAP_BRANCH origin/$VCAP_BRANCH
 git submodule update --init
 gem install vmc --no-rdoc --no-ri
 

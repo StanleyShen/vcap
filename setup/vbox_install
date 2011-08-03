@@ -1,0 +1,98 @@
+#!/bin/sh
+
+IMG="$HOME/Ubuntu64Base.ova"
+NAME=`basename $IMG .ova`
+
+OS=`uname -s`
+if [ "$OS" = "Linux" ]; then
+    PLATFORM="Linux"
+elif [ "$OS" = "Darwin" ]; then
+    PLATFORM="MacOSX"
+else
+    echo "Unknown System, cancelling setup"
+    exit 1
+fi
+
+set -e
+
+#read the vcap repo and branch to use according to the current checkout for the default non interactive values.
+if [ -z "$VCAP_REPO" ]; then
+  _repo="$(git remote show origin | grep 'Fetch URL' | cut -d' ' -f5)"
+  read -p "Enter the vcap github repository to use (default $_repo) " VCAP_REPO
+  [ -z "$VCAP_REPO" ] && VCAP_REPO=$VCAP_REPO
+]
+if [ -z "$VCAP_BRANCH" ]; then
+  _branch="$(git branch 2>/dev/null | sed -e "/^\s/d" -e "s/^\*\s//")"
+  read -p "Enter the branch to use (default $_branch) " VCAP_BRANCH
+  [ -z "$VCAP_BRANCH" ] && VCAP_BRANCH=$VCAP_BRANCH
+]
+
+
+if [ "$PLATFORM"="MacOSX" ]; then
+  if [ -a "$(md5 -q $IMG)" != 'a7ad85e2088bad4a7087f7795c2651cd' ]; then
+    echo 'Downloading base image...'
+    curl https://s3.amazonaws.com/mashion/$NAME.ova > "$IMG"
+  else
+    echo 'Image already downloaded.'
+  fi
+elif [ ! -f "$IMG" -o "$(md5sum --quiet --check $IMG)" != 'a7ad85e2088bad4a7087f7795c2651cd' ]; then
+  echo 'Downloading base image...'
+  wget https://s3.amazonaws.com/mashion/$NAME.ova > "$IMG"
+else
+  echo 'Image already downloaded.'
+fi
+
+if VBoxManage list vms | cut -d'"' -f2 | grep -q "$NAME"; then
+  echo "$NAME already imported."
+else
+  VBoxManage import "$IMG"
+fi
+
+NIC=$(echo $(VBoxManage list bridgedifs | grep -m1 Name | awk '{ $1=""; print $0 }'))
+echo "Bridging networking to $NIC"
+VBoxManage modifyvm "$NAME" --nic1 bridged --bridgeadapter1 "$NIC"
+VBoxManage startvm "$NAME" --type headless
+
+echo 'Waiting for IP address...'
+ip_info() {
+  VBoxManage guestproperty get "$NAME" /VirtualBox/GuestInfo/Net/0/V4/IP | grep Value
+}
+
+while ! ip_info > /dev/null; do
+  sleep 1
+done
+
+IP=`ip_info | cut -d' ' -f2`
+
+KEY=`ls -f "$HOME/.ssh/id_dsa.pub" "$HOME/.ssh/id_rsa.pub" 2>/dev/null | head -n1`
+if [ ! -f "$KEY" ]; then
+  read -p "Couldn't find SSH key, please enter the path to your SSH keyfile: " KEY
+fi
+
+if [ -f "$KEY" ]; then
+  echo "Installing key $KEY..."
+  cat $KEY | ssh -o StrictHostKeyChecking=no ubuntu@$IP 'mkdir .ssh; cat > .ssh/authorized_keys; chmod -R go-rw .ssh; sudo passwd -d ubuntu'
+else
+  echo "Key $KEY not found, skipping SSH key installation."
+fi
+
+echo 'Starting CloudFoundry install...'
+ssh ubuntu@$IP "sudo apt-get install curl; export VCAP_REPO=$VCAP_REPO; export VCAP_BRANCH=$VCAP_BRANCH; bash < <(curl -s -k -B https://raw.github.com/cloudfoundry/vcap/master/setup/install)"
+
+cat <<-DOC
+
+All done!
+
+Log in with:   ssh ubuntu@$IP
+Shutdown with: VBoxManage controlvm $NAME acpipowerbutton
+
+Make sure to add the following to your hosts file:
+  $IP api.vcap.me myappname.vcap.me
+
+If you haven't downloaded VMC yet, run:
+  gem install vmc
+
+And create and account with:
+  vmc register
+
+DOC
