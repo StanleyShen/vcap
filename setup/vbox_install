@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-IMG="$HOME/Ubuntu64Base.ova"
+[ -z "$IMG" ] && IMG="Ubuntu64Base.ova"
 NAME=`basename $IMG .ova`
 
 OS=`uname -s`
@@ -20,12 +20,12 @@ if [ -z "$VCAP_REPO" ]; then
   _repo="$(git remote show origin | grep 'Fetch URL' | cut -d' ' -f5)"
   read -p "Enter the vcap github repository to use (default $_repo) " VCAP_REPO
   [ -z "$VCAP_REPO" ] && VCAP_REPO=$VCAP_REPO
-]
+fi
 if [ -z "$VCAP_BRANCH" ]; then
   _branch="$(git branch 2>/dev/null | sed -e "/^\s/d" -e "s/^\*\s//")"
   read -p "Enter the branch to use (default $_branch) " VCAP_BRANCH
   [ -z "$VCAP_BRANCH" ] && VCAP_BRANCH=$VCAP_BRANCH
-]
+fi
 
 
 if [ "$PLATFORM"="MacOSX" ]; then
