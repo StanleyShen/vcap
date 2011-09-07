@@ -18,15 +18,25 @@ set -e
 #read the vcap repo and branch to use according to the current checkout for the default non interactive values.
 if [ -z "$VCAP_REPO" ]; then
   _repo="$(git remote show origin | grep 'Fetch URL' | cut -d' ' -f5)"
+  #Replace the private git url by the public one
+  # So that we can actually use that on the VM
+  #For example: git@github.com:hmalphettes/vcap.git
+  #Replaced by: https://github.com/hmalphettes/vcap.git
+  if [ -n "`echo $_repo | grep 'git@github.com:'`" ]; then 
+    _repo=`echo $_repo | sed 's/^git@github.com:/https:\/\/github.com\//'`
+  fi
   read -p "Enter the vcap github repository to use (default $_repo) " VCAP_REPO
-  [ -z "$VCAP_REPO" ] && VCAP_REPO=$VCAP_REPO
+  [ -z "$VCAP_REPO" ] && VCAP_REPO=$_repo
+  if [ -z "$VCAP_GITHUB_ACCOUNT" ]; then
+    VCAP_GITHUB_ACCOUNT="`echo $VCAP_REPO | cut -d'/' -f4`"
+  fi
 fi
 if [ -z "$VCAP_BRANCH" ]; then
   _branch="$(git branch 2>/dev/null | sed -e "/^\s/d" -e "s/^\*\s//")"
   read -p "Enter the branch to use (default $_branch) " VCAP_BRANCH
-  [ -z "$VCAP_BRANCH" ] && VCAP_BRANCH=$VCAP_BRANCH
+  [ -z "$VCAP_BRANCH" ] && VCAP_BRANCH=$_branch
+  [ -z "$VCAP_GITHUB_ACCOUNT" ] && VCAP_GITHUB_ACCOUNT="cloudfoundry"
 fi
-
 
 if [ "$PLATFORM"="MacOSX" ]; then
   if [ -a "$(md5 -q $IMG)" != 'a7ad85e2088bad4a7087f7795c2651cd' ]; then
@@ -77,7 +87,9 @@ else
 fi
 
 echo 'Starting CloudFoundry install...'
-ssh ubuntu@$IP "sudo apt-get install curl; export VCAP_REPO=$VCAP_REPO; export VCAP_BRANCH=$VCAP_BRANCH; bash < <(curl -s -k -B https://raw.github.com/cloudfoundry/vcap/master/setup/install)"
+cmd="sudo apt-get install curl; export VCAP_REPO=$VCAP_REPO; export VCAP_BRANCH=$VCAP_BRANCH; bash < <(curl -s -k -B https://raw.github.com/$VCAP_GITHUB_ACCOUNT/vcap/$VCAP_BRANCH/setup/install)"
+echo "Command executed: ssh ubuntu@$IP ""$cmd"""
+ssh ubuntu@$IP "$cmd"
 
 cat <<-DOC
 
