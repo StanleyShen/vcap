@@ -5,7 +5,6 @@ VCAP_REPO=${VCAP_REPO:-https://github.com/cloudfoundry/vcap.git}
 VCAP_BRANCH=${VCAP_BRANCH:-master}
 
 echo "Using cloudfoundry at $VCAP_REPO on the branch $VCAP_BRANCH"
-exit 0
 export rvm_trust_rvmrcs_flag=1 # Trust all rmvrcs we find
 
 OS=`uname -s`
