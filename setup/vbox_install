@@ -87,9 +87,12 @@ else
 fi
 
 echo 'Starting CloudFoundry install...'
-cmd="sudo apt-get install curl; export VCAP_REPO=$VCAP_REPO; export VCAP_BRANCH=$VCAP_BRANCH; bash < <(curl -s -k -B https://raw.github.com/$VCAP_GITHUB_ACCOUNT/vcap/$VCAP_BRANCH/setup/install)"
+cmd="sudo apt-get install curl; export VCAP_REPO=$VCAP_REPO; export VCAP_BRANCH=$VCAP_BRANCH; bash -x < <(curl -s -k -B https://raw.github.com/$VCAP_GITHUB_ACCOUNT/vcap/$VCAP_BRANCH/setup/install)"
 echo "Command executed: ssh ubuntu@$IP ""$cmd"""
 ssh ubuntu@$IP "$cmd"
+
+start_cmd="export rvm_trust_rvmrcs_flag=1; cd cloudfoundry/vcap; bin/vcap/start"
+ssh ubuntu@$IP "$start_cmd"
 
 cat <<-DOC
 
