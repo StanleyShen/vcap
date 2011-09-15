@@ -165,10 +165,10 @@ if [[ $CC == true || $ALL == true ]]; then
         if [[ $RELATIONAL_DBS == true || $ALL == true ]]; then
 #original            echo "Installing PostgreSQL server and support"
 #original            apt-get install -qqy postgresql libpq-dev
-            echo "Installing PostgreSQL-9.1 server and support and contrib"
+            echo "Installing PostgreSQL-9.0 server and support and contrib"
             add-apt-repository ppa:pitti/postgresql
             apt-get update
-            apt-get install -qqy postgresql-9.1 postgresql-contrib-9.1 libpq-dev
+            apt-get install -qqy postgresql-9.0 postgresql-contrib-9.0 libpq-dev
             if [[ -n "$POSTGRESQL_PASS" ]]; then
                 su - postgres -c "/usr/bin/psql -c \"alter role postgres password '$POSTGRESQL_PASS'\""
             fi
