@@ -385,7 +385,7 @@ module Run
   end
 
   def self.services
-    %w(redis mysql mongodb neo4j)
+    %w(redis mysql mongodb neo4j postgresql)
   end
 
   def self.alias_args(args)
