@@ -166,6 +166,7 @@ if [[ $CC == true || $ALL == true ]]; then
 #original            echo "Installing PostgreSQL server and support"
 #original            apt-get install -qqy postgresql libpq-dev
             echo "Installing PostgreSQL-9.0 server and support and contrib"
+            apt-get install -qqy python-software-properties
             add-apt-repository ppa:pitti/postgresql
             apt-get update
             apt-get install -qqy postgresql-9.0 postgresql-contrib-9.0 libpq-dev
@@ -420,9 +421,12 @@ if [ $? != 0 ]; then
     fi
 
     if [[ $POSTGRESQL == true || $ALL_SERVICES == true ]]; then
-        echo "Installing PostgreSQL server and support"
+        echo "Installing PostgreSQL-9.0 server and support"
 
-        apt-get install -qqy postgresql libpq-dev
+        apt-get install -qqy python-software-properties
+        add-apt-repository ppa:pitti/postgresql
+        apt-get update
+        apt-get install -qqy postgresql-9.0 postgresql-contrib-9.0 libpq-dev
         if [[ -n "$POSTGRESQL_PASS" ]]; then
             su - postgres -c "/usr/bin/psql -c \"alter role postgres password '$POSTGRESQL_PASS'\""
         fi
