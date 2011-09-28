@@ -12,6 +12,18 @@ end
 
 case node['platform']
 when "ubuntu"
+  
+when "ubuntu"
+  bash "Install postgres-9.1" do
+    code <<-EOH
+    apt-get install python-software-properties
+    add-apt-repository ppa:pitti/postgresql
+    apt-get -qy update
+    apt-get install -qy postgresql-9.1 postgresql-contrib-9.1
+    apt-get install -qy postgresql-server-dev-9.1 libpq-dev libpq5
+    EOH
+  end
+  
   ruby_block "postgresql_conf_update" do
     block do
       / \d*.\d*/ =~ `pg_config --version`

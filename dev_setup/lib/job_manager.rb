@@ -16,7 +16,7 @@ class JobManager
   HM = "health_manager"
   DEA = "dea"
 
-  SERVICES = ["redis", "mysql", "mongodb"]
+  SERVICES = ["redis", "mysql", "mongodb", "postgresql"]
   SERVICES_GATEWAY = SERVICES.map do |service|
     "#{service}_gateway"
   end
@@ -33,7 +33,7 @@ class JobManager
   # List of the required properties for jobs
   INSTALLED_JOB_PROPERTIES = {NATS => ["host"], CC => ["service_api_uri", "builtin_services"],
                               CCDB => ["host"]}
-  INSTALL_JOB_PROPERTIES = {CC => ["builtin_services"], MYSQL => ["index"], MONGODB => ["index"], REDIS => ["index"]}
+  INSTALL_JOB_PROPERTIES = {CC => ["builtin_services"], MYSQL => ["index"], MONGODB => ["index"], REDIS => ["index"], POSTGRESQL => ["index"]}
 
   # Dependency between JOBS and  components that are consumed by "vcap_dev" when cf is started or
   # stopped

@@ -77,6 +77,9 @@ if [ $? == 0 ]; then
     echo "Giving up. Cannot connect to the web. Check your proxy settings if you are behind a proxy."
     exit 1
   fi
+else
+  echo "No wget installed"
+  exit 2
 fi
 
 # Install chef if required.
@@ -101,7 +104,10 @@ fi
 run_cmd apt-get $APT_CONFIG install -qym git-core
 [ -d $CLOUDFOUNDRY_HOME ] || mkdir $CLOUDFOUNDRY_HOME
 if [ ! -d $CLOUDFOUNDRY_HOME/vcap ]; then
-   (cd $CLOUDFOUNDRY_HOME && git clone $VCAP_REPO && cd vcap && git submodule update --init)
+    cd $CLOUDFOUNDRY_HOME && git clone $VCAP_REPO
+    cd vcap
+    [ -n "$VCAP_BRANCH" ] && git checkout -b $VCAP_BRANCH origin/$VCAP_BRANCH
+    git submodule update --init)
     if [ $? != 0 ]; then
       echo "Unable to clone cloudfoundry repo."
       exit 1

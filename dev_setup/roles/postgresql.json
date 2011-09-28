@@ -12,6 +12,5 @@
                 "recipe[essentials]",
                 "recipe[ruby]",
                 "recipe[postgresql]",
-                "recipe[postgresql::service]",
-                "role[services]"]
+                "recipe[postgresql::service]"]
 }
