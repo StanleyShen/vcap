@@ -20,6 +20,7 @@ jobs:
     - router
     - health_manager
     - ccdb
+    - dea
     - redis:
         index: "0"
     - redis_gateway
