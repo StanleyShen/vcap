@@ -107,7 +107,7 @@ if [ ! -d $CLOUDFOUNDRY_HOME/vcap ]; then
     cd $CLOUDFOUNDRY_HOME && git clone $VCAP_REPO
     cd vcap
     [ -n "$VCAP_BRANCH" ] && git checkout -b $VCAP_BRANCH origin/$VCAP_BRANCH
-    git submodule update --init)
+    git submodule update --init
     if [ $? != 0 ]; then
       echo "Unable to clone cloudfoundry repo."
       exit 1

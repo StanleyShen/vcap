@@ -1,5 +1,5 @@
 ---
-# Only rubys, java, nodejs; all the services and also postgresql
+# Only rubys, java, nodejs; all the services including postgresql except mysql.
 deployment:
   name: "intalio_runtime"
 dea:
@@ -15,6 +15,7 @@ jobs:
         builtin_services:
           - redis
           - mongodb
+          - postgresql
           - mysql
     - router
     - health_manager
@@ -22,11 +23,9 @@ jobs:
     - redis:
         index: "0"
     - redis_gateway
-    - mysql:
-        index: "0"
-    - mysql_gateway
     - mongodb:
         index: "0"
     - mongodb_gateway
-    - postgresql
+    - postgresql:
+        index: "0"
     - postgresql_gateway

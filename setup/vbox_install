@@ -38,6 +38,14 @@ if [ -z "$VCAP_BRANCH" ]; then
   [ -z "$VCAP_GITHUB_ACCOUNT" ] && VCAP_GITHUB_ACCOUNT="cloudfoundry"
 fi
 
+read -p "Use chef in dev_setup or the bare setup scripts? [default chef]" USE_BARE_SETUP
+if [ -n "$USE_BARE_SETUP" ]; then
+  path_setup_script="setup/install"
+else
+  path_setup_script="vcap/dev_setup/bin/vcap_dev_setup"
+fi
+
+
 if [ "$PLATFORM"="MacOSX" ]; then
   if [ -a "$(md5 -q $IMG)" != 'a7ad85e2088bad4a7087f7795c2651cd' ]; then
     echo 'Downloading base image...'
@@ -87,7 +95,7 @@ else
 fi
 
 echo 'Starting CloudFoundry install...'
-cmd="sudo apt-get install curl; export VCAP_REPO=$VCAP_REPO; export VCAP_BRANCH=$VCAP_BRANCH; bash -x < <(curl -s -k -B https://raw.github.com/$VCAP_GITHUB_ACCOUNT/vcap/$VCAP_BRANCH/setup/install)"
+cmd="sudo apt-get install curl; export VCAP_REPO=$VCAP_REPO; export VCAP_BRANCH=$VCAP_BRANCH; bash -x < <(curl -s -k -B https://raw.github.com/$VCAP_GITHUB_ACCOUNT/vcap/$VCAP_BRANCH/$path_setup_script)"
 echo "Command executed: ssh ubuntu@$IP ""$cmd"""
 ssh ubuntu@$IP "$cmd"
 

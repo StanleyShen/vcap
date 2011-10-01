@@ -39,9 +39,12 @@ when "ubuntu"
       end
 
       # Cant use service resource as service name needs to be statically defined
-      `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} restart`
+      # For pg_major_version >= 9.0 the version does not appear in the name
+      #`#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} restart`
+      `#{File.join("", "etc", "init.d", "postgresql")} restart`
     end
   end
+  
 else
   Chef::Log.error("Installation of PostgreSQL is not supported on this platform.")
 end
