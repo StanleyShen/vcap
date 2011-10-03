@@ -77,4 +77,8 @@ vcap_path = File.join(deployment_info["cloudfoundry_path"], "bin")
 vcap_launch = File.join(script_dir, "vcap")
 
 puts "Using cloudfoundry config from #{deployment_config_path}"
-exec_cmd("#{ruby_binary} #{vcap_launch} #{ARGV[0].downcase} #{vcap_components["components"].join(" ")} -c #{deployment_config_path} -v #{vcap_path} -l #{deployment_info["deployment_log_path"]}")
+if ARGV[1].nil?
+  exec_cmd("#{ruby_binary} #{vcap_launch} #{ARGV[0].downcase} #{vcap_components["components"].join(" ")} -c #{deployment_config_path} -v #{vcap_path} -l #{deployment_info["deployment_log_path"]}")
+else
+  exec_cmd("#{ruby_binary} #{vcap_launch} #{ARGV[0].downcase} #{ARGV[1].downcase} -c #{deployment_config_path} -v #{vcap_path} -l #{deployment_info["deployment_log_path"]}")
+end
