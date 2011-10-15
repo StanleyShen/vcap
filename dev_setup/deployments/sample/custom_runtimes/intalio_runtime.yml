@@ -16,7 +16,6 @@ jobs:
           - redis
           - mongodb
           - postgresql
-          - mysql
     - router
     - health_manager
     - ccdb

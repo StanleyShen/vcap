@@ -36,7 +36,7 @@ http {
     gzip_vary          on;
     gzip_disable "MSIE [1-6]\.(?!.*SV1)";
 
-    client_max_body_size 256M;
+    client_max_body_size 512M;
 
     upstream vcap_router {
       server  unix:/tmp/router.sock;
