@@ -422,6 +422,10 @@ module Run
   end
 
   def self.components(args)
+    if args.length == 1 && args[0]=='nats'
+      STDOUT.puts "Starting nats_server alone."
+      return Array.new
+    end
     args = (Run.core + Run.services) if args.empty?
     args = Run.expand_args(args)
     components = args.map do |arg|
