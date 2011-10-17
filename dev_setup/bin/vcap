@@ -216,9 +216,18 @@ class NatsServer
     end
   end
 
-  def initialize(uri=NATS::DEFAULT_URI, pid_file=NATS::AUTOSTART_PID_FILE)
-    @uri = URI.parse(uri)
-    @pid_file = pid_file
+  def initialize(nats_server_yml=nil, uri=NATS::DEFAULT_URI, pid_file=NATS::AUTOSTART_PID_FILE)
+    unless nats_server_yml.nil?
+      @conf = File.expand_path nats_server_yml
+      raise "#{@conf} must exist " unless File.exists? @conf
+      nats_conf = YAML.load_file @conf
+      login = "#{nats_conf['authorization']['user']}:#{nats_conf['authorization']['password']}@"
+      @uri = URI.parse("nats://#{login}#{nats_conf['net']}:#{nats_conf['port']}/")
+      @pid_file = nats_conf['pid_file']
+    else
+      @uri = URI.parse(uri)
+      @pid_file = pid_file
+    end
   end
 
   def server_pid
@@ -237,8 +246,13 @@ class NatsServer
       exit 1
     end
     nats_server.chomp!
-    `#{nats_server} -p #{@uri.port} -P #{@pid_file} -d 2> /dev/null`
+    unless @conf.nil?
+      `#{nats_server} -c #{@conf} -d 2> /dev/null`
+    else
+      `#{nats_server} -p #{@uri.port} -P #{@pid_file} -d 2> /dev/null`
+    end
     NATS.wait_for_server(@uri, 5)
+    puts "#{nats_server} NATS started pid #{@pid_file} exists: #{File.exists? @pid_file}; USER #{ENV['USER']}"
   end
 
   def is_running?
@@ -256,7 +270,7 @@ end
 
 module Run
   def self.start_init
-    nats_server = NatsServer.new
+    nats_server = NatsServer.new File.join($config_dir, "nats_server", "nats_server.yml")
     nats_server.start_server
   end
 
@@ -267,6 +281,11 @@ module Run
 
   def self.stop_cleanup(args)
     # Only process this if no one else running..
+    if args.length == 1 && args[0] == 'nats'
+      nats_server = NatsServer.new
+      nats_server.kill_server if nats_server.is_running?
+      return
+    end
     running_components = components(args).select {|c| c.running?}.map{|c| c.name }
     return unless running_components.empty?
     nats_server = NatsServer.new
@@ -432,7 +451,7 @@ module Run
 
   def self.components(args)
     if args.length == 1 && args[0]=='nats'
-      STDOUT.puts "Starting nats_server alone."
+      #nats_server alone.
       return Array.new
     end
     args = (Run.core + Run.services) if args.empty?
