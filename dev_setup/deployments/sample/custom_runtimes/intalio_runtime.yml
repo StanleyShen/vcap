@@ -1,5 +1,6 @@
 ---
 # Only rubys, java, nodejs; all the services including postgresql except mysql.
+#force postgresql to 127.0.0.1: this is a Micro-CF and the IP keeps changing.
 deployment:
   name: "intalio_runtime"
 dea:
@@ -11,6 +12,11 @@ dea:
 jobs:
   install:
     - nats_server
+        pidfile: /var/vcap/sys/nats_server.pid
+        logfile: /var/log/nats_server.log
+        port: 4222
+        user: nats
+        password: nats
     - cloud_controller:
         builtin_services:
           - redis
@@ -19,13 +25,30 @@ jobs:
     - router
     - health_manager
     - ccdb
+        host: 127.0.0.1
     - dea
+        max_memory: 8192 #The max amount of memory an account can use.
     - redis:
         index: "0"
     - redis_gateway
     - mongodb:
         index: "0"
+        available_memory: 8192
+        max_memory: 5128
+        version: 2.0.0
     - mongodb_gateway
+    - nginx #TODO: check that this job is supported. 
+            #worse case it won't be taken into account but see the values we need to
+            #change in /etc/nginx/nginx.conf
+        client_max_body_size: 512M
+        proxy_connect_timeout: 30
+        proxy_send_timeout: 240
+        proxy_read_timeout: 240
     - postgresql:
         index: "0"
+        max_db_size: 5128 #each db max
+        available_storage: 65536 #65G max of total DBs on this node
+        server_root_user: vcap
+        server_root_password: vcap
+        ltree_in_template1: true #true to import the ltree.sql file in the template1
     - postgresql_gateway

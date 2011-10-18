@@ -13,6 +13,7 @@ module CloudFoundryPostgres
           if $?.exitstatus != 0
             `echo "host #{db} #{user} 0.0.0.0/0 md5" >> #{pg_hba_conf_file}`
           end
+          
           # Cant use service resource as service name needs to be statically defined
           `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} restart`
         end
@@ -28,16 +29,33 @@ module CloudFoundryPostgres
       bash "Setup PostgreSQL database #{db}" do
         user "postgres"
         code <<-EOH
-        createdb #{db}
-        psql -d #{db} -c \"create role #{user} NOSUPERUSER LOGIN INHERIT CREATEDB\"
-        psql -d #{db} -c \"alter role #{user} with password '#{passwd}'\"
-        echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
-        EOH
+createdb #{db}
+psql -d #{db} -c \"create role #{user} NOSUPERUSER LOGIN INHERIT CREATEDB\"
+psql -d #{db} -c \"alter role #{user} with password '#{passwd}'\"
+echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
+EOH
       end
     else
       Chef::Log.error("PostgreSQL database setup is not supported on this platform.")
     end
   end
+  
+  def cf_pg_setup_ltree()
+    case node['platform']
+    when "ubuntu"
+      bash "Setup PostgreSQL default database template with ltree" do
+        user "postgres"
+        code <<-EOH
+wget https://raw.github.com/postgres/postgres/master/contrib/ltree/ltree--1.0.sql
+psql template1 < ltree--1.0.sql
+rm ltree--1.0.sql
+EOH
+      end
+    else
+      Chef::Log.error("PostgreSQL database setup is not supported on this platform.")
+    end
+  end
+
 end
 
 class Chef::Recipe

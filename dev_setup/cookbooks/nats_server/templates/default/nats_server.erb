@@ -15,7 +15,7 @@ DAEMON_NAME=nats-server
 DAEMON=<%= File.join(node[:ruby][:path], "bin", "nats-server") %>
 DAEMON_ARGS="-d -c <%= node[:nats_server][:config] %>"
 
-PIDFILE=/var/run/nats_server.pid
+PIDFILE="<%= node[:nats_server][:pidfile] %>"
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Exit if the package is not installed

@@ -1,3 +1,8 @@
 default[:nats_server][:port] = "4222"
 default[:nats_server][:user] = "nats"
 default[:nats_server][:password] = "nats"
+default[:nats_server][:pidfile] = "/var/run/nats_server.pid"
+default[:nats_server][:logfile] = "/var/log/nats_server.log"
+default[:nats_server][:logtime] = "true"
+default[:nats_server][:debug] = "false"
+default[:nats_server][:trace] = "false"

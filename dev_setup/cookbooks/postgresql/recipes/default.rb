@@ -16,12 +16,12 @@ when "ubuntu"
 when "ubuntu"
   bash "Install postgres-9.1" do
     code <<-EOH
-    apt-get install python-software-properties
-    add-apt-repository ppa:pitti/postgresql
-    apt-get -qy update
-    apt-get install -qy postgresql-9.1 postgresql-contrib-9.1
-    apt-get install -qy postgresql-server-dev-9.1 libpq-dev libpq5
-    EOH
+apt-get install python-software-properties
+add-apt-repository ppa:pitti/postgresql
+apt-get -qy update
+apt-get install -qy postgresql-9.1 postgresql-contrib-9.1
+apt-get install -qy postgresql-server-dev-9.1 libpq-dev libpq5
+EOH
   end
   
   ruby_block "postgresql_conf_update" do
@@ -37,6 +37,12 @@ when "ubuntu"
       else
         `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql][:host]},localhost'/" #{postgresql_conf_file}`
       end
+
+      # configure ltree.sql if necessary:
+      if node[:postgresql][:ltree_in_template1]
+        
+      end
+          
 
       # Cant use service resource as service name needs to be statically defined
       # For pg_major_version >= 9.0 the version does not appear in the name
