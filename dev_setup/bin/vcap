@@ -80,7 +80,8 @@ class Component
   end
 
   def exists?
-    File.exists? @path
+    # in the Chef deployments, the config folder always exists. even if the component does not exist: check the actual config file.
+    File.exists? @path and File.exists? @configuration_path
   end
 
   def configuration
@@ -282,13 +283,13 @@ module Run
   def self.stop_cleanup(args)
     # Only process this if no one else running..
     if args.length == 1 && args[0] == 'nats'
-      nats_server = NatsServer.new
+      nats_server = NatsServer.new File.join($config_dir, "nats_server", "nats_server.yml")
       nats_server.kill_server if nats_server.is_running?
       return
     end
     running_components = components(args).select {|c| c.running?}.map{|c| c.name }
     return unless running_components.empty?
-    nats_server = NatsServer.new
+    nats_server = NatsServer.new File.join($config_dir, "nats_server", "nats_server.yml")
     return unless nats_server.is_running?
     nats_server.kill_server
   end
@@ -582,7 +583,7 @@ end
 $nocolor = true unless STDOUT.tty?
 
 if args.empty?
-  STDERR.puts "Usage: #{$0} [start|stop|restart|tail|status] [COMPONENT] [--no-color] [--config CONFIGDIR]"
+  STDERR.puts "Usage: #{$0} [start|stop|restart|tail|status|reset] [COMPONENT] [--no-color] [--config CONFIGDIR]"
 else
   command = args.shift.downcase
   if Run.respond_to?(command)

@@ -12,7 +12,7 @@ script_dir = File.expand_path(File.dirname(__FILE__))
 # become more robust
 options = {"name" => DEPLOYMENT_DEFAULT_NAME}
 opts = OptionParser.new do |opts|
-  opts.banner = "Usage: #{$0} [--name deployment_name] [--dir cloudfoundry_home_dir] [start|stop|restart|tail|status]"
+  opts.banner = "Usage: #{$0} [--name deployment_name] [--dir cloudfoundry_home_dir] [start|stop|restart|tail|status|reset]"
   opts.on("-n", "--name deployment_name", "Name of the deployment") do |n|
     options["name"] = n
   end
@@ -22,8 +22,8 @@ opts = OptionParser.new do |opts|
 end
 opts.order!(ARGV)
 
-if ARGV[0].nil? || !%w[start stop restart tail status].include?(ARGV[0].downcase)
-    STDERR.puts "Usage: #{$0} [-n deployment_name] [-d cloudfoundry_home_dir] [start|stop|restart|tail|status]"
+if ARGV[0].nil? || !%w[start stop restart tail status reset].include?(ARGV[0].downcase)
+    STDERR.puts "Usage: #{$0} [-n deployment_name] [-d cloudfoundry_home_dir] [start|stop|restart|tail|status|reset]"
     exit 1
 end
 
