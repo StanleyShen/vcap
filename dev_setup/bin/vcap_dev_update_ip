@@ -1,0 +1,83 @@
+#!/usr/bin/env ruby
+# Update the IP address in a CF deployed config files.
+# Look for an IP address in all the yml files in a 
+# particular folder and replace it with the current IP address
+
+DIR = File.dirname(__FILE__)
+
+module VcapUtilities
+  
+  # Reads the ip of a given interface
+  # defaults on eth0 then on wlan0.
+  def self.ip_auto(interface='eth0')
+    res=`ifconfig | sed -n '/#{interface}/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
+    if interface == 'eth0' && res.empty?
+      VcapUtilities.ip_auto "wlan0"
+    else
+      res
+    end
+  end
+  def self.ip_nats_server(config_folder_path)
+    # written in nats_server/nats_server.yml
+    # net: 38.102.156.55
+    nats_server_file_yml = File.join config_folder_path, "nats_server", "nats_server.yml"
+    raise "The file #{nats_server_file_yml} does not exist." unless File.exists? nats_server_file_yml
+    File.new(nats_server_file_yml).each_line() do |line|
+      line =~ /^net\: ([^ ]*)$/
+      return $1 unless $1.nil?
+    end
+  end
+  
+  class UpdateLocalIP
+    attr_accessor :config_folder_path
+    attr_accessor :local_ip
+    attr_accessor :old_local_ip
+    def initialize(config_folder_path="#{DIR}/config", network_interface_name = nil, local_ip = nil, old_local_ip = nil)
+      @config_folder_path=config_folder_path
+      @local_ip = local_ip
+      @old_local_ip = old_local_ip
+      network_interface_name ||= "eth0"
+      @local_ip ||= VcapUtilities.ip_auto(network_interface_name)
+      @old_local_ip ||= VcapUtilities.ip_nats_server(@config_folder_path)
+      raise "Unable to detect the local IP" if @local_ip.nil?
+      raise "Unable to detect the old IP" if @old_local_ip.nil?
+      @local_ip = @local_ip.strip
+      @old_local_ip = @old_local_ip.strip
+    end
+    def update()
+      if @local_ip == @old_local_ip
+        puts "The IP #{@local_ip} is unchanged."
+        return
+      end
+      puts "Updating the IP from #{@old_local_ip} to #{@local_ip} in the CloudFoundry config files in #{@config_folder_path}"
+      yaml_files = Dir.glob File.join(config_folder_path, "**", "*.yml")
+      raise "No yml file inside #{config_folder_path}" if yaml_files.empty?
+      yaml_files.each do |path|
+        `sed -i "s/#{@old_local_ip}/#{@local_ip}/g" #{path}`
+      end
+    end
+  end
+end
+
+if ARGV.empty?
+  configdir = Dir.pwd
+else
+  configdir = ARGV.shift
+  if configdir == '-h' or configdir == '--help'
+    puts "Usage: #{$0} [CONFIGDIR=.] [NETWORK_INTERFACE=eth0,wlan0] [LOCAL_IP=auto] [OLD_IP=auto]"
+    exit 0
+  elsif configdir == '-n' || configdir == '--name'
+    runtimeconfig = ARGV.shift
+    configdir = File.expand_path(File.join(ENV["HOME"], "cloudfoundry", ".deployments", runtimeconfig, "config"))
+  end
+  network_interface_name = ARGV.shift
+  ip = ARGV.shift
+  old_ip = ARGV.shift
+end
+unless File.exists? configdir
+  STDERR.puts "#{configdir}/nats_server/nats_server.yml does not exists."
+  exit 1
+end
+network_interface_name ||= "eth0"
+updateLocalIP = VcapUtilities::UpdateLocalIP.new(configdir, network_interface_name, ip, old_ip)
+updateLocalIP.update
