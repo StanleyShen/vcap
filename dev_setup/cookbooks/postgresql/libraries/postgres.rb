@@ -1,6 +1,6 @@
 module CloudFoundryPostgres
   
-  def self.pg_server_command(cmd)
+  def pg_server_command(cmd)
     # Cant use service resource as service name needs to be statically defined
     # For pg_major_version >= 9.0 the version does not appear in the name
     if node[:postgresql][:version] == "9.0"
@@ -25,7 +25,13 @@ module CloudFoundryPostgres
             `echo "host #{db} #{user} #{ip_and_mask} #{pass_encrypt}" >> #{pg_hba_conf_file}`
           end
           
-          CloudFoundryPostgres.pg_server_command 'restart'
+          #pg_server_command 'restart'
+          if node[:postgresql][:version] == "9.0"
+            `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} #{cmd}`
+          else
+            `#{File.join("", "etc", "init.d", "postgresql")} #{cmd}`
+          end
+
         end
       end
     else
@@ -104,5 +110,9 @@ EOH
 end
 
 class Chef::Recipe
+  include CloudFoundryPostgres
+end
+
+class Chef::Resource
   include CloudFoundryPostgres
 end
