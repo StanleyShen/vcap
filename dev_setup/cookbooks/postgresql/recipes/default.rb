@@ -12,15 +12,14 @@ end
 
 case node['platform']
 when "ubuntu"
-  
-when "ubuntu"
-  bash "Install postgres-9.1" do
+  bash "Install postgres-#{node[:postgresql][:version]}" do
     code <<-EOH
+POSTGRES_MAJOR_VERSION="#{node[:postgresql][:version]}"
 apt-get install python-software-properties
 add-apt-repository ppa:pitti/postgresql
 apt-get -qy update
-apt-get install -qy postgresql-9.1 postgresql-contrib-9.1
-apt-get install -qy postgresql-server-dev-9.1 libpq-dev libpq5
+apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION
+apt-get install -qy postgresql-server-dev-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
 EOH
   end
   
@@ -35,7 +34,7 @@ EOH
       if $?.exitstatus != 0
         `echo "listen_addresses='#{node[:postgresql][:host]},localhost'" >> #{postgresql_conf_file}`
       else
-        `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql][:host]},localhost'/" #{postgresql_conf_file}`
+        `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql][:listen_addresses]}'/" #{postgresql_conf_file}`
       end
 
       # configure ltree.sql if necessary:
@@ -43,11 +42,7 @@ EOH
         cf_pg_setup_ltree
       end
           
-
-      # Cant use service resource as service name needs to be statically defined
-      # For pg_major_version >= 9.0 the version does not appear in the name
-      #`#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} restart`
-      `#{File.join("", "etc", "init.d", "postgresql")} restart`
+      pg_server_command 'restart'
     end
   end
   

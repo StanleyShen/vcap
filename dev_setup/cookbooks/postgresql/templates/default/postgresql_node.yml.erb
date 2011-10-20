@@ -9,11 +9,13 @@ pid: /var/vcap/sys/run/postgresql_node.pid
 available_storage: <%= node[:postgresql][:available_storage] %>
 node_id: <%= "postgresql_node_#{node[:postgresql][:index]}" %>
 max_db_size: <%= node[:postgresql][:max_db_size] %>
-max_long_query: 3
-max_long_tx: 30
+max_long_query: <%= node[:postgresql][:max_long_query] %>
+max_long_tx: <%= node[:postgresql][:max_long_tx] %>
+max_db_conns: <%= node[:postgresql][:max_db_conns] %>
 postgresql:
   host: <%= node[:postgresql][:host] %>
   port: 5432
   user: <%= node[:postgresql][:server_root_user] %>
   pass: <%= node[:postgresql][:server_root_password] %>
   database: <%= node[:postgresql][:database] %>
+node_timeout: <%= node[:postgresql][:node_timeout] %>

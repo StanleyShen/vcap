@@ -24,7 +24,7 @@ jobs:
         logfile: "/var/log/nats_server.log"
         port: 4222
         user: nats
-        password: nats
+        password: nats  #override this
     - cloud_controller:
         builtin_services:
           - redis
@@ -32,8 +32,8 @@ jobs:
           - postgresql
     - router
     - health_manager
-    - ccdb:
-        host: 127.0.0.1
+    - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
+        host: 127.0.0.1 
     - dea: #The max amount of memory an account can use.
         max_memory: 8192
     - redis:
@@ -44,12 +44,16 @@ jobs:
         available_memory: 8192
         max_memory: 5128
         version: 2.0.0
+        node_timeout: 8 #2 is the default but we keep getting timeout issues.
     - mongodb_gateway
     - postgresql:
         index: "0"
         max_db_size: 5128 #each db max
         available_storage: 65536 #65G max of total DBs on this node
+        max_db_conns: 50
+        listen_addresses: "*"
         server_root_user: vcap
         server_root_password: vcap
         ltree_in_template1: true #true to import the ltree.sql file in the template1
+        node_timeout: 8 #2 seconds is the default but we keep getting timeout errors. maybe this will help.
     - postgresql_gateway

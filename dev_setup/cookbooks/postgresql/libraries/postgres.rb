@@ -1,5 +1,16 @@
 module CloudFoundryPostgres
-  def cf_pg_update_hba_conf(db, user)
+  
+  def pg_server_command(cmd)
+    # Cant use service resource as service name needs to be statically defined
+    # For pg_major_version >= 9.0 the version does not appear in the name
+    if node[:postgresql][:version] == "9.0"
+      `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} #{cmd}`
+    else
+      `#{File.join("", "etc", "init.d", "postgresql")} #{cmd}`
+    end
+  end
+  
+  def cf_pg_update_hba_conf(db, user, ip_and_mask='0.0.0.0/0', pass_encrypt='md5')
     case node['platform']
     when "ubuntu"
       ruby_block "Update PostgreSQL config" do
@@ -11,11 +22,10 @@ module CloudFoundryPostgres
           pg_hba_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
           `grep "#{db}\s*#{user}" #{pg_hba_conf_file}`
           if $?.exitstatus != 0
-            `echo "host #{db} #{user} 0.0.0.0/0 md5" >> #{pg_hba_conf_file}`
+            `echo "host #{db} #{user} #{ip_and_mask} #{pass_encrypt}" >> #{pg_hba_conf_file}`
           end
           
-          # Cant use service resource as service name needs to be statically defined
-          `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} restart`
+          pg_server_command 'restart'
         end
       end
     else
@@ -43,17 +53,51 @@ EOH
   def cf_pg_setup_ltree()
     case node['platform']
     when "ubuntu"
+      / \d*.\d*/ =~ `pg_config --version`
+      pg_major_version = $&.strip
       bash "Setup PostgreSQL default database template with ltree" do
         user "postgres"
+        if pg_major_version == '9.0'
+        code <<-EOH
+ltree_sql_path="/usr/share/postgresql/9.0/contrib/ltree.sql"
+if [ -f "$ltree_sql_path" ]; then
+  psql template1 -f $ltree_sql_path
+  psql template1 -c \"select '1.1'::ltree;\"
+  exit $?
+else
+  echo "Warning: unable to configure the ltree extension. ltree is not installed on this postgres db."
+  exit 22
+fi
+EOH
+        else
+        #9.1 and more recent have a much nicer way of setting up ltree.
         #see http://www.depesz.com/index.php/2011/03/02/waiting-for-9-1-extensions/
         code <<-EOH
-psql template1 -c \"create extension ltree;\"
+psql template1 -c \"CREATE EXTENSION IF NOT EXISTS ltree;\"
 psql template1 -c \"select '1.1'::ltree;\"
-rm ltree--1.0.sql
+exit $?
 EOH
+        end
       end
     else
       Chef::Log.error("PostgreSQL database setup is not supported on this platform.")
+    end
+  end
+  
+  private
+  
+  def get_pg_version()
+    case node['platform']
+    when "ubuntu"
+      ruby_block "Update PostgreSQL config" do
+        block do
+          / \d*.\d*/ =~ `pg_config --version`
+          pg_major_version = $&.strip
+          return pg_major_version
+        end
+      end
+    else
+      Chef::Log.error("PostgreSQL config update is not supported on this platform.")
     end
   end
 
