@@ -15,7 +15,7 @@ local_register_only: false
 
 # Allow applications to register URIs that are outside your domain.
 # Legacy (FIXME REMOVE)
-allow_external_app_uris: false
+allow_external_app_uris: <%= node[:cloud_controller][:app_uris][:allow_external] %>
 
 # This dicatates what the uri namespace rules
 # are for applications. Admins can overide any of the
@@ -23,7 +23,7 @@ allow_external_app_uris: false
 
 app_uris:
   # Allow applications to register URIs that are outside your domain.
-  allow_external: false
+  allow_external: <%= node[:cloud_controller][:app_uris][:allow_external] %>
 #  reserved_file:
 #  reserved_list: [www, test, dash, register, foo, bar]
 #  reserved_length: 3
@@ -77,9 +77,9 @@ database_environment: # replaces database.yml
 staging:
   max_concurrent_stagers: 10
   # Max duration for staging process
-  max_staging_runtime:    120 # secs
+  max_staging_runtime:    <%= node[:cloud_controller][:staging][:max_staging_runtime] %> # secs
   # Create a secure environment for staging
-  secure: false
+  secure: <%= node[:cloud_controller][:staging][:secure] %>
 
 # admin support
 admins: [ <%= node[:cloud_controller][:admins].join(",") %> ]
@@ -89,10 +89,10 @@ https_required_for_admins: false
 # Controls the amount of resources assigned to a user
 # Normal user accounts
 default_account_capacity:
-  memory:   4096
-  app_uris: 32
-  services: 32
-  apps:     32
+  memory:   <%= node[:cloud_controller][:default_account_capacity][:memory] %>
+  app_uris: <%= node[:cloud_controller][:default_account_capacity][:app_uris] %>
+  services: <%= node[:cloud_controller][:default_account_capacity][:services] %>
+  apps:     <%= node[:cloud_controller][:default_account_capacity][:apps] %>
 
 # Services we provide, and their tokens. Avoids bootstrapping DB.
 builtin_services:
@@ -102,7 +102,7 @@ builtin_services:
   <% end %>
 
 # Enable/disable starting apps in debug modes.
-allow_debug: true
+allow_debug: <%= node[:cloud_controller][:allow_debug] %>
 
 # Supported runtime versions and debug modes.
 # Used for /info/runtimes endpoint (served unfiltered as JSON)

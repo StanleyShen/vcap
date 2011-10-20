@@ -31,6 +31,13 @@ jobs:
           - redis
           - mongodb
           - postgresql
+        default_account_capacity:
+          - memory:   8192
+          - app_uris: 32
+          - services: 32
+          - apps:     32
+        staging:
+          - max_staging_runtime: 240
     - router
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
