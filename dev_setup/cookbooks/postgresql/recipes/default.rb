@@ -41,15 +41,15 @@ EOH
       end
 
     end
-    # configure ltree.sql if necessary:
-    if node[:postgresql_node][:ltree_in_template1]
-      cf_pg_setup_ltree
-    else
-      `echo not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}`
-    end
-    
-    cf_pg_server_command 'restart'
   end
+  # configure ltree.sql if necessary:
+  if node[:postgresql_node][:ltree_in_template1]
+    cf_pg_setup_ltree
+  else
+    `echo not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}`
+  end
+  
+  cf_pg_server_command 'restart'
   
 else
   Chef::Log.error("Installation of PostgreSQL is not supported on this platform.")
