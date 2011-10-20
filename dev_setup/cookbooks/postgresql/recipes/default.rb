@@ -55,6 +55,15 @@ else
   Chef::Log.error("Installation of PostgreSQL is not supported on this platform.")
 end
 
+cf_pg_update_hba_conf("all", "all", "#{cf_local_ip} 255.255.255.255", "md5")
+
+unless node[:postgresql_node][:pg_hba_extra].nil?
+  #relax the rules to connect to postgres.
+  cf_pg_update_hba_conf(node[:postgresql_node][:pg_hba_extra][:database], node[:postgresql_node][:pg_hba_extra][:user], node[:postgresql_node][:pg_hba_extra][:ip_range], node[:postgresql_node][:pg_hba_extra][:pass_encrypt])
+end
+
 cf_pg_update_hba_conf(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user])
 cf_pg_setup_db(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user], node[:postgresql_node][:server_root_password])
+
+
 
