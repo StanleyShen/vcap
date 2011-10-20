@@ -26,8 +26,7 @@ EOH
   
   ruby_block "postgresql_conf_update" do
     block do
-      / \d*.\d*/ =~ `pg_config --version`
-      pg_major_version = $&.strip
+      pg_major_version = get_pg_major_version
 
       # update postgresql.conf
       postgresql_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "postgresql.conf")

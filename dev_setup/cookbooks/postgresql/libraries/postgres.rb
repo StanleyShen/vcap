@@ -15,8 +15,7 @@ module CloudFoundryPostgres
     when "ubuntu"
       ruby_block "Update PostgreSQL config" do
         block do
-          / \d*.\d*/ =~ `pg_config --version`
-          pg_major_version = $&.strip
+          pg_major_version = get_pg_major_version
 
           # Update pg_hba.conf
           pg_hba_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
@@ -59,8 +58,7 @@ EOH
   def cf_pg_setup_ltree()
     case node['platform']
     when "ubuntu"
-      / \d*.\d*/ =~ `pg_config --version`
-      pg_major_version = $&.strip
+      pg_major_version = get_pg_major_version
       bash "Setup PostgreSQL default database template with ltree" do
         user "postgres"
         if pg_major_version == '9.0'
@@ -90,9 +88,7 @@ EOH
     end
   end
   
-  private
-  
-  def get_pg_version()
+  def get_pg_major_version()
     case node['platform']
     when "ubuntu"
       ruby_block "Update PostgreSQL config" do
