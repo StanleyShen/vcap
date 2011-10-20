@@ -77,9 +77,9 @@ database_environment: # replaces database.yml
 staging:
   max_concurrent_stagers: 10
   # Max duration for staging process
-  max_staging_runtime:    <%= node[:cloud_controller][:staging][:max_staging_runtime] %> # secs
+  max_staging_runtime:    <%= node[:cloud_controller][:stager][:max_staging_runtime] %> # secs
   # Create a secure environment for staging
-  secure: <%= node[:cloud_controller][:staging][:secure] %>
+  secure: <%= node[:cloud_controller][:stager][:secure] %>
 
 # admin support
 admins: [ <%= node[:cloud_controller][:admins].join(",") %> ]

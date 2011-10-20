@@ -21,8 +21,9 @@ default[:cloud_controller][:staging][:sinatra] = "sinatra.yml"
 default[:cloud_controller][:staging][:spring] = "spring.yml"
 default[:cloud_controller][:staging][:java_web] = "java_web.yml"
 
-default[:cloud_controller][:staging][:max_staging_runtime] = 120 #seconds
-default[:cloud_controller][:staging][:secure] = false
+#Stager
+default[:cloud_controller][:stager][:max_staging_runtime] = 120 #seconds
+default[:cloud_controller][:stager][:secure] = false
 
 # Default account capacity
 default[:cloud_controller][:default_account_capacity][:memory ] = 2048
