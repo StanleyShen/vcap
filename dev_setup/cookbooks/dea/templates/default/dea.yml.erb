@@ -25,7 +25,7 @@ multi_tenant: true
 
 # Maximum memory allocated to this DEA. In a multi tenant setup, this
 # memory is divided amongst all applications managed by this DEA.
-max_memory: 4096
+max_memory: <%= node[:dea][:max_memory] %>
 
 # Secure environment for running applications in a multi tenant setup.
 secure: false
