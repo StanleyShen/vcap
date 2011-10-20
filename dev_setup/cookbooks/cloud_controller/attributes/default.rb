@@ -3,6 +3,8 @@ default[:cloud_controller][:config_file] = "cloud_controller.yml"
 default[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}"
 default[:cloud_controller][:local_route] = nil
 default[:cloud_controller][:admins] = ["dev@cloudfoundry.org"]
+default[:cloud_controller][:description] = "VMware's Cloud Application Platform"
+default[:cloud_controller][:support_address] = "http://support.cloudfoundry.com"
 
 # Specifies if new users can register only from the host that is running the cloud controller
 default[:cloud_controller][:local_register_only] = false

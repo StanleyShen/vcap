@@ -1,8 +1,8 @@
 ---
 # Cloud Controller URI
 external_uri: api.<%= node[:deployment][:domain] %>
-description: "VMware's Cloud Application Platform"
-support_address: http://support.cloudfoundry.com
+description: <%= node[:cloud_controller][:description] %>
+support_address: <%= node[:cloud_controller][:support_address] %>
 
 # local_route is the IP address of a well known server on your network, it
 # is used to choose the right ip address (think of hosts that have multiple nics
@@ -11,7 +11,7 @@ support_address: http://support.cloudfoundry.com
 local_route: <%= node[:cloud_controller][:local_route] %>
 
 # Specifies if new users can register only from the host that is running the cloud controller
-local_register_only: false
+local_register_only: <%= node[:cloud_controller][:local_register_only] %>
 
 # Allow applications to register URIs that are outside your domain.
 # Legacy (FIXME REMOVE)

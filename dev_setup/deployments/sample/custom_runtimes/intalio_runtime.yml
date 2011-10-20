@@ -26,7 +26,12 @@ jobs:
         user: nats
         password: nats  #override this
     - cloud_controller:
-        admins: hmalphettes@intalio.com
+        admins: [ hmalphettes@intalio.com ]
+        description: "Intalio CF"
+        support_address: "http://support.intalio.com"
+        app_uris:
+          - allow_external: true
+        local_register_only: true
         builtin_services:
           - redis
           - mongodb
@@ -55,6 +60,7 @@ jobs:
         node_timeout: 8 #2 is the default but we keep getting timeout issues.
     - mongodb_gateway
     - postgresql:
+        version: "9.0"
         index: "0"
         max_db_size: 5128 #each db max
         available_storage: 65536 #65G max of total DBs on this node
