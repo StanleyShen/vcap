@@ -8,7 +8,7 @@ log_file: <%= node[:nats_server][:logfile] %>
 authorization:
   user: <%= node[:nats_server][:user] %>
   password: <%= node[:nats_server][:password] %>
-  timeout: 1
+  timeout: 20
 
 logfile: <%= node[:nats_server][:logfile] %>
 
