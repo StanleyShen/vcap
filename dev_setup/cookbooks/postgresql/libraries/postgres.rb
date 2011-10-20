@@ -1,5 +1,15 @@
 module CloudFoundryPostgres
   
+  def cf_pg_server_command(cmd)
+    case node['platform']
+    when "ubuntu"
+      ruby_block "Update PostgreSQL config" do
+        block do
+          pg_server_command 'restart'
+        end
+      end
+    end
+  end
   def pg_server_command(cmd)
     / \d*.\d*/ =~ `pg_config --version`
     pg_major_version = $&.strip

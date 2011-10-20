@@ -40,15 +40,15 @@ EOH
         `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql_node][:listen_addresses]}'/" #{postgresql_conf_file}`
       end
 
-      # configure ltree.sql if necessary:
-      if node[:postgresql_node][:ltree_in_template1]
-        cf_pg_setup_ltree
-      else
-        `echo not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}`
-      end
-      
-      pg_server_command 'restart'
     end
+    # configure ltree.sql if necessary:
+    if node[:postgresql_node][:ltree_in_template1]
+      cf_pg_setup_ltree
+    else
+      `echo not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}`
+    end
+    
+    cf_pg_server_command 'restart'
   end
   
 else
