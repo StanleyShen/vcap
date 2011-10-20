@@ -7,7 +7,7 @@
 
 node[:nats_server][:host] ||= cf_local_ip
 node[:ccdb][:host] ||= cf_local_ip
-node[:postgresql][:host] ||= cf_local_ip
+node[:postgresql_node][:host] ||= cf_local_ip
 
 [node[:deployment][:home], File.join(node[:deployment][:home], "deploy"), node[:deployment][:log_path],
  File.join(node[:deployment][:home], "sys", "log"), node[:deployment][:config_path],

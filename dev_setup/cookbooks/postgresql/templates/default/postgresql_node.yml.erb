@@ -1,21 +1,21 @@
 ---
 local_db: sqlite3:/var/vcap/services/postgresql/postgresql_node.db
 base_dir: /var/vcap/services/postgresql/
-index: <%= node[:postgresql][:index] %>
+index: <%= node[:postgresql_node][:index] %>
 mbus: nats://<%= node[:nats_server][:user] %>:<%= node[:nats_server][:password] %>@<%= node[:nats_server][:host] %>:<%= node[:nats_server][:port] %>/
 logging:
   level: debug
 pid: /var/vcap/sys/run/postgresql_node.pid
-available_storage: <%= node[:postgresql][:available_storage] %>
-node_id: <%= "postgresql_node_#{node[:postgresql][:index]}" %>
-max_db_size: <%= node[:postgresql][:max_db_size] %>
-max_long_query: <%= node[:postgresql][:max_long_query] %>
-max_long_tx: <%= node[:postgresql][:max_long_tx] %>
-max_db_conns: <%= node[:postgresql][:max_db_conns] %>
+available_storage: <%= node[:postgresql_node][:available_storage] %>
+node_id: <%= "postgresql_node_#{node[:postgresql_node][:index]}" %>
+max_db_size: <%= node[:postgresql_node][:max_db_size] %>
+max_long_query: <%= node[:postgresql_node][:max_long_query] %>
+max_long_tx: <%= node[:postgresql_node][:max_long_tx] %>
+max_db_conns: <%= node[:postgresql_node][:max_db_conns] %>
 postgresql:
-  host: <%= node[:postgresql][:host] %>
+  host: <%= node[:postgresql_node][:host] %>
   port: 5432
-  user: <%= node[:postgresql][:server_root_user] %>
-  pass: <%= node[:postgresql][:server_root_password] %>
-  database: <%= node[:postgresql][:database] %>
-node_timeout: <%= node[:postgresql][:node_timeout] %>
+  user: <%= node[:postgresql_node][:server_root_user] %>
+  pass: <%= node[:postgresql_node][:server_root_password] %>
+  database: <%= node[:postgresql_node][:database] %>
+node_timeout: <%= node[:postgresql_node][:node_timeout] %>

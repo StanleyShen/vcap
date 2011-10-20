@@ -30,19 +30,19 @@ jobs:
         description: "Intalio CF"
         support_address: "http://support.intalio.com"
         app_uris:
-          - allow_external: true
+          { allow_external: true }
         local_register_only: true
         builtin_services:
           - redis
           - mongodb
           - postgresql
         default_account_capacity:
-          - memory:   8192
-          - app_uris: 32
-          - services: 32
-          - apps:     32
+          memory:   8192
+          app_uris: 32
+          services: 32
+          apps:     32
         stager:
-          - max_staging_runtime: 240
+          max_staging_runtime: 240
     - router
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
