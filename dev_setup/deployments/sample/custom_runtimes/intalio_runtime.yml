@@ -41,7 +41,7 @@ jobs:
           - app_uris: 32
           - services: 32
           - apps:     32
-        staging:
+        stager:
           - max_staging_runtime: 240
     - router
     - health_manager

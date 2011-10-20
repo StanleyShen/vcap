@@ -6,6 +6,10 @@
 #
 #
 #
+class Chef::Recipe
+  include CloudFoundryPostgres
+end
+
 %w[libpq-dev postgresql].each do |pkg|
   package pkg
 end
