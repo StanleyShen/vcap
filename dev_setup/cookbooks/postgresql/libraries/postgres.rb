@@ -45,9 +45,10 @@ EOH
     when "ubuntu"
       bash "Setup PostgreSQL default database template with ltree" do
         user "postgres"
+        #see http://www.depesz.com/index.php/2011/03/02/waiting-for-9-1-extensions/
         code <<-EOH
-wget https://raw.github.com/postgres/postgres/master/contrib/ltree/ltree--1.0.sql
-psql template1 < ltree--1.0.sql
+psql template1 -c \"create extension ltree;\"
+psql template1 -c \"select '1.1'::ltree;\"
 rm ltree--1.0.sql
 EOH
       end

@@ -13,5 +13,5 @@ authorization:
 logfile: <%= node[:nats_server][:logfile] %>
 
 logtime: <%= node[:nats_server][:logtime] %>
-debug: <%= nodedefault[:nats_server][:debug] %>
-trace: <%= nodedefault[:nats_server][:trace] %>
+debug: <%= node[:nats_server][:debug] %>
+trace: <%= node[:nats_server][:trace] %>

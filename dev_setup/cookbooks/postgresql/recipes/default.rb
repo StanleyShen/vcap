@@ -40,7 +40,7 @@ EOH
 
       # configure ltree.sql if necessary:
       if node[:postgresql][:ltree_in_template1]
-        
+        cf_pg_setup_ltree
       end
           
 

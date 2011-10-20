@@ -3,6 +3,14 @@
 #force postgresql to 127.0.0.1: this is a Micro-CF and the IP keeps changing.
 deployment:
   name: "intalio_runtime"
+ #WARNING: unless you are installing on your laptop
+ #you must change this.
+  domain: "api.vcap.me"
+nginx:
+  client_max_body_size: 512M
+  proxy_connect_timeout: 30
+  proxy_send_timeout: 240
+  proxy_read_timeout: 240
 dea:
   runtimes:
     - ruby18
@@ -11,9 +19,9 @@ dea:
     - nodejs
 jobs:
   install:
-    - nats_server
-        pidfile: /var/vcap/sys/nats_server.pid
-        logfile: /var/log/nats_server.log
+    - nats_server:
+        pidfile: "/var/vcap/sys/nats_server.pid"
+        logfile: "/var/log/nats_server.log"
         port: 4222
         user: nats
         password: nats
@@ -24,10 +32,10 @@ jobs:
           - postgresql
     - router
     - health_manager
-    - ccdb
+    - ccdb:
         host: 127.0.0.1
-    - dea
-        max_memory: 8192 #The max amount of memory an account can use.
+    - dea: #The max amount of memory an account can use.
+        max_memory: 8192
     - redis:
         index: "0"
     - redis_gateway
@@ -37,13 +45,6 @@ jobs:
         max_memory: 5128
         version: 2.0.0
     - mongodb_gateway
-    - nginx #TODO: check that this job is supported. 
-            #worse case it won't be taken into account but see the values we need to
-            #change in /etc/nginx/nginx.conf
-        client_max_body_size: 512M
-        proxy_connect_timeout: 30
-        proxy_send_timeout: 240
-        proxy_read_timeout: 240
     - postgresql:
         index: "0"
         max_db_size: 5128 #each db max
