@@ -91,13 +91,9 @@ EOH
   def get_pg_major_version()
     case node['platform']
     when "ubuntu"
-      ruby_block "Update PostgreSQL config" do
-        block do
-          / \d*.\d*/ =~ `pg_config --version`
-          pg_major_version = $&.strip
-          return pg_major_version
-        end
-      end
+      / \d*.\d*/ =~ `pg_config --version`
+      pg_major_version = $&.strip
+      return pg_major_version
     else
       Chef::Log.error("PostgreSQL config update is not supported on this platform.")
     end
