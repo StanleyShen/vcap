@@ -27,13 +27,7 @@ module CloudFoundryPostgres
             `echo "host #{db} #{user} #{ip_and_mask} #{pass_encrypt}" >> #{pg_hba_conf_file}`
           end
           
-          #pg_server_command 'restart'
-          if node[:postgresql][:version] == "9.0"
-            `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} #{cmd}`
-          else
-            `#{File.join("", "etc", "init.d", "postgresql")} #{cmd}`
-          end
-
+          pg_server_command 'restart'
         end
       end
     else
