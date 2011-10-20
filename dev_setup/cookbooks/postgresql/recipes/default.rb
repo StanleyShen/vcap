@@ -46,14 +46,14 @@ EOH
         Chef::Recipe.cf_pg_setup_ltree
       end
           
-      #Chef::Recipe.pg_server_command 'restart'
+      Chef::Recipe.pg_server_command 'restart'
       # Cant use service resource as service name needs to be statically defined
       # For pg_major_version >= 9.0 the version does not appear in the name
-      if node[:postgresql][:version] == "9.0"
-        `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} #{cmd}`
-      else
-        `#{File.join("", "etc", "init.d", "postgresql")} #{cmd}`
-      end
+      #if node[:postgresql][:version] == "9.0"
+      #  `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} #{cmd}`
+      #else
+      #  `#{File.join("", "etc", "init.d", "postgresql")} #{cmd}`
+      #end
 
     end
   end
