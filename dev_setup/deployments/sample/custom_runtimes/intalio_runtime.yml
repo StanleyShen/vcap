@@ -56,6 +56,12 @@ jobs:
         max_memory: 5128
         version: 2.0.0
         node_timeout: 8 #2 is the default but we keep getting timeout issues.
+        mongod_conf:
+          journal: false
+          noprealloc: true
+          quota: false
+          quotafiles: 4
+          smallfiles: false
     - mongodb_gateway
     - postgresql_node:
         version: "9.0"

@@ -8,3 +8,10 @@ default[:mongodb_node][:available_memory] = "4096"
 default[:mongodb_node][:max_memory] = "128"
 default[:mongodb_node][:token] = "changemongodbtoken"
 default[:mongodb][:node_timeout] = 2 #the value hardocded here: https://github.com/cloudfoundry/vcap-services/commit/fe6415a8142f11b93e4197eb5663fd61b272eef3#L2R15
+
+default[:mongodb][:mongod_conf][:journal] = false
+default[:mongodb][:mongod_conf][:noprealloc] = true
+default[:mongodb][:mongod_conf][:quota] = true
+default[:mongodb][:mongod_conf][:quotafiles] = 4
+default[:mongodb][:mongod_conf][:smallfiles] = true
+

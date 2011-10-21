@@ -16,3 +16,9 @@ port_range:
 migration_nfs: /mnt/migration
 logging:
   level: debug
+mongod_conf:
+  journal: <%= node[:mongodb][:mongod_conf][:journal] %>
+  noprealloc: <%= node[:mongodb][:mongod_conf][:noprealloc] %>
+  quota: <%= node[:mongodb][:mongod_conf][:quota] %>
+  quotafiles: <%= node[:mongodb][:mongod_conf][:quotafiles] %>
+  smallfiles: <%= node[:mongodb][:mongod_conf][:smallfiles] %>
