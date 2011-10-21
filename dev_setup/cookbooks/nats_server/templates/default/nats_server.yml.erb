@@ -2,15 +2,13 @@
 net: <%= node[:nats_server][:host] %>
 port: <%= node[:nats_server][:port] %>
 
-pid_file: <%= node[:nats_server][:pidfile] %>
-log_file: <%= node[:nats_server][:logfile] %>
+pid_file: /var/run/nats_server.pid
+log_file: /var/log/nats_server.log
 
 authorization:
   user: <%= node[:nats_server][:user] %>
   password: <%= node[:nats_server][:password] %>
   timeout: 20
-
-logfile: <%= node[:nats_server][:logfile] %>
 
 logtime: <%= node[:nats_server][:logtime] %>
 debug: <%= node[:nats_server][:debug] %>

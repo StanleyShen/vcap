@@ -65,6 +65,8 @@ jobs:
         max_db_size: 5128 #each db max
         available_storage: 65536 #65G max of total DBs on this node
         max_db_conns: 50
+        max_long_query: 240
+        max_long_tx: 480
         listen_addresses: "*"
         pg_hba_extra: #an extra access rule line: free for all for now
           user: all
