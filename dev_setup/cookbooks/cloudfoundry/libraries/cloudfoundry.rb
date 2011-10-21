@@ -12,6 +12,7 @@ module CloudFoundry
 
   A_ROOT_SERVER = '198.41.0.4'
   def cf_local_ip(route = A_ROOT_SERVER)
+    return node[:deployment][:local_ip] unless node[:deployment][:local_ip].nil?
     route ||= A_ROOT_SERVER
     orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
     UDPSocket.open {|s| s.connect(route, 1); s.addr.last }

@@ -66,10 +66,10 @@ jobs:
         available_storage: 65536 #65G max of total DBs on this node
         max_db_conns: 50
         listen_addresses: "*"
-        pg_hba_extra: #an extra access rule line
+        pg_hba_extra: #an extra access rule line: free for all for now
           user: all
           database: all
-          ip_range: "0.0.0.0/0"
+          ip_and_mask: "0.0.0.0/0"
           pass_encrypt: md5
         server_root_user: vcap
         server_root_password: vcap

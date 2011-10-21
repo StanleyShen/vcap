@@ -55,7 +55,8 @@ else
   Chef::Log.error("Installation of PostgreSQL is not supported on this platform.")
 end
 
-cf_pg_update_hba_conf("all", "all", "#{cf_local_ip} 255.255.255.255", "md5")
+# Add the current IP to the allowed ones
+cf_pg_update_hba_conf("all", "all", "#{cf_local_ip} 255.255.255.255", "md5") unless cf_local_ip == '127.0.0.1'
 
 unless node[:postgresql_node][:pg_hba_extra].nil?
   #relax the rules to connect to postgres.
