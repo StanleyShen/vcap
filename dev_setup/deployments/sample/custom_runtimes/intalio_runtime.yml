@@ -20,8 +20,6 @@ dea:
 jobs:
   install:
     - nats_server:
-        pidfile: "/var/vcap/sys/nats_server.pid"
-        logfile: "/var/log/nats_server.log"
         port: 4222
         user: nats
         password: nats  #override this
