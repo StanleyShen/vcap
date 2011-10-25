@@ -18,11 +18,13 @@ when "ubuntu"
   bash "Install postgres-#{node[:postgresql_node][:version]}" do
     code <<-EOH
 POSTGRES_MAJOR_VERSION="#{node[:postgresql_node][:version]}"
-apt-get install -qy python-software-properties
-add-apt-repository ppa:pitti/postgresql
-apt-get -qy update
-apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION
-apt-get install -qy postgresql-server-dev-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
+if [ ! -d "/etc/postgresql/$POSTGRES_MAJOR_VERSION" ]
+  apt-get install -qy python-software-properties
+  add-apt-repository ppa:pitti/postgresql
+  apt-get -qy update
+  apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION
+  apt-get install -qy postgresql-server-dev-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
+fi
 EOH
   end.run_action(:run)
   
