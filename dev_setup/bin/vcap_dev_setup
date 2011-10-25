@@ -108,9 +108,13 @@ fi
 run_cmd apt-get $APT_CONFIG install -qym git-core
 [ -d $CLOUDFOUNDRY_HOME ] || mkdir $CLOUDFOUNDRY_HOME
 if [ ! -d $CLOUDFOUNDRY_HOME/vcap ]; then
-    cd $CLOUDFOUNDRY_HOME && git clone $VCAP_REPO
+    cd $CLOUDFOUNDRY_HOME && git clone $VCAP_REPO --depth 1
     cd vcap
-    [ -n "$VCAP_BRANCH" ] && git checkout -b $VCAP_BRANCH origin/$VCAP_BRANCH
+    if [ -n "$VCAP_BRANCH" ]; then
+      git fetch
+      git checkout -b $VCAP_BRANCH origin/$VCAP_BRANCH
+      git pull origin $VCAP_BRANCH
+    fi
     git submodule update --init
     if [ $? != 0 ]; then
       echo "Unable to clone cloudfoundry repo."
