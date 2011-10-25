@@ -15,6 +15,8 @@
 
 case node['platform']
 when "ubuntu"
+  # Ugly and to the point... Should spend time improving the actual postgresql package
+  # not fixing this.
   bash "Install postgres-#{node[:postgresql_node][:version]}" do
     code <<-EOH
 POSTGRES_MAJOR_VERSION="#{node[:postgresql_node][:version]}"
