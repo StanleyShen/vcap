@@ -27,7 +27,7 @@ fi
 
 APT_CONFIG="-o Acquire::http::No-Cache=True -o Acquire::BrokenProxy=true -o Acquire::Retries=3"
 
-while getopts "had:p:c:r:" OPTION
+while getopts "had:p:c:r:b:" OPTION
 do
   case $OPTION in
     h)
