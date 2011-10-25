@@ -70,10 +70,10 @@ EOH
   def cf_pg_setup_ltree()
     case node['platform']
     when "ubuntu"
-      / \d*.\d*/ =~ `pg_config --version`
-      pg_major_version = $&.strip
       bash "Setup PostgreSQL default database template with ltree" do
         user "postgres"
+        / \d*.\d*/ =~ `pg_config --version`
+        pg_major_version = $&.strip
         if pg_major_version == '9.0'
         code <<-EOH
 ltree_sql_path="/usr/share/postgresql/9.0/contrib/ltree.sql"
