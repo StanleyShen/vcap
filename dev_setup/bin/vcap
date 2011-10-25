@@ -152,7 +152,9 @@ class Component
         # should help for now.
         if is_cloud_controller?
           cc_dir = File.expand_path(File.join(DIR, '..', 'cloud_controller'))
-          Dir.chdir(cc_dir) { `bundle exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{@configuration_path}` }
+          #Should be doing: `bundle exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{@configuration_path}`
+          #But the gem file is lacking rake so it fails at the moment. counting on rake installed on the OS.
+          Dir.chdir(cc_dir) { `rake db:migrate CLOUD_CONTROLLER_CONFIG=#{@configuration_path}` }
         end
         exec("#{component_start_path}")
       end
