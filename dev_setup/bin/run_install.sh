@@ -2,6 +2,10 @@
 # one script to install the whole CF with chef-solo.
 # copy this script on your VM and make a runtime profile file.
 # Then run it once or more until it is all installed.
+# For example:
+# wget -N https://raw.github.com/hmalphettes/vcap/tweaks/dev_setup/bin/run_install.sh
+# chmod +x run_install.sh
+# ./run_install.sh
 
 [ -z "$runtime_profile" ] && runtime_profile=micro_intalio_cf.yml
 if [ ! -f "$runtime_profile" ]; then
