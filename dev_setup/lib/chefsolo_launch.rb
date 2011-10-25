@@ -144,7 +144,7 @@ Dir.mktmpdir do |tmpdir|
   puts "Command to run cloudfoundry: #{vcap_dev_path} #{args.strip}"
   puts "Or: #{cloudfoundry_home}/vcap_#{deployment_name} #{args.strip}"
   
-  File.open("#{cloudfoundry_home}/vcap_#{deployment_name}", 'w') do |f2|  
+  File.open("#{cloudfoundry_home}/vcap_#{deployment_name}", 'w') do |f|  
     f.puts "#!/bin/bash"
     f.puts "#{vcap_dev_path} --name #{deployment_name} --dir #{cloudfoundry_home} $@"
   end
