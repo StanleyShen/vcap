@@ -18,7 +18,7 @@ when "ubuntu"
   bash "Install postgres-#{node[:postgresql_node][:version]}" do
     code <<-EOH
 POSTGRES_MAJOR_VERSION="#{node[:postgresql_node][:version]}"
-apt-get install python-software-properties
+apt-get install -qy python-software-properties
 add-apt-repository ppa:pitti/postgresql
 apt-get -qy update
 apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION
