@@ -12,7 +12,8 @@ OPTIONS:
   -p           http proxy i.e. -p http://username:password@host:port/
   -c           deployment config
   -d           cloudfoundry home
-  -r           cloud foundry repo
+  -r           cloudfoundry repo
+  -b           cloudfoundry branch
 EOF
 }
 
@@ -35,6 +36,9 @@ do
       ;;
     a)
       ALL=true
+      ;;
+    b)
+      VCAP_BRANCH=$OPTARG
       ;;
     c)
       CONFIG_FILE=$OPTARG

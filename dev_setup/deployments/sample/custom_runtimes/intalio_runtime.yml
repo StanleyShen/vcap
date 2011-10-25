@@ -2,7 +2,7 @@
 # Only rubys, java, nodejs; all the services including postgresql except mysql.
 #force postgresql to 127.0.0.1: this is a Micro-CF and the IP keeps changing.
 deployment:
-  name: "intalio_runtime"
+  name: "intalio_devbox"
  #WARNING: unless you are installing on your laptop
  #you must change this.
   domain: "api.vcap.me"
@@ -59,8 +59,8 @@ jobs:
         mongod_conf:
           journal: false
           noprealloc: true
-          quota: false
-          quotafiles: 4
+          quota: true
+          quotafiles: 8
           smallfiles: false
     - mongodb_gateway
     - postgresql_node:
@@ -71,7 +71,8 @@ jobs:
         max_db_conns: 50
         max_long_query: 240
         max_long_tx: 480
-        listen_addresses: "*"
+        listen_addresses: * #listen to any addresses
+        local_acl: trust #trust local connections on psql for admin jobs
         pg_hba_extra: #an extra access rule line: free for all for now
           user: all
           database: all

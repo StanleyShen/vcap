@@ -1,16 +1,16 @@
 module CloudFoundryPostgres
   
-  def cf_pg_server_command(cmd)
+  def cf_pg_server_command(cmd='restart')
     case node['platform']
     when "ubuntu"
       ruby_block "Update PostgreSQL config" do
         block do
-          pg_server_command 'restart'
+          pg_server_command cmd
         end
       end
     end
   end
-  def pg_server_command(cmd)
+  def pg_server_command(cmd='restart')
     / \d*.\d*/ =~ `pg_config --version`
     pg_major_version = $&.strip
     # Cant use service resource as service name needs to be statically defined
@@ -22,7 +22,7 @@ module CloudFoundryPostgres
     end
   end
   
-  def cf_pg_update_hba_conf(db, user, ip_and_mask='0.0.0.0/0', pass_encrypt='md5')
+  def cf_pg_update_hba_conf(db, user, ip_and_mask='0.0.0.0/0', pass_encrypt='md5', connection_type='host')
     case node['platform']
     when "ubuntu"
       ruby_block "Update PostgreSQL config" do
@@ -32,12 +32,17 @@ module CloudFoundryPostgres
 
           # Update pg_hba.conf
           pg_hba_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
-          `grep "#{db}\s*#{user}" #{pg_hba_conf_file}`
+          `grep "#{connection_type}\s*#{db}\s*#{user}" #{pg_hba_conf_file}`
           if $?.exitstatus != 0
-            `echo "host #{db} #{user} #{ip_and_mask} #{pass_encrypt}" >> #{pg_hba_conf_file}`
+            #append a new rule
+            `echo "#{connection_type} #{db} #{user} #{ip_and_mask} #{pass_encrypt}" >> #{pg_hba_conf_file}`
+          else
+            #replace the rule
+            
           end
           
-          pg_server_command 'restart'
+          #no need to restart. reloading the conf is enough.
+          pg_server_command 'reload'
         end
       end
     else

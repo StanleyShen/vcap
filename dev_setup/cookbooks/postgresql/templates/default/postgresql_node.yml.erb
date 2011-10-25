@@ -18,4 +18,5 @@ postgresql:
   user: <%= node[:postgresql_node][:server_root_user] %>
   pass: <%= node[:postgresql_node][:server_root_password] %>
   database: <%= node[:postgresql_node][:database] %>
+  local_acl: <%= node[:postgresql_node][:local_acl] %>
 node_timeout: <%= node[:postgresql_node][:node_timeout] %>

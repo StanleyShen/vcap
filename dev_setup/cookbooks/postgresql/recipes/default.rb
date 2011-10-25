@@ -39,7 +39,14 @@ EOH
       else
         `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql_node][:listen_addresses]}'/" #{postgresql_conf_file}`
       end
-
+      
+      # update the local psql connections to psotgres.
+      unless node[:postgresql_node][:local_acl].nil?
+        pg_hba_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
+        #replace 'local   all             all                                     peer'
+        #by 'local   all             all                                     #{}'
+        `sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' $pg_hba`
+      end
     end
   end
   # configure ltree.sql if necessary:
@@ -49,7 +56,7 @@ EOH
     `echo not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}`
   end
   
-  cf_pg_server_command 'restart'
+  cf_pg_server_command 'reload'
   
 else
   Chef::Log.error("Installation of PostgreSQL is not supported on this platform.")
