@@ -108,7 +108,7 @@ fi
 run_cmd apt-get $APT_CONFIG install -qym git-core
 [ -d $CLOUDFOUNDRY_HOME ] || mkdir $CLOUDFOUNDRY_HOME
 if [ ! -d $CLOUDFOUNDRY_HOME/vcap ]; then
-    cd $CLOUDFOUNDRY_HOME && git clone $VCAP_REPO --depth 1
+    cd $CLOUDFOUNDRY_HOME && git clone --depth 1 $VCAP_REPO
     cd vcap
     if [ -n "$VCAP_BRANCH" ]; then
       git fetch

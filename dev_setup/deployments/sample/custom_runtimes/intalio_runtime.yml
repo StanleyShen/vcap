@@ -40,7 +40,7 @@ jobs:
           services: 32
           apps:     32
         stager:
-          max_staging_runtime: 240
+          max_staging_runtime: 360
     - router
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
