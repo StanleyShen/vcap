@@ -23,6 +23,8 @@ jobs:
         port: 4222
         user: nats
         password: nats  #override this
+    - stager:
+        max_staging_duration: 340
     - cloud_controller:
         admins: [ hmalphettes@intalio.com ]
         description: "Intalio CF"

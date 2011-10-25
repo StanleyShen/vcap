@@ -9,6 +9,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 class JobManager
   ALL = "all"
   NATS = "nats_server"
+  STAGER = "stager"
   ROUTER = "router"
   CC = "cloud_controller"
   CCDB = "ccdb"
@@ -29,7 +30,7 @@ class JobManager
   end
 
   # All supported jobs
-  JOBS = [ALL, NATS, ROUTER, CF, CC, HM, DEA, CCDB] + SERVICES_NODE + SERVICES_GATEWAY
+  JOBS = [ALL, NATS, STAGER, ROUTER, CF, CC, HM, DEA, CCDB] + SERVICES_NODE + SERVICES_GATEWAY
   SYSTEM_JOB = [CF]
 
   # List of the required properties for jobs
