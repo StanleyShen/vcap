@@ -336,7 +336,7 @@ module Run
 
   def self.stop(args)
     components(args).each(&:stop)
-    self.stop_cleanup
+    self.stop_cleanup(args)
   end
 
   def self.restart(args)
