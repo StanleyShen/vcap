@@ -142,4 +142,13 @@ Dir.mktmpdir do |tmpdir|
   args << (cloudfoundry_home != Deployment.get_cloudfoundry_home ? " -d #{cloudfoundry_home}" : "")
   args << " start"
   puts "Command to run cloudfoundry: #{vcap_dev_path} #{args.strip}"
+  puts "Or: #{cloudfoundry_home}/vcap_#{deployment_name} #{args.strip}"
+  
+  File.open("#{cloudfoundry_home}/vcap_#{deployment_name}", 'w') do |f2|  
+    f.puts "#!/bin/bash"
+    f.puts "#{vcap_dev_path} --name #{deployment_name} --dir #{cloudfoundry_home} $@"
+  end
+  
+  `chmod +x #{cloudfoundry_home}/vcap_#{deployment_name}`
+  
 end
