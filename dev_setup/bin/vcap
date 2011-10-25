@@ -26,7 +26,7 @@ require 'rubygems'
 require 'eventmachine'
 require 'nats/client'
 
-DIR = File.dirname(__FILE__)
+DIR = $vcap_dir || File.expand_path("../../../bin", __FILE__)
 SERVICE_DIR = File.join(DIR, '/services')
 TMP = "/tmp/vcap-run"
 FileUtils.mkdir_p(TMP)
@@ -616,9 +616,6 @@ opts_parser = OptionParser.new do |opts|
 end
 args = opts_parser.parse!(args)
 
-DIR = $vcap_dir || File.expand_path("../../../bin", __FILE__)
-
-SERVICE_DIR = File.join(DIR, '/services')
 unless $log_dir
   $log_dir = "/tmp/vcap-run"
   FileUtils.mkdir_p($log_dir)
