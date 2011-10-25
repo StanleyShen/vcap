@@ -24,7 +24,7 @@ apt-get -qy update
 apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION
 apt-get install -qy postgresql-server-dev-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
 EOH
-  end.run
+  end.run_action(:run)
   
   ruby_block "postgresql_conf_update" do
     block do
