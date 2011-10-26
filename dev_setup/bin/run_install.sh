@@ -25,7 +25,7 @@ if [ $? == 0 ]; then
   sudo gem install mime-types
   sudo gem install rubyzip2
   sudo gem install terminal-table
-  sudo gem install json_pure --version "1.5.1"
+  sudo gem install json_pure --version "1.5.4"
   sudo gem install vmc --version "0.3.13.beta.4" #or later (or the stable one)
 fi
 which vmc > /dev/null
