@@ -29,6 +29,7 @@ require 'nats/client'
 DIR = $vcap_dir || File.expand_path("../../../bin", __FILE__)
 SERVICE_DIR = File.join(DIR, '/services')
 TMP = "/tmp/vcap-run"
+CURRENT_TIMESTAMP = "#{Time.now.strftime("%Y-%m-%d_%H-%M")}"
 FileUtils.mkdir_p(TMP)
 
 class Component
@@ -183,6 +184,13 @@ class Component
 
     kill = "kill -TERM #{pid}"
     `#{kill} 2> /dev/null`
+    
+    #copy the log file in a timestamped file so we can look at them later.
+    if File.exists?(log_file)
+      log_archive_dir = File.join(File.dirname(log_file),CURRENT_TIMESTAMP)
+      FileUtils.mkdir_p log_archive_dir
+      FileUtils.cp log_file, File.join(log_archive_dir,File.basename(log_file))
+    end
 
     if $? != 0
       STDERR.puts "#{'Failed'.red} to stop #{name}, possible permission problem\?"
