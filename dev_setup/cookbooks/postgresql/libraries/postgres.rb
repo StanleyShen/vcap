@@ -79,10 +79,18 @@ EOH
         code <<-EOH
 extension_sql_path="/usr/share/postgresql/9.0/contrib/#{extension_name}.sql"
 if [ -f "$extension_sql_path" ]; then
+  #tolerate already installed.
+  set +e
   psql template1 -f $extension_sql_path
-  [ ltree = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
-  [ 'uuid-ossp' = #{extension_name} ] && psql template1 -c \"select uuid_generate_v4();\"
-  exit $?
+  if [ "ltree" = "#{extension_name}" ]; then
+    psql template1 -c \"select '1.1'::ltree;\"
+    exit $?
+  elif [ "uuid-ossp" = "#{extension_name}" ]; then
+    psql template1 -c \"select uuid_generate_v4();\"
+    exit $?
+  else
+    exit 0
+  fi
 else
   echo "Warning: unable to configure the #{extension_name} extension. $extension_sql_path does not exist."
   exit 22
