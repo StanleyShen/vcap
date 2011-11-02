@@ -39,7 +39,15 @@ EOH
       postgresql_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "postgresql.conf")
       `grep "^\s*listen_addresses" #{postgresql_conf_file}`
       if $?.exitstatus != 0
-        `echo "listen_addresses='#{node[:postgresql_node][:host]},localhost'" >> #{postgresql_conf_file}`
+        #This command is easy but it inserts it at the very end which is surprising to the sys admin.
+        #let's look for the usually commented out line
+        #and e=insert below it. if we can't find it then we will append.
+        `grep "^\s*#listen_addresses" #{postgresql_conf_file}`
+        if $?.exitstatus != 0
+          `sed -i "/^\s*#listen_addresses.*/a \listen_addresses='#{node[:postgresql_node][:host]}'" #{postgresql_conf_file}`
+        else
+          `echo "listen_addresses='#{node[:postgresql_node][:host]},localhost'" >> #{postgresql_conf_file}`
+        end
       else
         `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql_node][:listen_addresses]}'/" #{postgresql_conf_file}`
       end
@@ -49,7 +57,7 @@ EOH
         pg_hba_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
         #replace 'local   all             all                                     peer'
         #by 'local   all             all                                     #{}'
-        `sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' $pg_hba`
+        `sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' #{pg_hba}`
       end
     end
   end
