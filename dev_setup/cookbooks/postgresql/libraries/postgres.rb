@@ -25,7 +25,7 @@ module CloudFoundryPostgres
   def cf_pg_update_hba_conf(db, user, ip_and_mask='0.0.0.0/0', pass_encrypt='md5', connection_type='host')
     case node['platform']
     when "ubuntu"
-      ruby_block "Update PostgreSQL config" do
+      ruby_block "Update PostgreSQL config for db=#{db} user=#{user} ip_and_mask=#{ip_and_mask} pass_encrypt=#{pass_encrypt} connection_type=#{connection_type}" do
         block do
           / \d*.\d*/ =~ `pg_config --version`
           pg_major_version = $&.strip
@@ -50,14 +50,14 @@ module CloudFoundryPostgres
     end
   end
 
-  def cf_pg_setup_db(db, user, passwd)
+  def cf_pg_setup_db(db, user, passwd, privileges='NOSUPERUSER LOGIN INHERIT CREATEDB', extra_privileges='')
     case node['platform']
     when "ubuntu"
-      bash "Setup PostgreSQL database #{db}" do
+      bash "Setup PostgreSQL database #{db} with user=#{user}" do
         user "postgres"
         code <<-EOH
 createdb #{db}
-psql -d #{db} -c \"create role #{user} NOSUPERUSER LOGIN INHERIT CREATEDB\"
+psql -d #{db} -c \"create role #{user} #{privileges} #{extra_privileges}\"
 psql -d #{db} -c \"alter role #{user} with password '#{passwd}'\"
 echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
 EOH
