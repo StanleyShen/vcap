@@ -59,6 +59,7 @@ EOH
         #by 'local   all             all                                     #{}'
         `sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' #{pg_hba_file}`
       end
+      pg_server_command 'restart'
     end
   end
   # configure ltree.sql with some extensions:
