@@ -16,7 +16,7 @@ fi
 
 #if vmc is not set also set a few more packages.
 which vmc > /dev/null
-if [ $? == 0 ]; then
+if [ $? != 0 ]; then
   sudo apt-get install wget curl
   sudo apt-get install nano
   sudo apt-get install ruby rubygems
@@ -26,10 +26,10 @@ if [ $? == 0 ]; then
   sudo gem install rubyzip2
   sudo gem install terminal-table
   sudo gem install json_pure --version "1.5.4"
-  sudo gem install vmc --version "0.3.13.beta.4" #or later (or the stable one)
+  sudo gem install vmc --version "0.3.13.beta.5" #or later (or the stable one)
 fi
 which vmc > /dev/null
-if [ $? == 0 ]; then
+if [ $? != 0 ]; then
   echo "the vmc gem was not installed correctly. Please try again or explicitly install the dependent gems missing"
   exit 2
 fi

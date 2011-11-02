@@ -31,7 +31,7 @@ jobs:
         support_address: "http://support.intalio.com"
         app_uris:
           { allow_external: true }
-        local_register_only: true
+        local_register_only: false
         builtin_services:
           - redis
           - mongodb
