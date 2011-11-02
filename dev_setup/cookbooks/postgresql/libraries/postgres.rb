@@ -81,6 +81,7 @@ extension_sql_path="/usr/share/postgresql/9.0/contrib/#{extension_name}.sql"
 if [ -f "$extension_sql_path" ]; then
   psql template1 -f $extension_sql_path
   [ ltree = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
+  [ 'uuid-ossp' = #{extension_name} ] && psql template1 -c \"select uuid_generate_v4();\"
   exit $?
 else
   echo "Warning: unable to configure the #{extension_name} extension. $extension_sql_path does not exist."
@@ -93,7 +94,8 @@ EOH
         #see also http://crafted-software.blogspot.com/2011/10/extensions-in-postgres.html
         code <<-EOH
 psql template1 -c \"CREATE EXTENSION IF NOT EXISTS \\\"#{extension_name}\\\";\"
-[ ltree = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
+[ 'ltree' = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
+[ 'uuid-ossp' = #{extension_name} ] && psql template1 -c \"select uuid_generate_v4();\"
 exit $?
 EOH
         end
