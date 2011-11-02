@@ -54,11 +54,13 @@ module CloudFoundryPostgres
     when "ubuntu"
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
         user "postgres"
+        #This bash script tolerates existings roles and databases,
+        #does not remove extra privileges and try to apply the passed privileges.
         code <<-EOH
-psql -c \"DROP ROLE IF EXISTS #{user}\"
-psql -c \"CREATE ROLE #{user} WITH #{privileges} #{extra_privileges}\"
-psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
 set +e
+psql -c \"CREATE ROLE #{user} WITH NOSUPERUSER\"
+psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
+psql -c \"ALTER ROLE #{user} WITH #{privileges} #{extra_privileges}\"
 psql -c \"CREATE DATABASE #{db} OWNER=#{user} TEMPLATE=#{template}\"
 echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
 EOH
