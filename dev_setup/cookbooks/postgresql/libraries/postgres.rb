@@ -67,7 +67,6 @@ EOH
     end
   end
   
-  uuid-ossp.sql
   # extension_name: uuid-ossp, ltree
   def cf_pg_setup_extension(extension_name)
     case node['platform']
