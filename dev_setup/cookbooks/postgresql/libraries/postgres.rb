@@ -55,6 +55,7 @@ module CloudFoundryPostgres
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
         user "postgres"
         code <<-EOH
+psql -d #{db} -c \"DROP ROLE IF EXISTS #{user}\"
 psql -d #{db} -c \"CREATE ROLE #{user} WITH #{privileges} #{extra_privileges}\"
 psql -d #{db} -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
 createdb #{db} --owner=#{user} --encoding=UTF8
