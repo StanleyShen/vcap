@@ -49,7 +49,7 @@ module CloudFoundryPostgres
     end
   end
 
-  def cf_pg_setup_db(db, user, passwd, privileges='NOSUPERUSER LOGIN INHERIT CREATEDB', extra_privileges='')
+  def cf_pg_setup_db(db, user, passwd, privileges='NOSUPERUSER LOGIN INHERIT CREATEDB', extra_privileges='', template='template1')
     case node['platform']
     when "ubuntu"
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
@@ -58,7 +58,8 @@ module CloudFoundryPostgres
 psql -c \"DROP ROLE IF EXISTS #{user}\"
 psql -c \"CREATE ROLE #{user} WITH #{privileges} #{extra_privileges}\"
 psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
-psql -c \"CREATE DATABASE #{db} OWNER=#{user} ENCODING=UTF8\"
+set +e
+psql -c \"CREATE DATABASE #{db} OWNER=#{user} TEMPLATE=#{template}\"
 echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
 EOH
 Chef::Log.warn("Code to exec for the user+his-db #{code}")
