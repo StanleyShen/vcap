@@ -61,6 +61,7 @@ psql -d #{db} -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
 createdb #{db} --owner=#{user} --encoding=UTF8
 echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
 EOH
+Chef::Log.info("Code to exec for the user+his-db #{code}")
       end
     else
       Chef::Log.error("PostgreSQL database setup is not supported on this platform.")
