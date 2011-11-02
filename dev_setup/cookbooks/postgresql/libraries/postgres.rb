@@ -55,13 +55,13 @@ module CloudFoundryPostgres
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
         user "postgres"
         code <<-EOH
-psql -d #{db} -c \"DROP ROLE IF EXISTS #{user}\"
-psql -d #{db} -c \"CREATE ROLE #{user} WITH #{privileges} #{extra_privileges}\"
-psql -d #{db} -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
+psql -c \"DROP ROLE IF EXISTS #{user}\"
+psql -c \"CREATE ROLE #{user} WITH #{privileges} #{extra_privileges}\"
+psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
 createdb #{db} --owner=#{user} --encoding=UTF8
 echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
 EOH
-Chef::Log.info("Code to exec for the user+his-db #{code}")
+Chef::Log.warn("Code to exec for the user+his-db #{code}")
       end
     else
       Chef::Log.error("PostgreSQL database setup is not supported on this platform.")
