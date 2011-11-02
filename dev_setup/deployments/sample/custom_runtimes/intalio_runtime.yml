@@ -46,7 +46,7 @@ jobs:
     - router
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
-        host: 127.0.0.1 
+        host: 127.0.0.1
     - dea: #The max amount of memory available to run the apps.
         max_memory: 8192
     - redis_node:

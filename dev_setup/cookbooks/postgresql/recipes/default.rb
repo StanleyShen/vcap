@@ -89,4 +89,3 @@ cf_pg_update_hba_conf(node[:postgresql_node][:database], node[:postgresql_node][
 cf_pg_setup_db(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user], node[:postgresql_node][:server_root_password])
 
 
-
