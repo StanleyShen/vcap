@@ -57,7 +57,7 @@ EOH
   if node[:postgresql_node][:extensions_in_template1]
     extension_names=node[:postgresql_node][:extensions_in_template1].split(',')
     extension_names.each do |extension_name|
-      cf_pg_setup_ltree(extension_name.strip)
+      cf_pg_setup_extension(extension_name.strip)
     end
   else
     `echo not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}`
