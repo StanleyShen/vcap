@@ -15,11 +15,10 @@ module CloudFoundryPostgres
     pg_major_version = $&.strip
     # Cant use service resource as service name needs to be statically defined
     # For pg_major_version >= 9.0 the version does not appear in the name
-    if node[:postgresql_node][:version] == "9.0"
-      `#{File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")} #{cmd}`
-    else
-      `#{File.join("", "etc", "init.d", "postgresql")} #{cmd}`
-    end
+    postgresql_ctl = File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")
+    #In my experience on 10.04 postgres even for 9.0 does not have the version number in its filename
+    postgresql_ctl = File.join("", "etc", "init.d", "postgresql") unless File.exists? postgresql_ctl
+    `#{postgresql_ctl} #{cmd}`
   end
   
   def cf_pg_update_hba_conf(db, user, ip_and_mask='0.0.0.0/0', pass_encrypt='md5', connection_type='host')
