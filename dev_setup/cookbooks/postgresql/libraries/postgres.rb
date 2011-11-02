@@ -55,8 +55,8 @@ module CloudFoundryPostgres
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
         user "postgres"
         code <<-EOH
-psql -d #{db} -c \"create role #{user} #{privileges} #{extra_privileges}\"
-psql -d #{db} -c \"alter role #{user} with password '#{passwd}'\"
+psql -d #{db} -c \"CREATE ROLE #{user} WITH #{privileges} #{extra_privileges}\"
+psql -d #{db} -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
 createdb #{db} --owner=#{user} --encoding=UTF8
 echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
 EOH
