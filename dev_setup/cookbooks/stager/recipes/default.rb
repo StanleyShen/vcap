@@ -2,7 +2,7 @@
 # Cookbook Name:: stager
 # Recipe:: default
 #
-package redis-server
+package "redis-server"
 
 node[:stager][:config_file] = File.join(node[:deployment][:config_path], "stager.yml")
 node[:stager][:config_file_redis] = File.join(node[:deployment][:config_path], "stager-redis-server.conf")
