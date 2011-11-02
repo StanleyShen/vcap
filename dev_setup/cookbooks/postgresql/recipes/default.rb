@@ -57,7 +57,7 @@ EOH
         pg_hba_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
         #replace 'local   all             all                                     peer'
         #by 'local   all             all                                     #{}'
-        `sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' #{pg_hba}`
+        `sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' #{pg_hba_file}`
       end
     end
   end
