@@ -67,31 +67,34 @@ EOH
     end
   end
   
-  def cf_pg_setup_ltree()
+  uuid-ossp.sql
+  # extension_name: uuid-ossp, ltree
+  def cf_pg_setup_extension(extension_name)
     case node['platform']
     when "ubuntu"
-      bash "Setup PostgreSQL default database template with ltree" do
+      bash "Setup PostgreSQL default database template with the extension #{extension_name}" do
         user "postgres"
         / \d*.\d*/ =~ `pg_config --version`
         pg_major_version = $&.strip
         if pg_major_version == '9.0'
         code <<-EOH
-ltree_sql_path="/usr/share/postgresql/9.0/contrib/ltree.sql"
-if [ -f "$ltree_sql_path" ]; then
-  psql template1 -f $ltree_sql_path
-  psql template1 -c \"select '1.1'::ltree;\"
+extension_sql_path="/usr/share/postgresql/9.0/contrib/#{extension_name}.sql"
+if [ -f "$extension_sql_path" ]; then
+  psql template1 -f $extension_sql_path
+  [ ltree = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
   exit $?
 else
-  echo "Warning: unable to configure the ltree extension. ltree is not installed on this postgres db."
+  echo "Warning: unable to configure the #{extension_name} extension. $extension_sql_path does not exist."
   exit 22
 fi
 EOH
         else
         #9.1 and more recent have a much nicer way of setting up ltree.
         #see http://www.depesz.com/index.php/2011/03/02/waiting-for-9-1-extensions/
+        #see also http://crafted-software.blogspot.com/2011/10/extensions-in-postgres.html
         code <<-EOH
-psql template1 -c \"CREATE EXTENSION IF NOT EXISTS ltree;\"
-psql template1 -c \"select '1.1'::ltree;\"
+psql template1 -c \"CREATE EXTENSION IF NOT EXISTS \\\"#{extension_name}\\\";\"
+[ ltree = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
 exit $?
 EOH
         end

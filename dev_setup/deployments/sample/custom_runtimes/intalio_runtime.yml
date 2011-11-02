@@ -5,12 +5,12 @@ deployment:
   name: "intalio_devbox"
  #WARNING: unless you are installing on your laptop
  #you must change this.
-  domain: "api.vcap.me"
+  domain: "vcap.me"
 nginx:
   client_max_body_size: 512M
-  proxy_connect_timeout: 30
-  proxy_send_timeout: 240
-  proxy_read_timeout: 240
+  proxy_connect_timeout: 40
+  proxy_send_timeout: 480
+  proxy_read_timeout: 480
 dea:
   runtimes:
     - ruby18
@@ -82,6 +82,7 @@ jobs:
           pass_encrypt: md5
         server_root_user: vcap
         server_root_password: vcap
-        ltree_in_template1: true #true to import the ltree.sql file in the template1
+         #install ltree and uuid in the default template1:
+        extensions_in_template1: "ltree,uuid-ossp"
         node_timeout: 8 #2 seconds is the default but we keep getting timeout errors. maybe this will help.
     - postgresql_gateway
