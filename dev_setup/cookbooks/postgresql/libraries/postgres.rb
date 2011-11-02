@@ -49,11 +49,16 @@ module CloudFoundryPostgres
     end
   end
 
-  def cf_pg_setup_db(db, user, passwd, privileges='NOSUPERUSER LOGIN INHERIT CREATEDB', extra_privileges='', template='template1')
+  # Creates a new DB, new user that owns it
+  # the user is granted other privileges.
+  # @param privileges When nil or undefined, then 'NOSUPERUSER LOGIN INHERIT'
+  # @param extra_privileges More privileges to add to the default ones
+  def cf_pg_setup_db(db, user, passwd, privileges=nil, extra_privileges='', template='template1')
     case node['platform']
     when "ubuntu"
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
         user "postgres"
+        privileges = 'NOSUPERUSER LOGIN INHERIT' if privileges.nil?
         #This bash script tolerates existings roles and databases,
         #does not remove extra privileges and try to apply the passed privileges.
         code <<-EOH

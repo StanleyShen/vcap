@@ -87,6 +87,6 @@ unless node[:postgresql_node][:pg_hba_extra].nil?
 end
 
 cf_pg_update_hba_conf(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user])
-cf_pg_setup_db(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user], node[:postgresql_node][:server_root_password])
+cf_pg_setup_db(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user], node[:postgresql_node][:server_root_password], nil, 'CREATEDB CREATEROLE')
 
 
