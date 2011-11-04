@@ -135,7 +135,7 @@ Dir.mktmpdir do |tmpdir|
 
   vcap_dev_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev"))
   vcap_dev_update_ip_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev_update_ip"))
-  deployment_path = File.expand_path(File.join(cloudfoundry_home, '.deployments', deployment_name)) #TODO: clean this.
+  deployment_path = File.expand_path(File.join(deployment_config_path, ".."))
   puts "Config files: #{deployment_config_path}"
   puts "Deployment name: #{deployment_name}"
   puts "NOTE: If you want to run ruby/vmc please source the profile #{Deployment.get_deployment_profile_file}"
@@ -155,7 +155,7 @@ Dir.mktmpdir do |tmpdir|
       f.puts "[ -z \"$USER\"] && export HOME=#{ENV['USER']}"
       f.puts "_vcap_log=#{deployment_path}/log/_vcap.log"
       f.puts "echo \"_vcap called with $@\" | tee -a $_vcap_log"
-      f.puts "#{vcap_dev_update_ip_path} #{deployment_path}/config | tee -a $_vcap_log"
+      f.puts "#{vcap_dev_update_ip_path} #{deployment_config_path} | tee -a $_vcap_log"
       f.puts "[ \"$1\" = \"update-ip\" ] && exit 0"
       f.puts "#{vcap_dev_path} --name #{deployment_name} --dir #{cloudfoundry_home} $@  | tee -a $_vcap_log"
     end
@@ -166,7 +166,7 @@ Dir.mktmpdir do |tmpdir|
     `[ -h log ] && rm log`
     `ln -s #{deployment_path}/log log`
     `[ -h config ] && rm config`
-    `ln -s #{deployment_path}/config config`
+    `ln -s #{deployment_config_path} config`
     `[ -h deployed_apps ] && rm deployed_apps`
     `ln -s /var/vcap.local/dea/apps deployed_apps`
     
