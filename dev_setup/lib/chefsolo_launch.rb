@@ -135,7 +135,7 @@ Dir.mktmpdir do |tmpdir|
 
   vcap_dev_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev"))
   vcap_dev_update_ip_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev_update_ip"))
-  deployment_path = File.expand_path(cloudfoundry_home, '.deployments', deployment_name) #TODO: clean this.
+  deployment_path = File.expand_path(File.join(cloudfoundry_home, '.deployments', deployment_name)) #TODO: clean this.
   puts "Config files: #{deployment_config_path}"
   puts "Deployment name: #{deployment_name}"
   puts "NOTE: If you want to run ruby/vmc please source the profile #{Deployment.get_deployment_profile_file}"
