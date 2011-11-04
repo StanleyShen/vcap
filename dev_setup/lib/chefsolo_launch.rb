@@ -134,6 +134,8 @@ Dir.mktmpdir do |tmpdir|
   puts "Status: successful"
 
   vcap_dev_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev"))
+  vcap_dev_update_ip_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev_update_ip"))
+  deployment_path = File.expand_path(cloudfoundry_home, '.deployments', deployment_name) #TODO: clean this.
   puts "Config files: #{deployment_config_path}"
   puts "Deployment name: #{deployment_name}"
   puts "NOTE: If you want to run ruby/vmc please source the profile #{Deployment.get_deployment_profile_file}"
@@ -142,13 +144,32 @@ Dir.mktmpdir do |tmpdir|
   args << (cloudfoundry_home != Deployment.get_cloudfoundry_home ? " -d #{cloudfoundry_home}" : "")
   args << " start"
   puts "Command to run cloudfoundry: #{vcap_dev_path} #{args.strip}"
-  puts "Or: #{cloudfoundry_home}/vcap_#{deployment_name} #{args.strip}"
+  puts "Or: #{cloudfoundry_home}/_vcap #{args.strip}"
   
-  File.open("#{cloudfoundry_home}/vcap_#{deployment_name}", 'w') do |f|  
-    f.puts "#!/bin/bash"
-    f.puts "#{vcap_dev_path} --name #{deployment_name} --dir #{cloudfoundry_home} $@"
+  Dir.chdir cloudfoundry_home do
+    
+    File.open("_#{deployment_name}", 'w') do |f|  
+      f.puts "#!/bin/bash"
+      f.puts "#Make sure HOME and USER are set: with monit as a daemon it is not set."
+      f.puts "[ -z "$HOME"] && export HOME=#{ENV['HOME']}"
+      f.puts "[ -z "$USER"] && export HOME=#{ENV['USER']}"
+      f.puts "_vcap_log=#{deployment_path}/log/_vcap.log"
+      f.puts "echo \"_vcap called with $@\" | tee -a $_vcap_log"
+      f.puts "#{vcap_dev_update_ip_path} #{deployment_path}/config | tee -a $_vcap_log"
+      f.puts "[ \"$1\" = \"update-ip\" ] && exit 0"
+      f.puts "#{vcap_dev_path} --name #{deployment_name} --dir #{cloudfoundry_home} $@  | tee -a $_vcap_log"
+    end
+    
+    `chmod +x _vcap`
+  
+    # few symbolic links (todo: too many assumptions on the layout of the deployment)
+    `[ -h log ] && rm log`
+    `ln -s #{deployment_path}/log log`
+    `[ -h config ] && rm config`
+    `ln -s #{deployment_path}/config config`
+    `[ -h deployed_apps ] && rm deployed_apps`
+    `ln -s /var/vcap.local/dea/apps deployed_apps`
+    
   end
-  
-  `chmod +x #{cloudfoundry_home}/vcap_#{deployment_name}`
   
 end
