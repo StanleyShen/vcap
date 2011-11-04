@@ -151,8 +151,8 @@ Dir.mktmpdir do |tmpdir|
     File.open("_#{deployment_name}", 'w') do |f|  
       f.puts "#!/bin/bash"
       f.puts "#Make sure HOME and USER are set: with monit as a daemon it is not set."
-      f.puts "[ -z "$HOME"] && export HOME=#{ENV['HOME']}"
-      f.puts "[ -z "$USER"] && export HOME=#{ENV['USER']}"
+      f.puts "[ -z \"$HOME\"] && export HOME=#{ENV['HOME']}"
+      f.puts "[ -z \"$USER\"] && export HOME=#{ENV['USER']}"
       f.puts "_vcap_log=#{deployment_path}/log/_vcap.log"
       f.puts "echo \"_vcap called with $@\" | tee -a $_vcap_log"
       f.puts "#{vcap_dev_update_ip_path} #{deployment_path}/config | tee -a $_vcap_log"
