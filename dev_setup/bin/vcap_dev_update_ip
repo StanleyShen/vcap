@@ -40,21 +40,21 @@ module VcapUtilities
       @local_ip ||= VcapUtilities.ip_auto(network_interface_name)
       count = 0
       while (@local_ip.nil? || @local_ip.empty?) && count <= 3
-        puts "Could not detect the local IP. Waiting 40 seconds then trying again."
+        puts "Could not detect the local IP on #{network_interface_name}. Waiting 40 seconds then trying again."
         sleep 40
         @local_ip ||= VcapUtilities.ip_auto(network_interface_name)
       end
-      raise "Unable to read the current IP address" if @local_ip.nil? || @local_ip.empty?
+      raise "Unable to read the current IP address on #{network_interface_name}" if @local_ip.nil? || @local_ip.empty?
       
       @old_local_ip ||= VcapUtilities.ip_nats_server(@config_folder_path)
-      raise "Unable to detect the local IP" if @local_ip.nil?
+      raise "Unable to detect the local IP on #{network_interface_name}" if @local_ip.nil?
       raise "Unable to detect the old IP" if @old_local_ip.nil?
       @local_ip = @local_ip.strip
       @old_local_ip = @old_local_ip.strip
     end
     def update()
       if @local_ip == @old_local_ip
-        puts "The IP #{@local_ip} is unchanged."
+        puts "The IP #{@local_ip} on #{network_interface_name} is unchanged."
         return
       end
       puts "Updating the IP from #{@old_local_ip} to #{@local_ip} in the CloudFoundry config files in #{@config_folder_path}"
