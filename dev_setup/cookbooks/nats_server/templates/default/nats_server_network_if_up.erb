@@ -57,13 +57,21 @@ fi
 # It changed. Let's update them all:
 #sed -i "s/#{@old_local_ip}/#{@local_ip}/g
 #/home/ubuntu/cloudfoundry/_vcap update-ip $NATS_TRACKED_IFACE
+LOG_FILE=/var/log/nats_server.log
+date=$( date +"%Y-%m-%d_%H:%M:%S" )
+echo "$date The tracked network interface's IP has changed from $NATS_IP to $IP. Updating all the config of the nats_server and the vcap components." >> $LOG_FILE
+
 find <%= node[:deployment][:config_path] %>/ -type f -name *.yml -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \; 
 
 # Make sure that the nats-server is started before we restart it.
 if [ ! -f /var/run/nats_server.pid ] || \
    [ "$(ps -p "$(cat /var/run/nats_server.pid)" -o comm=)" != 'nats-server' ]; then
+        echo "    The nats_server was not running." >> $LOG_FILE
+        cp $LOG_FILE $LOG_FILE.$date
         exit 0
 fi
+echo "    The nats_server was running. Restarting it." >> $LOG_FILE
+cp $LOG_FILE $LOG_FILE.$date
 
 # Let's use a force-reload.
 /etc/init.d/nats_server stop || true
