@@ -29,6 +29,20 @@ when "ubuntu"
     mode 0755
     notifies :restart, "service[nats_server]"
   end
+  
+  template "nats_server_network_if_up" do
+    path File.join("", "etc", "network", "if-up.d", "nats_server")
+    source "nats_server_network_if_up.erb"
+    owner node[:deployment][:user]
+    mode 0755
+  end
+
+  template "etc_issue_with_ip" do
+    path File.join("", "etc", "network", "if-up.d", "update-etc-issue")
+    source "etc_issue_with_ip.erb"
+    owner node[:deployment][:user]
+    mode 0755
+  end
 
   service "nats_server" do
     supports :status => true, :restart => true, :reload => true

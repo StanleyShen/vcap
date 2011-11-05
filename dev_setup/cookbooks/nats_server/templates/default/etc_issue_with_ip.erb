@@ -1,0 +1,10 @@
+#!/bin/sh
+# Append to the login prompt the IP on which the VM is running.
+cp /etc/issue-standard /etc/issue
+ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
+if [ -n "$ip" ]; then
+  echo "Running on $ip" >> /etc/issue
+else
+  echo "WARNING: Unable to detect the network address on which the server is running"
+fi
+echo "" >> /etc/issue

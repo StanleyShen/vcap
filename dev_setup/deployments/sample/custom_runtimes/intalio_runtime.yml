@@ -23,6 +23,7 @@ jobs:
         port: 4222
         user: nats
         password: nats  #override this
+        tracked_net_iface: eth0
     - stager:
         max_staging_duration: 340
     - cloud_controller:

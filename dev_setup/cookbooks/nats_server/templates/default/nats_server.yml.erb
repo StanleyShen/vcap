@@ -1,6 +1,7 @@
 ---
 net: <%= node[:nats_server][:host] %>
 port: <%= node[:nats_server][:port] %>
+<%= "tracked-net-iface: #{node[:nats_server][:tracked-net-iface]} unless node[:nats_server][:tracked-net-iface].nil? %>
 
 pid_file: /var/run/nats_server.pid
 log_file: /var/log/nats_server.log
