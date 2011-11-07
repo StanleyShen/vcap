@@ -16,6 +16,7 @@ class JobManager
   CF = "cloudfoundry"
   HM = "health_manager"
   DEA = "dea"
+  MONIT = "monit"
 
   SERVICES = ["redis", "mysql", "mongodb", "postgresql", "neo4j"]
   SERVICES_NODE = SERVICES.map do |service|
@@ -30,7 +31,7 @@ class JobManager
   end
 
   # All supported jobs
-  JOBS = [ALL, NATS, STAGER, ROUTER, CF, CC, HM, DEA, CCDB] + SERVICES_NODE + SERVICES_GATEWAY
+  JOBS = [ALL, NATS, STAGER, ROUTER, CF, CC, HM, DEA, CCDB, MONIT] + SERVICES_NODE + SERVICES_GATEWAY
   SYSTEM_JOB = [CF]
 
   # List of the required properties for jobs
@@ -50,7 +51,7 @@ class JobManager
     SERVICE_GATEWAY_RUN_COMPONENTS[gateway] = gateway
   end
 
-  RUN_COMPONENTS = {ROUTER => ROUTER, CC => CC, HM => HM, DEA => DEA, STAGER => STAGER}.update(SERVICE_NODE_RUN_COMPONENTS).update(SERVICE_GATEWAY_RUN_COMPONENTS)
+  RUN_COMPONENTS = {ROUTER => ROUTER, CC => CC, HM => HM, DEA => DEA, STAGER => STAGER, MONIT => MONIT}.update(SERVICE_NODE_RUN_COMPONENTS).update(SERVICE_GATEWAY_RUN_COMPONENTS)
 
   class << self
     if defined?(Rake::DSL)

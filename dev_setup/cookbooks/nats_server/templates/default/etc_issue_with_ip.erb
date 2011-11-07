@@ -1,6 +1,11 @@
 #!/bin/sh
-# Append to the login prompt the IP on which the VM is running.
-cp /etc/issue-standard /etc/issue
+if [ ! -f /etc/issue-standard ]; then
+  #very first time.
+  cp /etc/issue /etc/issue-standard
+else
+  cp /etc/issue-standard /etc/issue
+fi
+
 ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
 if [ -n "$ip" ]; then
   echo "Running on $ip" >> /etc/issue

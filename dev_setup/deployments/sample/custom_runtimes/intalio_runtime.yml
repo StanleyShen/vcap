@@ -19,13 +19,16 @@ dea:
     - nodejs
 jobs:
   install:
+    - cloudfoundry:
+        vmc:
+          version: 0.13.beta.5
     - nats_server:
         port: 4222
         user: nats
         password: nats  #override this
         tracked_net_iface: eth0
     - stager:
-        max_staging_duration: 340
+        max_staging_duration: 360
     - cloud_controller:
         admins: [ hmalphettes@intalio.com ]
         description: "Intalio CF"
@@ -72,7 +75,7 @@ jobs:
         max_db_size: 5128 #each db max
         available_storage: 65536 #65G max of total DBs on this node
         max_db_conns: 50
-        max_long_query: 240
+        max_long_query: 360
         max_long_tx: 480
         listen_addresses: * #listen to any addresses
         local_acl: trust #trust local connections on psql for admin jobs
@@ -87,3 +90,24 @@ jobs:
         extensions_in_template1: "ltree,uuid-ossp"
         node_timeout: 8 #2 seconds is the default but we keep getting timeout errors. maybe this will help.
     - postgresql_gateway
+    - monit:
+        web_access:
+           enabled: true
+           user: vcap #changeme
+           password: vcap #changeme
+           port: 2812 #changeme
+        vcap_exec:
+           /home/ubuntu/cloudfoundry/_vcap #TODO: better than that ?
+        vcap_components:
+           - cloud_controller
+           - dea
+           - health_manager
+           - mongodb_gateway
+           - mongodb_node
+           - postgresql_gateway
+           - postgresql_node
+           - redis_gateway
+           - redis_node
+           - router
+        daemons:
+           - nats_server

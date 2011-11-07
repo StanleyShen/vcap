@@ -134,7 +134,6 @@ Dir.mktmpdir do |tmpdir|
   puts "Status: successful"
 
   vcap_dev_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev"))
-  vcap_dev_update_ip_path = File.expand_path(File.join(script_dir, "..", "bin", "vcap_dev_update_ip"))
   deployment_path = File.expand_path(File.join(deployment_config_path, ".."))
   puts "Config files: #{deployment_config_path}"
   puts "Deployment name: #{deployment_name}"
@@ -147,23 +146,9 @@ Dir.mktmpdir do |tmpdir|
   puts "Or: #{cloudfoundry_home}/_vcap #{args.strip}"
   
   Dir.chdir cloudfoundry_home do
-    
-    File.open("_#{deployment_name}", 'w') do |f|  
-      f.puts "#!/bin/bash"
-      f.puts "#Make sure HOME and USER are set: with monit as a daemon it is not set."
-      f.puts "[ -z \"$HOME\"] && export HOME=#{ENV['HOME']}"
-      f.puts "[ -z \"$USER\"] && export HOME=#{ENV['USER']}"
-      f.puts "_vcap_log=#{deployment_path}/log/_vcap.log"
-      f.puts "ts=`date +%Y-%m-%d-%H%M%S`"
-      f.puts "echo \"$ts _vcap called with $@\" | tee -a $_vcap_log"
-      f.puts "#{vcap_dev_update_ip_path} #{deployment_config_path} | tee -a $_vcap_log"
-      f.puts "[ \"$1\" = \"update-ip\" ] && exit 0"
-      f.puts "#{vcap_dev_path} --name #{deployment_name} --dir #{cloudfoundry_home} $@  | tee -a $_vcap_log"
-    end
-    
-    `chmod +x _vcap`
-  
     # few symbolic links (todo: too many assumptions on the layout of the deployment)
+    `[ -h _vcap ] && rm _vcap`
+    `ln -s #{deployment_path}/vcap _vcap`
     `[ -h log ] && rm log`
     `ln -s #{deployment_path}/log log`
     `[ -h config ] && rm config`

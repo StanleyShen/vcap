@@ -49,3 +49,11 @@ template node[:deployment][:info_file] do
     :deployment_log_path => node[:deployment][:log_path]
   })
 end
+
+template node[:deployment][:vcap_exec] do
+  path node[:deployment][:vcap_exec]
+  source "vcap.erb"
+  owner node[:deployment][:user]
+  mode 0755
+end
+
