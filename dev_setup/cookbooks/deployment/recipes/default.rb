@@ -57,3 +57,11 @@ template node[:deployment][:vcap_exec] do
   mode 0755
 end
 
+file node[:deployment][:local_run_profile] do
+  owner node[:deployment][:user]
+  group node[:deployment][:group]
+  content <<-EOH
+    export PATH=#{node[:ruby][:path]}/bin:`#{node[:ruby][:path]}/bin/gem env gempath`/bin:$PATH
+    export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
+  EOH
+end
