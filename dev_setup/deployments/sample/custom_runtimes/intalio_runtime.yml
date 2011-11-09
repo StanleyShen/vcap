@@ -5,7 +5,7 @@ deployment:
   name: "intalio_devbox"
  #WARNING: unless you are installing on your laptop
  #you must change this.
-  domain: "vcap.me"
+  domain: "intalio.me"
 nginx:
   client_max_body_size: 512M
   proxy_connect_timeout: 40
@@ -86,8 +86,7 @@ jobs:
           pass_encrypt: md5
         server_root_user: vcap
         server_root_password: vcap
-         #install ltree and uuid in the default template1:
-        extensions_in_template1: "ltree,uuid-ossp"
+        extensions_in_template1: "ltree,uuid-ossp" #install ltree and uuid in the default template1:
         node_timeout: 8 #2 seconds is the default but we keep getting timeout errors. maybe this will help.
     - postgresql_gateway
     - monit:

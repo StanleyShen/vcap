@@ -11,8 +11,8 @@ depends_on = Hash.new
 node[:monit][:depends_on] = depends_on
 
 #every vcap component requires nats_server if we are running it on this machine:
-if node[:monit][:daemons].include?("nats_server")
-  node[:monit][:processes].each do |name|
+if !node[:monit][:daemons].nil? && node[:monit][:daemons].include?("nats_server") && !node[:monit][:vcap_components].nil?
+  node[:monit][:vcap_components].each do |name|
     depends_on[name] = "depends on nats_server"
   end
 end

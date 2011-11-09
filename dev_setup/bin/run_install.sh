@@ -14,27 +14,12 @@ fi
 [ -z "$repo" ] && repo=https://github.com/hmalphettes/vcap
 [ -z "$branch" ] && branch=tweaks
 
-#if vmc is not set also set a few more packages.
-which vmc > /dev/null
-if [ $? != 0 ]; then
-  sudo apt-get install wget curl
-  sudo apt-get install nano
-  sudo apt-get install ruby rubygems
-
-  #smooth things out for vmc to install on the first try:
-  sudo gem install mime-types
-  sudo gem install rubyzip2
-  sudo gem install terminal-table
-  sudo gem install json_pure --version "1.5.4"
-  sudo gem install vmc --version "0.3.13.beta.5" #or later (or the stable one)
-fi
-which vmc > /dev/null
-if [ $? != 0 ]; then
-  echo "the vmc gem was not installed correctly. Please try again or explicitly install the dependent gems missing"
-  exit 2
-fi
-which rake > /dev/null
-[ $? == 0 ] && sudo gem install rake
+which wget > /dev/null
+[ $? != 0 ] && sudo apt-get install wget
+which curl > /dev/null
+[ $? != 0 ] && sudo apt-get install curl
+which nano > /dev/null
+[ $? != 0 ] && sudo apt-get install nano
 
 wget -N https://raw.github.com/hmalphettes/vcap/tweaks/dev_setup/bin/vcap_dev_setup
 chmod +x vcap_dev_setup
