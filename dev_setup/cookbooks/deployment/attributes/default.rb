@@ -11,7 +11,7 @@ default[:deployment][:profile] = File.expand_path(File.join(ENV["HOME"], ".cloud
 default[:deployment][:local_run_profile] = File.expand_path(File.join(ENV["HOME"], ".cloudfoundry_deployment_local"))
 default[:deployment][:vcap_exec] = File.join(default[:deployment][:home], "vcap")
 
-default[:deployment][:etc_issue_msg]: "Welcome to CloudFoundry #{default[:deployment][:name]}"
+default[:deployment][:etc_issue_msg] = "Welcome to CloudFoundry #{default[:deployment][:name]}"
 default[:deployment][:is_micro] = false
 #Force the local IP to something else.
 #default[:cloudfoundry][:local_ip] = 127.0.0.1
