@@ -69,7 +69,11 @@ LOG_FILE=/var/log/nats_server.log
 date=$( date +"%Y-%m-%d_%H:%M:%S" )
 echo "$date The tracked network interface's IP has changed from $NATS_IP to $IP. Updating all the config of the nats_server and the vcap components." >> $LOG_FILE
 
-find <%= node[:deployment][:config_path] %>/ -type f -name *.yml -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \; 
+find <%= node[:deployment][:config_path] %>/ -type f -name *.yml -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \;
+#migrate the credentials that also contain the old IP.
+#todo: add a few more parameters and put this into a separate file related to the cloud_controller
+sudo -u postgres psql -d cloud_controller -c "update service_configs set credentials = replace(credentials, '$NATS_IP', '$IP')"
+sudo -u postgres psql -d cloud_controller -c "update service_bindings set credentials = replace(credentials, '$NATS_IP', '$IP')"
 
 # Make sure that the nats-server is started before we restart it.
 if [ ! -f /var/run/nats_server.pid ] || \

@@ -8,6 +8,7 @@ default[:deployment][:info_file] = File.join(deployment[:config_path], "deployme
 default[:deployment][:domain] = "vcap.me"
 default[:deployment][:log_path] = File.join(deployment[:home], "log")
 default[:deployment][:profile] = File.expand_path(File.join(ENV["HOME"], ".cloudfoundry_deployment_profile"))
+default[:deployment][:vcap_exec] = File.join(default[:deployment][:home], "vcap")
 
 default[:deployment][:is_micro] = false
 #Force the local IP to something else.

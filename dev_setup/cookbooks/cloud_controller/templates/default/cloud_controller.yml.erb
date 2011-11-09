@@ -60,7 +60,7 @@ mbus: nats://<%= node[:nats_server][:user] %>:<%= node[:nats_server][:password] 
 keys:
   password: 'password key goes here'
   token: 'token key goes here'
-pid: /var/vcap/sys/run/cloudcontroller.pid
+pid: /var/vcap/sys/run/cloud_controller.pid
 rails_environment: production
 database_environment: # replaces database.yml
   production:
