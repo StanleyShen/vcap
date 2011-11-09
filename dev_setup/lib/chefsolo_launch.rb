@@ -155,6 +155,7 @@ Dir.mktmpdir do |tmpdir|
     `[ -h config ] && rm config`
     `ln -s #{deployment_config_path} config`
     `[ -h deployed_apps ] && rm deployed_apps`
+    `mkdir -p /var/vcap.local/dea/apps`
     `ln -s /var/vcap.local/dea/apps deployed_apps`
     
   end

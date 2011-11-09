@@ -6,6 +6,7 @@ deployment:
  #WARNING: unless you are installing on your laptop
  #you must change this.
   domain: "intalio.me"
+  etc_issue_msg: "Welcome to Intalio Micro-CloudFoundry"
 nginx:
   client_max_body_size: 512M
   proxy_connect_timeout: 40

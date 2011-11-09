@@ -37,13 +37,6 @@ when "ubuntu"
     mode 0755
   end
 
-  template "etc_issue_with_ip" do
-    path File.join("", "etc", "network", "if-up.d", "update-etc-issue")
-    source "etc_issue_with_ip.erb"
-    owner node[:deployment][:user]
-    mode 0755
-  end
-
   service "nats_server" do
     supports :status => true, :restart => true, :reload => true
     action [ :enable, :start ]

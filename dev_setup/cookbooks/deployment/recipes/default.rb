@@ -50,6 +50,13 @@ template node[:deployment][:info_file] do
   })
 end
 
+template "etc_issue_with_ip" do
+  path File.join("", "etc", "network", "if-up.d", "update-etc-issue")
+  source "etc_issue_with_ip.erb"
+  owner node[:deployment][:user]
+  mode 0755
+end
+
 template node[:deployment][:vcap_exec] do
   path node[:deployment][:vcap_exec]
   source "vcap.erb"
