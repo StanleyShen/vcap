@@ -62,8 +62,7 @@ class JavaWebPlugin < StagingPlugin
 
   def configure_catalina_opts
     # We want to set this to what the user requests, *not* set a minum bar
-    #TODO: configure the MaxPermSize according to what the user want?
-    "-Xms#{application_memory}m -Xmx#{application_memory}m -XX:MaxPermSize=384m"
+    "-Xms#{application_memory}m -Xmx#{application_memory}m"
   end
 
   private
