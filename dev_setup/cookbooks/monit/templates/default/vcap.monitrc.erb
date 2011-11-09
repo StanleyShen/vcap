@@ -4,7 +4,8 @@ check process <%= name %> with pidfile /var/run/<%= name %>.pid
        start program = "/etc/init.d/<%= name %> start"
        stop program  = "/etc/init.d/<%= name %> stop"
 <% end %>
-<% node[:monit][:vcap_components].each do |name| unless node[:monit][:vcap_components].nil? %>
+<% unless node[:monit][:vcap_components].nil?
+     node[:monit][:vcap_components].each do |name| %>
 check process <%= name %> with pidfile /var/vcap/sys/run/<%= name %>.pid
        group vcap
        start program = " start <%= name %>"
