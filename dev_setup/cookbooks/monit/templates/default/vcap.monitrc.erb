@@ -1,15 +1,15 @@
-<% node[:monit][:daemons].each do |name| unless node[:monit][:daemons].nil? %>
+<% node[:monit][:daemons].each do |name| %>
 check process <%= name %> with pidfile /var/run/<%= name %>.pid
        group vcap_daemons
        start program = "/etc/init.d/<%= name %> start"
        stop program  = "/etc/init.d/<%= name %> stop"
-<% end %>
+<% end unless node[:monit][:daemons].nil? %>
 <% node[:monit][:vcap_components].each do |name| %>
 check process <%= name %> with pidfile /var/vcap/sys/run/<%= name %>.pid
        group vcap
-       start program = " start <%= name %>"
+       start program = "<%= node[:monit][:vcap_exec] %> start <%= name %>"
              as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
-       stop program = "/home/ubuntu/cloudfoundry/_vcap stop <%= name %>"
+       stop program = "<%= node[:monit][:vcap_exec] %> stop <%= name %>"
              as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
        <%= node[:monit][:depends_on][name] unless node[:monit][:depends_on][name].nil? %>
 <% end unless node[:monit][:vcap_components].nil? %>
