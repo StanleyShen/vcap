@@ -32,7 +32,6 @@ EOH
       template "/etc/monit/conf.d/postgresql.monitrc" do
         path "/etc/monit/conf.d/postgresql.monitrc"
         source "postgresql.monitrc.erb"
-        owner root
         mode 0644
       end
     end
