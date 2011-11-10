@@ -12,6 +12,7 @@ case node['platform']
         user "root"
         code <<-EOH
 sed -i 's/^startup=.*$/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/monit
+sed -i 's/^#.*set daemon  120/set daemon  120/g' /etc/monit/monitrc
 EOH
       end
     end

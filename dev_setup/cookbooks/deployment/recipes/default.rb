@@ -84,6 +84,26 @@ when "ubuntu"
       `grep alias\ #{node[:deployment][:vcap_exec_alias]}=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias vcap='#{node[:deployment][:vcap_exec]}'" >> #{ENV["HOME"]}/.bashrc`
    end
   end
+  
+  node[:deployment][:etc_hosts][:api_dot_domain].each do |ip|
+    bash "Bind #{ip} to api.#{node[:deployment][:domain]} in /etc/hosts" do
+    user "root"
+    code <<-EOH
+binding_exists=`grep -E '#{Regexp.escape(ip)}[[:space:]].*[[:space:]]api\.#{Regexp.escape(node[:deployment][:domain])}[^[:alnum:]]?'`
+if [ -z "$binding_exists" ]; then
+  ip_already_bound=`grep -E '#{Regexp.escape(ip)}[[:space:]]`
+  if [ -z "$ip_already_bound" ]; then
+    echo "#{ip}    api.#{node[:deployment][:domain]}" >> /etc/hosts
+  else
+    sed -i 's/^{Regexp.escape(ip)}[[:space:]].*$/'$ip_already_bound' api.#{node[:deployment][:domain]}/g' /etc/hosts
+  fi
+else
+  echo "#{ip} was already bound to api.#{node[:deployment][:domain]} in /etc/hosts"  
+fi
+EOH
+    end
+  end
+  
 end
 
 file node[:deployment][:local_run_profile] do

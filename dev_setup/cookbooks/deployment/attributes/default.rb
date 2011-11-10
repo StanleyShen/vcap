@@ -13,6 +13,7 @@ default[:deployment][:vcap_exec] = File.join(default[:deployment][:home], "vcap"
 default[:deployment][:vcap_exec_alias] = "vcap"
 
 default[:deployment][:etc_issue_msg] = "Welcome to CloudFoundry #{default[:deployment][:name]}"
+default[:deployment][:etc_hosts][:api_dot_domain] = [ "127.0.0.1" ]
 default[:deployment][:is_micro] = false
 #Force the local IP to something else.
 #default[:cloudfoundry][:local_ip] = 127.0.0.1
