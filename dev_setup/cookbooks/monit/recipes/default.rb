@@ -54,8 +54,7 @@ end
 if node[:monit][:vcap_components].include?("dea")
   nodes_components = node[:monit][:vcap_components].select{|name| name =~ /_node$/}
   unless nodes_components.empty?
-    dea_deps = node[:monit][:depends_on]["dea"].nil? ? nodes_components 
-            : node[:monit][:depends_on]["dea"] + nodes_components
+    dea_deps = node[:monit][:depends_on]["dea"].nil? ? nodes_components : ( node[:monit][:depends_on]["dea"] + nodes_components )
     node[:monit][:depends_on]["dea"] = dea_deps
   end
 end
