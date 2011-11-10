@@ -7,10 +7,10 @@ package "monit"
 case node['platform']
   when "ubuntu"
     #Startup mode
-    if node[:monit][:daemon_startup] == 1 || node[:monit][:daemon_startup] == 0
+    if node[:monit][:daemon_startup] == "1" || node[:monit][:daemon_startup] == "0"
       bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
         code <<-EOH
-    sed -i 's/^startup=/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/monit
+    sed -i 's/^startup=.*$/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/monit
 EOH
       end
     end
