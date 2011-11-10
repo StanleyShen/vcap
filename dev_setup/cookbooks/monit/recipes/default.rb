@@ -1,11 +1,8 @@
 #
-# Cookbook Name:: stager
+# Cookbook Name:: monit
 # Recipe:: default
 #
 package "monit"
-
-# TODO: edit the /etc/monit/monitrc
-# enable web-access, enable conf.d and include the vcap.monitrc generated
 
 case node['platform']
   when "ubuntu"
@@ -38,12 +35,13 @@ EOH
     
 end
 
-
-
+node[:monit][:vcap_components] ||= Hash.new
+node[:monit][:vcap_daemons] ||= Hash.new
+node[:monit][:others] ||= Hash.new
 node[:monit][:depends_on] ||= Hash.new
 
 #every vcap component requires nats_server if we are running it on this machine:
-if !node[:monit][:daemons].nil? && node[:monit][:daemons].include?("nats_server") && !node[:monit][:vcap_components].nil?
+if node[:monit][:vcap_daemons].include?("nats_server")
   node[:monit][:vcap_components].each do |name|
     node[:monit][:depends_on][name] = "depends on nats_server"
   end

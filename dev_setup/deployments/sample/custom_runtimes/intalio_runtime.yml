@@ -92,11 +92,6 @@ jobs:
     - postgresql_gateway
     - monit:
         daemon_startup: 1
-        web_access:
-           enabled: true
-           user: vcap #changeme
-           password: vcap #changeme
-           port: 2812 #changeme
         vcap_components:
            - cloud_controller
            - dea
@@ -108,7 +103,7 @@ jobs:
            - redis_gateway
            - redis_node
            - router
-        daemons:
+        vcap_daemons:
            - nats_server
         others:
            - postgresql
