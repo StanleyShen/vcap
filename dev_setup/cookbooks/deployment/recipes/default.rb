@@ -70,8 +70,6 @@ when "ubuntu"
     block do
       Dir.chdir node[:cloudfoundry][:home] do
         # few symbolic links (todo: too many assumptions on the layout of the deployment)
-        `[ -h _vcap ] && rm _vcap`
-        `ln -s #{node[:deployment][:vcap_exe]} _vcap`
         `[ -h log ] && rm log`
         `ln -s #{node[:deployment][:log_path]} log`
         `[ -h config ] && rm config`
