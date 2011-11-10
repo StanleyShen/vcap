@@ -7,3 +7,5 @@ else
   echo "WARNING: Unable to detect the network address on which the server is running"
 fi
 echo "" >> /etc/issue
+clear >/dev/console
+pkill -9 getty
