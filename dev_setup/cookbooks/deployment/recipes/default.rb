@@ -64,6 +64,30 @@ template node[:deployment][:vcap_exec] do
   mode 0755
 end
 
+case node['platform']
+when "ubuntu"
+  ruby_block "user bashrc update" do
+    block do
+      Dir.chdir cloudfoundry_home do
+        # few symbolic links (todo: too many assumptions on the layout of the deployment)
+        `[ -h _vcap ] && rm _vcap`
+        `ln -s #{node[:deployment][:vcap_exe]} _vcap`
+        `[ -h log ] && rm log`
+        `ln -s #{node[:deployment][:log_path]} log`
+        `[ -h config ] && rm config`
+        `ln -s #{node[:deployment][:config_path]} config`
+        `[ -h deployed_apps ] && rm deployed_apps`
+        `mkdir -p /var/vcap.local/dea/apps`
+        `ln -s /var/vcap.local/dea/apps deployed_apps`
+      end
+      
+      # add the profile to the user's  home.
+      `grep #{node[:deployment][:local_run_profile]} #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "source #{node[:deployment][:local_run_profile]}" >> #{ENV["HOME"]}/.bashrc`
+      `grep alias\ #{default[:deployment][:vcap_exec_alias]}=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias vcap='#{node[:deployment][:vcap_exec]}'" >> #{ENV["HOME"]}/.bashrc`
+   end
+  end
+end
+
 file node[:deployment][:local_run_profile] do
   owner node[:deployment][:user]
   group node[:deployment][:group]
@@ -72,3 +96,4 @@ file node[:deployment][:local_run_profile] do
     export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
   EOH
 end
+

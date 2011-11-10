@@ -79,6 +79,8 @@ else
 end
 
 # Add the current IP to the allowed ones
+#The network/if-up.d script takes care of changing this IP by a new one when it changes
+# and i we decide to track a particular network interface.
 cf_pg_update_hba_conf("all", "all", "#{cf_local_ip} 255.255.255.255", "md5") unless cf_local_ip == '127.0.0.1'
 
 unless node[:postgresql_node][:pg_hba_extra].nil?

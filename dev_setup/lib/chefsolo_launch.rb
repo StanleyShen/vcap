@@ -137,27 +137,13 @@ Dir.mktmpdir do |tmpdir|
   puts "* Config files:" + " #{deployment_config_path}"
   puts "* Deployment name:" + " #{deployment_name}"
   puts "*" + " Note:".red
-  puts "  * If you want to run ruby/vmc please source the profile #{Deployment.get_deployment_profile_file}"
+  puts "  * If you want to run ruby/vmc please source the profile #{Deployment.get_deployment_profile_file}" + " (Sourced from .bashrc)".green
   puts "  * If you want to run cloudfoundry components by hand please source the profile #{Deployment.get_local_deployment_run_profile}"
   args = ""
   args << (deployment_name != DEPLOYMENT_DEFAULT_NAME ? " -n #{deployment_name}" : "")
   args << (cloudfoundry_home != Deployment.get_cloudfoundry_home ? " -d #{cloudfoundry_home}" : "")
   args << " start"
   puts "* Command to run cloudfoundry:" + " #{vcap_dev_path} #{args.strip}".green
-  puts "Or: #{cloudfoundry_home}/_vcap #{args.strip}"
-  
-  Dir.chdir cloudfoundry_home do
-    # few symbolic links (todo: too many assumptions on the layout of the deployment)
-    `[ -h _vcap ] && rm _vcap`
-    `ln -s #{deployment_path}/vcap _vcap`
-    `[ -h log ] && rm log`
-    `ln -s #{deployment_path}/log log`
-    `[ -h config ] && rm config`
-    `ln -s #{deployment_config_path} config`
-    `[ -h deployed_apps ] && rm deployed_apps`
-    `mkdir -p /var/vcap.local/dea/apps`
-    `ln -s /var/vcap.local/dea/apps deployed_apps`
+  puts "Or: " + "vcap start".green
     
-  end
-  
 end
