@@ -45,7 +45,7 @@ node[:monit][:depends_on] ||= Hash.new
 #every vcap component requires nats_server if we are running it on this machine:
 if node[:monit][:vcap_daemons].include?("nats_server")
   node[:monit][:vcap_components].each do |name|
-    node[:monit][:depends_on][name] = "depends on nats_server"
+    node[:monit][:depends_on][name] = [ "nats_server" ]
   end
 end
 
@@ -54,9 +54,9 @@ end
 if node[:monit][:vcap_components].include?("dea")
   nodes_components = node[:monit][:vcap_components].select{|name| name =~ /_node$/}
   unless nodes_components.empty?
-    dea_deps = node[:monit][:depends_on]["dea"].nil? ? [ 'depends on' ] : [ node[:monit][:depends_on]["dea"] ]
+    dea_deps = node[:monit][:depends_on]["dea"].nil? ? [ ] : [ node[:monit][:depends_on]["dea"] ]
     dea_deps << nodes_components
-    node[:monit][:depends_on]["dea"] = dea_deps.join(' ')
+    node[:monit][:depends_on]["dea"] = dea_deps
   end
 end
 
