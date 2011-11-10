@@ -68,7 +68,7 @@ case node['platform']
 when "ubuntu"
   ruby_block "user bashrc update" do
     block do
-      Dir.chdir cloudfoundry_home do
+      Dir.chdir node[:cloudfoundry][:home] do
         # few symbolic links (todo: too many assumptions on the layout of the deployment)
         `[ -h _vcap ] && rm _vcap`
         `ln -s #{node[:deployment][:vcap_exe]} _vcap`
