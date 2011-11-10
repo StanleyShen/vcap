@@ -103,6 +103,7 @@ jobs:
            - redis_gateway
            - redis_node
            - router
+           - stager
         vcap_daemons:
            - nats_server
         others:
