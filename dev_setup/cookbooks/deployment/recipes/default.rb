@@ -83,7 +83,7 @@ when "ubuntu"
       
       # add the profile to the user's  home.
       `grep #{node[:deployment][:local_run_profile]} #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "source #{node[:deployment][:local_run_profile]}" >> #{ENV["HOME"]}/.bashrc`
-      `grep alias\ #{default[:deployment][:vcap_exec_alias]}=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias vcap='#{node[:deployment][:vcap_exec]}'" >> #{ENV["HOME"]}/.bashrc`
+      `grep alias\ #{node[:deployment][:vcap_exec_alias]}=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias vcap='#{node[:deployment][:vcap_exec]}'" >> #{ENV["HOME"]}/.bashrc`
    end
   end
 end
