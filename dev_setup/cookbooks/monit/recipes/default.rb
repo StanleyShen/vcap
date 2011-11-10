@@ -7,6 +7,41 @@ package "monit"
 # TODO: edit the /etc/monit/monitrc
 # enable web-access, enable conf.d and include the vcap.monitrc generated
 
+case node['platform']
+  when "ubuntu"
+    #Startup mode
+    if node[:monit][:daemon_startup] == 1 || node[:monit][:daemon_startup] == 0
+      bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
+        code <<-EOH
+    sed -i 's/^startup=/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/monit
+EOH
+      end
+    end
+    
+    #Include directive.
+    bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
+      code <<-EOH
+    egrep ^include\ \/etc\/monit\/conf\.d\/\* /etc/monit/monitrc
+    [ $? != 0 ] && echo "include /etc/monit/conf.d/*" >> /etc/monit/monitrc
+    echo "include #{node[:monit][:config_file]}" > /etc/monit/conf.d/include_vcap.monitrc
+EOH
+    end
+    
+    #postgres?
+    if !node[:monit][:others].nil? && node[:monit][:others].include?("postgresql")
+      template "/etc/monit/conf.d/postgresql.monitrc" do
+        path "/etc/monit/conf.d/postgresql.monitrc"
+        source "postgresql.monitrc.erb"
+        owner root
+        mode 0644
+      end
+    end
+    
+  end
+end
+
+
+
 node[:monit][:depends_on] ||= Hash.new
 
 #every vcap component requires nats_server if we are running it on this machine:

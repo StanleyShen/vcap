@@ -91,13 +91,12 @@ jobs:
         node_timeout: 8 #2 seconds is the default but we keep getting timeout errors. maybe this will help.
     - postgresql_gateway
     - monit:
+        daemon_startup: 1
         web_access:
            enabled: true
            user: vcap #changeme
            password: vcap #changeme
            port: 2812 #changeme
-        vcap_exec:
-           /home/ubuntu/cloudfoundry/_vcap #TODO: better than that ?
         vcap_components:
            - cloud_controller
            - dea
@@ -111,3 +110,5 @@ jobs:
            - router
         daemons:
            - nats_server
+        others:
+           - postgresql
