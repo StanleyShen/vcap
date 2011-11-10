@@ -21,8 +21,8 @@ EOH
     #Include directive.
     bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
       code <<-EOH
-    egrep ^include\ \/etc\/monit\/conf\.d\/\* /etc/monit/monitrc
-    [ $? != 0 ] && echo "include /etc/monit/conf.d/*" >> /etc/monit/monitrc
+    found=`egrep ^include\ \/etc\/monit\/conf\.d\/\* /etc/monit/monitrc`
+    [ -z "$found" ] && echo "include /etc/monit/conf.d/*" >> /etc/monit/monitrc
     echo "include #{node[:monit][:config_file]}" > /etc/monit/conf.d/include_vcap.monitrc
 EOH
     end
