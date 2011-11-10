@@ -11,7 +11,6 @@ case node['platform']
       bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
         user "root"
         code <<-EOH
-echo "HEEHEHEHEEHHSDFSDFD #{node[:monit][:daemon_startup]}"
 sed -i 's/^startup=.*$/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/monit
 EOH
       end
