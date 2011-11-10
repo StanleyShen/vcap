@@ -7,20 +7,22 @@ package "monit"
 case node['platform']
   when "ubuntu"
     #Startup mode
-    if node[:monit][:daemon_startup] == "1" || node[:monit][:daemon_startup] == "0"
+    if node[:monit][:daemon_startup] == 1 || node[:monit][:daemon_startup] == 0
       bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
+        user "root"
         code <<-EOH
-    sed -i 's/^startup=.*$/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/monit
+    sudo sed -i 's/^startup=.*$/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/monit
 EOH
       end
     end
     
     #Include directive.
     bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
+      user "root"
       code <<-EOH
     found=`egrep ^include\ \/etc\/monit\/conf\.d\/\* /etc/monit/monitrc`
-    [ -z "$found" ] && echo "include /etc/monit/conf.d/*" >> /etc/monit/monitrc
-    echo "include #{node[:monit][:config_file]}" > /etc/monit/conf.d/include_vcap.monitrc
+    [ -z "$found" ] && sudo echo "include /etc/monit/conf.d/*" >> /etc/monit/monitrc
+    sudo echo "include #{node[:monit][:config_file]}" > /etc/monit/conf.d/include_vcap.monitrc
 EOH
     end
     
