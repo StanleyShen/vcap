@@ -43,8 +43,8 @@ if [ ! -e "$NATS_CONF" ]; then
 fi
 # Now in that file look for the tracked interface:
 # tracked-net-iface: eth0
-NATS_TRACKED_IFACE=`grep tracked-net-iface: $NATS_CONF | cut -d' ' -f2`
-if [ "$IFACE" != "$NATS_IFACE" ]; then
+NATS_TRACKED_IFACE=`grep tracked_net_iface: $NATS_CONF | cut -d' ' -f2`
+if [ "$IFACE" != "$NATS_TRACKED_IFACE" ]; then
         exit 0
 fi
 
@@ -69,7 +69,7 @@ LOG_FILE=/var/log/nats_server.log
 date=$( date +"%Y-%m-%d_%H:%M:%S" )
 echo "$date The tracked network interface's IP has changed from $NATS_IP to $IP. Updating all the config of the nats_server and the vcap components." >> $LOG_FILE
 
-find <%= node[:deployment][:config_path] %>/ -type f -name *.yml -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \;
+find <%= node[:deployment][:config_path] %>/ -type f -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \;
 #migrate the credentials that also contain the old IP.
 #todo: add a few more parameters and put this into a separate file related to the cloud_controller
 sudo -u postgres psql -d cloud_controller -c "update service_configs set credentials = replace(credentials, '$NATS_IP', '$IP')"
