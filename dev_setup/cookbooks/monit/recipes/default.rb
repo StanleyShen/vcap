@@ -6,6 +6,23 @@ package "monit"
 
 case node['platform']
   when "ubuntu"
+    bash "Upgrade to monit-5.3" do
+      user "root"
+      code <<-EOH
+cd /tmp
+if [ ! -d monit-5.3 ]; then
+wget http://mmonit.com/monit/dist/monit-5.3.tar.gz
+tar xvfz monit-5.3.tar.gz
+fi
+cd monit-5.3
+./configure --sysconfdir=/etc/monit/
+make
+sudo make install
+sudo monit quit
+sudo monit
+EOH
+    end
+    
     #Startup mode
     if node[:monit][:daemon_startup] == 1 || node[:monit][:daemon_startup] == 0
       bash "Setup monit daemon startup mode to #{node[:monit][:daemon_startup]}" do
