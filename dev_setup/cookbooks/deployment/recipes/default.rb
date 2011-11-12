@@ -82,6 +82,8 @@ when "ubuntu"
       # add the profile to the user's  home.
       `grep #{node[:deployment][:local_run_profile]} #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "source #{node[:deployment][:local_run_profile]}" >> #{ENV["HOME"]}/.bashrc`
       `grep alias\ #{node[:deployment][:vcap_exec_alias]}=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias vcap='#{node[:deployment][:vcap_exec]}'" >> #{ENV["HOME"]}/.bashrc`
+      `grep alias\ _psql=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias _psql='sudo -u postgres psql'" >> #{ENV["HOME"]}/.bashrc`
+      `grep alias\ _mongo=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> #{ENV["HOME"]}/.bashrc`
    end
   end
   
