@@ -1,0 +1,197 @@
+#!/usr/bin/env ruby
+# Usage: restore.sh DBNAME ROLENAME DUMPFILE
+# Low level utility to import export databases based on their cf service names.
+# This is a work in progress: more of a sum of useful queries and command-line that we are turning into a
+# high-level cloudfoundry script.
+#
+module CF::DB::Postgres
+  
+  def pg_dump(dbname,dump_file)
+    raise "The name of the DB is required" if dbname.nil?
+    dump_file="#{dbname}_#{`date +%Y_%m_%d_%H_%M_%S`}" if dump_file.nil?
+    `touch #{dump_file}`
+    `chmod o+w #{dump_file}`
+    puts "Exports the database #{dbname} in #{dump_file}"
+    `sudo -u postgres pg_dump --format=p --file=#{dump_file} --no-owner --clean --oids --blobs --no-acl --no-privileges --no-tablespaces #{dbname}`
+    `chmod o-w #{dump_file}`
+  end
+  
+  # grant privileges once a user can connect the same grants than the ones CF grants.
+  def grant_cf_privileges(dbname)
+    raise "The name of the DB is required" if dbname.nil?
+    cmd_acl="GRANT CREATE ON SCHEMA PUBLIC TO PUBLIC;\
+    GRANT ALL ON ALL TABLES IN SCHEMA PUBLIC TO PUBLIC;\
+    GRANT ALL ON ALL FUNCTIONS IN SCHEMA PUBLIC TO PUBLIC;\
+    GRANT ALL ON ALL SEQUENCES IN SCHEMA PUBLIC TO PUBLIC;"
+    `echo "#{cmd_acl}" | sudo -u postgres psql --dbname #{dbname}`
+  end
+  
+  #create a new DB and make the owner the passed one.
+  #The owner does not need to have the right to create a DB.
+  def create_db(dbname,owner_role)
+    # create a new 'importing' DB from template0
+    # create a new 'importing' DB from template0; grant permissions; set ownership;
+    cmd="DROP DATABASE IF EXISTS #{dbname};\
+    CREATE DATABASE #{dbname} TEMPLATE template0;\
+    GRANT ALL on DATABASE #{dbname} TO #{owner_role};\
+    ALTER DATABASE #{dbname} OWNER TO #{owner_role};"
+    `echo "#{cmd}" | sudo -u postgres psql`
+  end
+  
+  #drop all the tables pg
+  #drop schema public cascade followed by create schema public
+  def pg_drop_tables(dbname)
+    `sudo -u postgres psql -t -d #{dbname} -c "SELECT 'DROP TABLE ' || n.nspname || '.' || c.relname || ' CASCADE;' FROM pg_catalog.pg_class AS c LEFT JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace WHERE relkind = 'r' AND n.nspname NOT IN ('pg_catalog', 'pg_toast') AND pg_catalog.pg_table_is_visible(c.oid)" >/tmp/droptables`
+    `sudo -u postgres psql -d #{dbname} -f /tmp/droptables`
+  end
+  
+  def pg_restore(dbname,username,file)
+    #TODO: drop / create the DB if necessary.
+    #try to not restore the functions and operators if we want to avoid the warnings.
+    `sudo -u postgres pg_restore --dbname=#{dbname} --username=#{username} --no-acl --no-privileges --no-owner #{file}`
+  end
+  
+  #Change the table's owner from postgres to ROLENAME all at once.
+  #cf http://stackoverflow.com/questions/1348126/modify-owner-on-all-tables-simultaneously-in-postgresql
+  #at the moment we should not need this.
+  def pg_change_owner(dbname)
+    cmd_change_owner="UPDATE pg_class SET relowner = (SELECT oid FROM pg_roles WHERE rolname = '$ROLENAME') \
+    WHERE relname IN (SELECT relname FROM pg_class, pg_namespace  
+                   WHERE pg_namespace.oid = pg_class.relnamespace AND
+                         pg_namespace.nspname = 'public');"
+    `echo "#{cmd_change_owner}" | sudo -u postgres psql --dbname #{dbname}`
+  end
+  
+  def pg_restore(file,dbname,rolename)
+    `chmod o+r #{file}`
+    `sudo -u postgres psql --dbname #{dbname} --file #{file} --clean --quiet --username #{rolename}`
+  end
+  
+  # Returns a hash of the credentials for a data-service
+  # FOr example:
+  #--- 
+  #name: dc82ca85dfef740b7841211f354068beb
+  #host: 192.168.1.6
+  #hostname: 192.168.1.6
+  #port: 5432
+  #user: uafe612fbe7714af0ab04db22e199680d
+  #username: uafe612fbe7714af0ab04db22e199680d
+  #password: pd829916bfac34b3185e0f1158bf8920b
+  #node_id: postgresql_node_0  
+  #
+  def get_credentials(service_name, ccdb_name='cloud_controller')
+     credentials_str = `sudo -u postgres psql --dbname #{ccdb_name} -c \"select credentials from service_configs where alias='#{service_name}'\" -P format=unaligned -P footer=off -P tuples_only=on`
+     res = Hash.new
+     credentials_str.split("\n").each do | line |
+       line =~ /([\w]): ([\w]*)$/
+       res[$1] = $2 if $2
+     end
+     res
+  end
+  
+  #
+  def cf_restore(file,service_name,rolename='vcap')
+    credentials = get_credentials(service_name)
+    node_id = credentials["node_id"]
+    if node_id =~ /postgresql/ #hack?
+      pg_restore(file, credentials["name"], rolename)
+    elsif node_id =~ /mongodb/ #hack?
+      puts "TODO: Unsupported type of service: #{node_id}"
+    else
+      puts "Unsupported type of service: #{node_id}"
+    end
+  end
+
+  
+  #Todo: make this into something usable.
+  def mongo_con(service_name)
+    
+    `#{node[:deployment][:home]}/deploy/mongodb/bin/mongo 127.0.0.1:25001/db -u f8f29ebc-3425-44ab-9452-6cb99860e205 -p 180c3222-cb55-478d-93ee-3e5f8d34ec80`
+  end
+  
+  class DatabaseServiceHelper
+    
+    def initialize()
+      
+    end
+    
+  end
+  
+end
+
+if [ -z "$1" ]; then
+  echo "The first parameter must be the database name"
+  echo "Usage restore.sh DBNAME ROLENAME DUMPFILE"
+  exit 2
+else
+  DBNAME=$1
+fi
+if [ -z "$PGPASSWORD" ]; then
+  PGPASSWORD=postgres
+fi
+
+if [ -z "$2" ]; then
+  echo "The second parameter must be the rolename"
+  exit 2
+else
+  ROLENAME=$2
+fi
+
+if [ -z "$3" ]; then
+  echo "The 3rd paramter must be the dump file"
+else
+  DUMPFILE=$3
+  if [ ! -f "$DUMPFILE" ]; then
+    echo "Can't find the file $DUMPFILE"
+    exit 2
+  fi
+fi
+
+IMP_DBNAME=$DBNAME
+if [ -z "dont_do_this_for_now" ]; then
+IMP_DBNAME=importing_$DBNAME
+
+# create a new 'importing' DB from template0
+# create a new 'importing' DB from template0; grant permissions; set ownership;
+cmd="DROP DATABASE IF EXISTS $IMP_DBNAME;\
+CREATE DATABASE $IMP_DBNAME TEMPLATE template0;\
+GRANT ALL on DATABASE $IMP_DBNAME TO $ROLENAME;\
+ALTER DATABASE $IMP_DBNAME OWNER TO $ROLENAME;"
+echo "$cmd" | sudo -u postgres env DBNAME=$DBNAME psql
+
+#else # drop the current tables
+#sudo -u postgres psql -t -d $DBNAME -c "SELECT 'DROP TABLE ' || n.nspname || '.' || c.relname || ' CASCADE;' FROM pg_catalog.pg_class AS c LEFT JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace WHERE relkind = 'r' AND n.nspname NOT IN ('pg_catalog', 'pg_toast') AND pg_catalog.pg_table_is_visible(c.oid)" >/tmp/droptables
+#sudo -u postgres psql -d $DBNAME -f /tmp/droptables
+fi
+
+#########################################################################
+# enable local authentication of the database users for the psql program.
+
+#looking for
+#local   all             all                                     peer
+replacement="local   all             all                                     trust"
+
+#Let's find pg_hba.conf
+if [ ! -f "$pg_hba" ]; then
+  line=`sudo ps aux | grep postgresql.conf | head -1` 
+#it looks like this:
+#postgres 1346 0.0 0.0 99360 6672 ? S Oct21 0:00 /usr/lib/postgresql/9.0/bin/postgres -D /var/lib/postgresql/9.0/main -c config_file=/etc/postgresql/9.0/main/postgresql.conf -c external_pid_file=/var/run/postgresql/9.0-main.pid
+  [[ $line =~ config_file=(.*)\/postgresql\.conf\ -.*$ ]] && pg_hba="${BASH_REMATCH[1]}/pg_hba.conf"
+  echo "working on $pg_hba"
+fi
+
+
+foundit=`sudo -s sed -n '/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/p' $pg_hba`
+if [ -z "$foundit" ]; then
+  echo "Setting up trust ACL for the local connections on the Unix socket."
+  echo `sudo -s sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     trust/g' $pg_hba`
+  echo "Reloading Postgres"
+  `sudo /etc/init.d/postgresql reload`
+fi
+#####################################################################################
+
+
+
+chmod o+r $DUMPFILE
+sudo -u postgres env DBNAME=$DBNAME DUMPFILE=$DUMPFILE psql --dbname $IMP_DBNAME --file $DUMPFILE --quiet --username $ROLENAME
+
