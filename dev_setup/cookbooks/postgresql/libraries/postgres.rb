@@ -111,6 +111,7 @@ EOH
         #see also http://crafted-software.blogspot.com/2011/10/extensions-in-postgres.html
         code <<-EOH
 psql template1 -c \"CREATE EXTENSION IF NOT EXISTS \\\"#{extension_name}\\\";\"
+psql template1 -c \"GRANT ALL ON ALL FUNCTIONS IN SCHEMA PUBLIC TO PUBLIC\"
 [ 'ltree' = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
 [ 'uuid-ossp' = #{extension_name} ] && psql template1 -c \"select uuid_generate_v4();\"
 exit $?
