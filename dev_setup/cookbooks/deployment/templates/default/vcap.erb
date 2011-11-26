@@ -2,6 +2,10 @@
 #Make sure HOME and USER are set: with monit as a daemon it is not set.
 [ -z "$HOME" ] && export HOME=/home/<%= node[:deployment][:user] %>
 [ -z "$USER" ] && export USER=<%= node[:deployment][:user] %>
+
+# make sure avahi is publishing the aliases if avahi-publishaliases is installed
+[ -f /usr/bin/avahi-publish-aliases -a ! -f /tmp/avahi-publish-alias.pid ] && /usr/bin/avahi-publish-aliases
+
 _vcap_log=<%= node[:deployment][:log_path] %>/vcap.log
 echo `date +%Y-%m-%d-%H%M%S`" vcap called with $@" | tee -a $_vcap_log
 <%= node[:cloudfoundry][:path] %>/dev_setup/bin/vcap_dev --name <%= node[:deployment][:name] %> --dir <%= node[:cloudfoundry][:home] %> $@ | tee -a $_vcap_log
