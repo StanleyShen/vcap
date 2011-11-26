@@ -20,9 +20,9 @@ module VCAP
       ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
       raise "Network unreachable." unless ip
       ip
+    ensure
+      Socket.do_not_reverse_lookup = orig
     end
-  ensure
-    Socket.do_not_reverse_lookup = orig
   end
 
   def self.secure_uuid
