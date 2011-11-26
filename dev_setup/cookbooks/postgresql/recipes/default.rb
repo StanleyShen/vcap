@@ -62,6 +62,10 @@ EOH
       pg_server_command 'restart'
     end
   end
+  
+  # make sure template1 uses UTF encording and locale:
+  cf_pg_setup_template()
+  
   # configure ltree.sql with some extensions:
   if node[:postgresql_node][:extensions_in_template1]
     extension_names=node[:postgresql_node][:extensions_in_template1].split(',')

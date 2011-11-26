@@ -76,11 +76,42 @@ Chef::Log.warn("Code to exec for the user+his-db #{code}")
     end
   end
   
-  # extension_name: uuid-ossp, ltree
-  def cf_pg_setup_extension(extension_name)
+  # Create or Re-create a template with the proper encoding; 
+  # Experience shows we can't trust always the default encoding and locale.
+  def cf_pg_setup_template(template_db_name='template1', encoding='UTF8', locale=nil)
+    locale||=ENV['$LANG']
+    locale||='en_us.UTF-8' # we might be in trouble if we are here. postgres will let us know.
+    raise "The locale #{locale} does not use UTF." unless /UTF/ =~ locale
+    CREATE DATABASE template1 with TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
+    #    CREATE DATABASE template1 with TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
     case node['platform']
     when "ubuntu"
-      bash "Setup PostgreSQL default database template with the extension #{extension_name}" do
+      bash "Create a template #{template_db_name} database with the proper encoding #{encoding} and locale #{locale}." do
+        user "postgres"
+        code <<-EOH
+set +e
+psql -c \"UPDATE pg_database SET datistemplate = FALSE WHERE datname = '#{template_db_name}'\"
+psql -c \"DROP DATABASE #{template_db_name} IF EXISTS\"
+psql -c \"CREATE DATABASE #{template_db_name} with TEMPLATE template0 ENCODING '#{encoding}' LC_COLLATE '#{locale}' LC_CTYPE '#{locale}'\"
+psql -c \"UPDATE pg_database SET datistemplate = TRUE WHERE datname = '#{template_db_name}'\"
+EOH
+# The mysterious 'SET datistemplate' allow anyone to copy the database. and also allows us to drop ther database.
+# See http://stackoverflow.com/questions/418935/trashed-postgres-template1
+#     and http://blog.endpoint.com/2010/05/postgresql-template-databases-to.html
+# No need for those: that is already part of template0.
+#9.0: #psql #{template_db_name} -c \"CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;\"
+#9.1: #psql #{template_db_name} -c \"CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;\"
+      end
+    else
+      Chef::Log.error("PostgreSQL database setup is not supported on this platform.")
+    end
+  end
+  
+  # extension_name: uuid-ossp, ltree
+  def cf_pg_setup_extension(db_template_name, extension_name)
+    case node['platform']
+    when "ubuntu"
+      bash "Setup PostgreSQL database template #{db_template_name} with the extension #{extension_name}" do
         user "postgres"
         / \d*.\d*/ =~ `pg_config --version`
         pg_major_version = $&.strip
@@ -90,12 +121,12 @@ extension_sql_path="/usr/share/postgresql/9.0/contrib/#{extension_name}.sql"
 if [ -f "$extension_sql_path" ]; then
   #tolerate already installed.
   set +e
-  psql template1 -f $extension_sql_path
+  psql #{db_template_name} -f $extension_sql_path
   if [ "ltree" = "#{extension_name}" ]; then
-    psql template1 -c \"select '1.1'::ltree;\"
+    psql #{db_template_name} -c \"select '1.1'::ltree;\"
     exit $?
   elif [ "uuid-ossp" = "#{extension_name}" ]; then
-    psql template1 -c \"select uuid_generate_v4();\"
+    psql #{db_template_name} -c \"select uuid_generate_v4();\"
     exit $?
   else
     exit 0
