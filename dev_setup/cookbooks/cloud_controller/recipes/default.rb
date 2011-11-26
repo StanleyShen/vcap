@@ -5,7 +5,6 @@
 # Copyright 2011, VMware
 #
 #
-
 template node[:cloud_controller][:config_file] do
   path File.join(node[:deployment][:config_path], node[:cloud_controller][:config_file])
   source "cloud_controller.yml.erb"
@@ -37,5 +36,26 @@ node[:cloud_controller][:staging].each_pair do |framework, config|
     source "#{config}.erb"
     owner node[:deployment][:user]
     mode 0644
+  end
+end
+
+# in progress: mDNS to publish the *.local URLs.
+case node['platform']
+when "ubuntu"
+  if node[:cloud_controller][:external_uri] =~ /\.local$/ 
+    package "avahi-daemon"
+    package "python-avahi"
+    bash "Install avahi-alias support" do
+      code <<-EOH
+  if [ ! -d "/tmp/avahi-aliases" ]; then
+    cd /tmp
+    git clone https://github.com/hmalphettes/avahi-aliases.git
+    cd avahi-aliases
+    ./install.sh
+    touch o+w /etc/avahi/aliases
+    touch o+r /etc/avahi/aliases
+  fi
+EOH
+    end
   end
 end
