@@ -10,9 +10,17 @@ module VCAP
   A_ROOT_SERVER = '198.41.0.4'
 
   def self.local_ip(route = A_ROOT_SERVER)
-    route ||= A_ROOT_SERVER
-    orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
-    UDPSocket.open {|s| s.connect(route, 1); s.addr.last }
+    begin
+      route ||= A_ROOT_SERVER
+      orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
+      UDPSocket.open {|s| s.connect(route, 1); s.addr.last }
+    rescue
+      # this is when the public internet is not reachable.
+      # for example a 'Host-only' private network.
+      ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
+      raise "Network unreachable." unless ip
+      ip
+    end
   ensure
     Socket.do_not_reverse_lookup = orig
   end
