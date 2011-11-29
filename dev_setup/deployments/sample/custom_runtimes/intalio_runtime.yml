@@ -3,10 +3,8 @@
 #force postgresql to 127.0.0.1: this is a Micro-CF and the IP keeps changing.
 deployment:
   name: "intalio_devbox"
- #WARNING: unless you are installing on your laptop
- #you must change this.
-  domain: "intalio.me"
-  etc_issue_msg: "Welcome to Intalio Micro-CloudFoundry"
+  domain: "intalio.local"
+  etc_issue_msg: "Welcome to Intalio Micro-Cloudfoundry"
 nginx:
   client_max_body_size: 512M
   proxy_connect_timeout: 40
@@ -22,7 +20,7 @@ jobs:
   install:
     - cloudfoundry:
         vmc:
-          version: 0.3.13
+          version: 0.3.14.beta.4
     - nats_server:
         port: 4222
         user: nats
@@ -87,8 +85,8 @@ jobs:
           pass_encrypt: md5
         server_root_user: vcap
         server_root_password: vcap
-        extensions_in_template1: "ltree,uuid-ossp" #install ltree and uuid in the default template1:
-        node_timeout: 8 #2 seconds is the default but we keep getting timeout errors. maybe this will help.
+        extensions_in_template1: "ltree,uuid-ossp"
+        node_timeout: 8
     - postgresql_gateway
     - monit:
         daemon_startup: 1
@@ -103,7 +101,6 @@ jobs:
            - redis_gateway
            - redis_node
            - router
-           - stager
         vcap_daemons:
            - nats_server
         others:

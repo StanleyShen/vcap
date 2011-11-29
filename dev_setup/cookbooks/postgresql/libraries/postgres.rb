@@ -82,8 +82,7 @@ Chef::Log.warn("Code to exec for the user+his-db #{code}")
     locale||=ENV['$LANG']
     locale||='en_us.UTF-8' # we might be in trouble if we are here. postgres will let us know.
     raise "The locale #{locale} does not use UTF." unless /UTF/ =~ locale
-    CREATE DATABASE template1 with TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
-    #    CREATE DATABASE template1 with TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
+    #CREATE DATABASE template1 with TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
     case node['platform']
     when "ubuntu"
       bash "Create a template #{template_db_name} database with the proper encoding #{encoding} and locale #{locale}." do
@@ -108,7 +107,7 @@ EOH
   end
   
   # extension_name: uuid-ossp, ltree
-  def cf_pg_setup_extension(db_template_name, extension_name)
+  def cf_pg_setup_extension(extension_name,db_template_name='template1')
     case node['platform']
     when "ubuntu"
       bash "Setup PostgreSQL database template #{db_template_name} with the extension #{extension_name}" do
