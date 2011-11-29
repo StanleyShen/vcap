@@ -27,9 +27,9 @@ sudo monit quit
 # set httpd port 2812 and
 #     use address localhost  # only accept connection from localhost
 #     allow localhost        # allow localhost to connect to the server and
-sed -i 's/^#[[:space:]]*set httpd port 2812 and/set httpd port 2812 and/g' /etc/default/monit
-sed -i 's/^#[[:space:]]*use address localhost/    use address localhost/g' /etc/default/monit
-sed -i 's/^#[[:space:]]*allow localhost/    allow localhost/g' /etc/default/monit
+sudo sed -i 's/^#[[:space:]]*set httpd port 2812 and/set httpd port 2812 and/g' /etc/monit/monitrc
+sudo sed -i 's/^#[[:space:]]*use address localhost/    use address localhost/g' /etc/monit/monitrc
+sudo sed -i 's/^#[[:space:]]*allow localhost/    allow localhost/g' /etc/monit/monitrc
 sudo monit
 EOH
     end
