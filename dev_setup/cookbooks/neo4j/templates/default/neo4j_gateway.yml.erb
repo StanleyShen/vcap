@@ -12,5 +12,5 @@ token: <%= node[:neo4j_node][:token] %>
 logging:
   level: debug
 mbus: nats://<%= node[:nats_server][:user] %>:<%= node[:nats_server][:password] %>@<%= node[:nats_server][:host] %>:<%= node[:nats_server][:port] %>/
-pid: /var/vcap/sys/run/neo4j_service.pid
+pid: /var/vcap/sys/run/neo4j_gateway.pid
 node_timeout: 10

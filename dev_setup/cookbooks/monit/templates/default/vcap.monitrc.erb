@@ -15,3 +15,8 @@ check process <%= name %> with pidfile /var/vcap/sys/run/<%= name %>.pid
        <%= "depends on #{node[:monit][:depends_on][name].join(' ')}" unless node[:monit][:depends_on][name].nil? %>
 
 <% end %>
+
+<% if node[:cloud_controller][:external_uri] =~ /\.local$/ %>
+check file avahi_aliases with path /etc/avahi/aliases
+       if changed timestamp then exec "/usr/bin/avahi-publish-aliases"
+<% end %>

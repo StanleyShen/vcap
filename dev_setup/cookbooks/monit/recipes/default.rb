@@ -19,6 +19,17 @@ cd monit-5.3
 make
 sudo make install
 sudo monit quit
+
+#Make sure that at least the localhost can connect to monit.
+# Otherwise sudo monit status will return 'errror connecting to monit daemon':
+# http://www.mail-archive.com/monit-general@nongnu.org/msg02887.html
+#Need to find the 3 lines here and uncomment them if that is not the case already:
+# set httpd port 2812 and
+#     use address localhost  # only accept connection from localhost
+#     allow localhost        # allow localhost to connect to the server and
+sed -i 's/^#[[:space:]]*set httpd port 2812 and/set httpd port 2812 and/g' /etc/default/monit
+sed -i 's/^#[[:space:]]*use address localhost/    use address localhost/g' /etc/default/monit
+sed -i 's/^#[[:space:]]*allow localhost/    allow localhost/g' /etc/default/monit
 sudo monit
 EOH
     end
@@ -71,6 +82,8 @@ end
 #true at least in a micro-setup:
 if node[:monit][:vcap_components].include?("dea")
   nodes_components = node[:monit][:vcap_components].select{|name| name =~ /_node$/}
+  nodes_components = node[:monit][:vcap_components].select{|name| name =~ /^router$/}
+  nodes_components = node[:monit][:vcap_components].select{|name| name =~ /^cloud_controller$/}
   unless nodes_components.empty?
     dea_deps = node[:monit][:depends_on]["dea"].nil? ? nodes_components : ( node[:monit][:depends_on]["dea"] + nodes_components )
     node[:monit][:depends_on]["dea"] = dea_deps

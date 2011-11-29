@@ -141,3 +141,15 @@ if [ -n "$CONFIG_FILE" ]; then
 fi
 
 $CLOUDFOUNDRY_HOME/vcap/dev_setup/lib/chefsolo_launch.rb $ARGS
+
+# misc: VirtualBox additions
+# on the guest VM:
+# sudo apt-get install dkms
+# then mount from the host the additions (for example on ubuntu they are located here: /usr/share/virtualbox/VBoxGuestAdditions.iso)
+# had to copy it.
+# then: sudo mkdir -p /mnt/disk
+# sudo mount -o loop VBoxGuestAdditions.iso /mnt/disk
+# cd /mnt/disk
+# sudo sh ./VBoxLinuxAdditions.run
+
+

@@ -11,5 +11,5 @@ token: <%= node[:postgresql_node][:token] %>
 logging:
   level: debug
 mbus: nats://<%= node[:nats_server][:user] %>:<%= node[:nats_server][:password] %>@<%= node[:nats_server][:host] %>:<%= node[:nats_server][:port] %>/
-pid: /var/vcap/sys/run/postgresql_service.pid
+pid: /var/vcap/sys/run/postgresql_gateway.pid
 node_timeout: <%= node[:postgresql_node][:node_timeout] %>

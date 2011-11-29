@@ -8,4 +8,16 @@
 
 _vcap_log=<%= node[:deployment][:log_path] %>/vcap.log
 echo `date +%Y-%m-%d-%H%M%S`" vcap called with $@" | tee -a $_vcap_log
+
+if [ "$2" == "dea" -a "$1" != "stop" ]; then
+  # this is called before the apps are started and after the cloud_controller is started
+  # let's make sure that the applications are correctly configured with their url
+  cd /home/<%= node[:deployment][:user] %>
+  echo "calling vmc_knife to make sure the urls are up to date." | tee -a $_vcap_log
+  source $HOME/.cloudfoundry_deployment_profile
+  vmc_knife configure-applications | tee -a $_vcap_log
+  vmc_knife configure-vcap-etc-hosts | tee -a $_vcap_log
+  vmc_knife configure-vcap-mdns | tee -a $_vcap_log
+fi
+
 <%= node[:cloudfoundry][:path] %>/dev_setup/bin/vcap_dev --name <%= node[:deployment][:name] %> --dir <%= node[:cloudfoundry][:home] %> $@ | tee -a $_vcap_log
