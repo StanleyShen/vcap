@@ -81,9 +81,9 @@ end
 #the dea must not be started before the service nodes are ready
 #true at least in a micro-setup:
 if node[:monit][:vcap_components].include?("dea")
-  nodes_components = node[:monit][:vcap_components].select{|name| name =~ /_node$/}
-  nodes_components = node[:monit][:vcap_components].select{|name| name =~ /^router$/}
-  nodes_components = node[:monit][:vcap_components].select{|name| name =~ /^cloud_controller$/}
+  nodes_components = node[:monit][:vcap_components].select{
+    |name| name =~ /_node$/ || name =~ /^router$/ || name =~ /^cloud_controller$/
+  }
   unless nodes_components.empty?
     dea_deps = node[:monit][:depends_on]["dea"].nil? ? nodes_components : ( node[:monit][:depends_on]["dea"] + nodes_components )
     node[:monit][:depends_on]["dea"] = dea_deps

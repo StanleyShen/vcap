@@ -79,11 +79,13 @@ when "ubuntu"
         `ln -s /var/vcap.local/dea/apps deployed_apps`
       end
       
-      # add the profile to the user's  home.
-      `grep #{node[:deployment][:local_run_profile]} #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "source #{node[:deployment][:local_run_profile]}" >> #{ENV["HOME"]}/.bashrc`
-      `grep alias\ #{node[:deployment][:vcap_exec_alias]}=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias vcap='#{node[:deployment][:vcap_exec]}'" >> #{ENV["HOME"]}/.bashrc`
-      `grep alias\ _psql=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias _psql='sudo -u postgres psql'" >> #{ENV["HOME"]}/.bashrc`
-      `grep alias\ _mongo=\' #{ENV["HOME"]}/.bashrc; [ $? != 0 ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> #{ENV["HOME"]}/.bashrc`
+      Dir.chdir ENV["HOME"] do
+        # add the profile to the user's  home.
+        `grep #{node[:deployment][:profile]} .bashrc; [ $? != 0 ] && echo "source #{node[:deployment][:profile]}" >> .bashrc`
+        `grep alias\ #{node[:deployment][:vcap_exec_alias]}= .bashrc; [ $? != 0 ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc`
+        `grep alias\ _psql= .bashrc; [ $? != 0 ] && echo "alias _psql='sudo -u postgres psql'" >> .bashrc`
+        `grep alias\ _mongo= .bashrc; [ $? != 0 ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc`
+      end
    end
   end
   

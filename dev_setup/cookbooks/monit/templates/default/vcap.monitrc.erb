@@ -12,7 +12,7 @@ check process <%= name %> with pidfile /var/vcap/sys/run/<%= name %>.pid
              as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
        stop program = "<%= node[:monit][:vcap_exec] %> stop <%= name %>"
              as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
-       <%= "depends on #{node[:monit][:depends_on][name].join(' ')}" unless node[:monit][:depends_on][name].nil? %>
+       <%= "depends on #{node[:monit][:depends_on][name].join(', ')}" unless node[:monit][:depends_on][name].nil? %>
 
 <% end %>
 

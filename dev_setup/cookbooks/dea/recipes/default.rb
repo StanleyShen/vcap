@@ -20,6 +20,16 @@ node[:dea][:runtimes].each do |runtime|
   end
 end
 
+[File.join("", "var", "vcap.local", "dea", "staged")].each do |dir|
+  directory dir do
+    owner node[:deployment][:user]
+    group node[:deployment][:group]
+    mode "0755"
+    recursive true
+    action :create
+  end
+
+
 template node[:dea][:config_file] do
   path File.join(node[:deployment][:config_path], node[:dea][:config_file])
   source "dea.yml.erb"
