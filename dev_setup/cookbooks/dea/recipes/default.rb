@@ -20,7 +20,7 @@ node[:dea][:runtimes].each do |runtime|
   end
 end
 
-[File.join("", "var", "vcap.local", "dea", "staged")].each do |dir|
+[File.join("", "var", "vcap.local", "dea")].each do |dir|
   directory dir do
     owner node[:deployment][:user]
     group node[:deployment][:group]
