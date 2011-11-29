@@ -39,23 +39,4 @@ node[:cloud_controller][:staging].each_pair do |framework, config|
   end
 end
 
-# in progress: mDNS to publish the *.local URLs.
-case node['platform']
-when "ubuntu"
-  if node[:cloud_controller][:external_uri] =~ /\.local$/ 
-    package "avahi-daemon"
-    package "python-avahi"
-    bash "Install avahi-alias support" do
-      code <<-EOH
-  if [ ! -d "/tmp/avahi-aliases" ]; then
-    cd /tmp
-    git clone https://github.com/hmalphettes/avahi-aliases.git
-    cd avahi-aliases
-    ./install.sh
-    touch o+w /etc/avahi/aliases
-    touch o+r /etc/avahi/aliases
-  fi
-EOH
-    end
-  end
-end
+
