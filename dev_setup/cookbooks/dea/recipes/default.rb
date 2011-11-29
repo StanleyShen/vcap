@@ -28,7 +28,7 @@ end
     recursive true
     action :create
   end
-
+end
 
 template node[:dea][:config_file] do
   path File.join(node[:deployment][:config_path], node[:dea][:config_file])
