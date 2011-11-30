@@ -14,7 +14,7 @@ end
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "router")))
 
 # Install the support for avahi to publish the *.local URLs with multicast-DNS
-case node['platform']
+case node[:router][:enable_mdns_avahi_aliases] && node['platform']
 when "ubuntu"
   if node[:cloud_controller][:external_uri] =~ /\.local$/ 
     package "avahi-daemon"

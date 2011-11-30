@@ -79,8 +79,8 @@ Chef::Log.warn("Code to exec for the user+his-db #{code}")
   # Create or Re-create a template with the proper encoding; 
   # Experience shows we can't trust always the default encoding and locale.
   def cf_pg_setup_template(template_db_name='template1', encoding='UTF8', locale=nil)
-    locale||=ENV['$LANG']
-    locale||='en_us.UTF-8' # we might be in trouble if we are here. postgres will let us know.
+    locale||=ENV["$LANG"]
+    locale||='en_US.UTF-8' # we might be in trouble if we are here. postgres will let us know.
     raise "The locale #{locale} does not use UTF." unless /UTF/ =~ locale
     #CREATE DATABASE template1 with TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
     case node['platform']
@@ -90,10 +90,16 @@ Chef::Log.warn("Code to exec for the user+his-db #{code}")
         code <<-EOH
 set +e
 psql -c \"UPDATE pg_database SET datistemplate = FALSE WHERE datname = '#{template_db_name}'\"
-psql -c \"DROP DATABASE #{template_db_name} IF EXISTS\"
-psql -c \"CREATE DATABASE #{template_db_name} with TEMPLATE template0 ENCODING '#{encoding}' LC_COLLATE '#{locale}' LC_CTYPE '#{locale}'\"
+psql -c \"DROP DATABASE IF EXISTS #{template_db_name}\"
+psql -c \"CREATE DATABASE #{template_db_name} TEMPLATE=template0 ENCODING '#{encoding}' LC_COLLATE '#{locale}' LC_CTYPE '#{locale}'\"
+if [ $? != 0 ]; then
+  echo "Unable to create the template database with the command CREATE DATABASE #{template_db_name} TEMPLATE=template0 ENCODING '#{encoding}' LC_COLLATE '#{locale}' LC_CTYPE '#{locale}'"
+  exit 1
+fi
 psql -c \"UPDATE pg_database SET datistemplate = TRUE WHERE datname = '#{template_db_name}'\"
+echo "done"
 EOH
+Chef::Log.warn("Code to create the template #{template_db_name} #{code}")
 # The mysterious 'SET datistemplate' allow anyone to copy the database. and also allows us to drop ther database.
 # See http://stackoverflow.com/questions/418935/trashed-postgres-template1
 #     and http://blog.endpoint.com/2010/05/postgresql-template-databases-to.html

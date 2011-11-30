@@ -3,8 +3,8 @@
 #force postgresql to 127.0.0.1: this is a Micro-CF and the IP keeps changing.
 deployment:
   name: "intalio_devbox"
-  domain: "intalio.local"
-  etc_issue_msg: "Welcome to Intalio Micro-Cloudfoundry"
+  domain: "intalio.me"
+  etc_issue_msg: "Welcome to Intalio"
 nginx:
   client_max_body_size: 512M
   proxy_connect_timeout: 40
@@ -46,7 +46,8 @@ jobs:
           apps:     32
         stager:
           max_staging_runtime: 360
-    - router
+    - router:
+        enable_mdns_avahi_aliases: false
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
         host: 127.0.0.1
@@ -64,8 +65,8 @@ jobs:
         mongod_conf:
           journal: false
           noprealloc: true
-          quota: true
-          quotafiles: 8
+          quota: false
+          quotafiles: -1
           smallfiles: false
     - mongodb_gateway
     - postgresql_node:

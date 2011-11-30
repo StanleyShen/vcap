@@ -11,26 +11,26 @@ case node['platform']
       code <<-EOH
 cd /tmp
 if [ ! -d monit-5.3 ]; then
-wget http://mmonit.com/monit/dist/monit-5.3.tar.gz
-tar xvfz monit-5.3.tar.gz
-fi
-cd monit-5.3
-./configure --sysconfdir=/etc/monit/
-make
-sudo make install
-sudo monit quit
+  wget http://mmonit.com/monit/dist/monit-5.3.tar.gz
+  tar xvfz monit-5.3.tar.gz
+  cd monit-5.3
+  ./configure --sysconfdir=/etc/monit/
+  make
+  sudo make install
+  sudo monit quit
 
-#Make sure that at least the localhost can connect to monit.
-# Otherwise sudo monit status will return 'errror connecting to monit daemon':
-# http://www.mail-archive.com/monit-general@nongnu.org/msg02887.html
-#Need to find the 3 lines here and uncomment them if that is not the case already:
-# set httpd port 2812 and
-#     use address localhost  # only accept connection from localhost
-#     allow localhost        # allow localhost to connect to the server and
-sudo sed -i 's/^#[[:space:]]*set httpd port 2812 and/set httpd port 2812 and/g' /etc/monit/monitrc
-sudo sed -i 's/^#[[:space:]]*use address localhost/    use address localhost/g' /etc/monit/monitrc
-sudo sed -i 's/^#[[:space:]]*allow localhost/    allow localhost/g' /etc/monit/monitrc
-sudo monit
+  #Make sure that at least the localhost can connect to monit.
+  # Otherwise sudo monit status will return 'errror connecting to monit daemon':
+  # http://www.mail-archive.com/monit-general@nongnu.org/msg02887.html
+  #Need to find the 3 lines here and uncomment them if that is not the case already:
+  # set httpd port 2812 and
+  #     use address localhost  # only accept connection from localhost
+  #     allow localhost        # allow localhost to connect to the server and
+  sudo sed -i 's/^#[[:space:]]*set httpd port 2812 and/set httpd port 2812 and/g' /etc/monit/monitrc
+  sudo sed -i 's/^#[[:space:]]*use address localhost/    use address localhost/g' /etc/monit/monitrc
+  sudo sed -i 's/^#[[:space:]]*allow localhost/    allow localhost/g' /etc/monit/monitrc
+  sudo monit
+fi
 EOH
     end
     

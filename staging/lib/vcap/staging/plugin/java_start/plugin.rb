@@ -13,7 +13,10 @@ class JavaStartPlugin < StagingPlugin
   end
 
   def start_command
-    "./start.sh -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
+    if File.exists? "start.jar"
+      "java -jar start.jar -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
+    else
+      "./start.sh -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
+    end
   end
-
 end
