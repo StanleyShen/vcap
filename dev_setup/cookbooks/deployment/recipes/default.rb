@@ -66,27 +66,31 @@ end
 
 case node['platform']
 when "ubuntu"
-  ruby_block "user bashrc update" do
-    block do
-      Dir.chdir node[:cloudfoundry][:home] do
-        # few symbolic links (todo: too many assumptions on the layout of the deployment)
-        `[ -h log ] && rm log`
-        `ln -s #{node[:deployment][:log_path]} log`
-        `[ -h config ] && rm config`
-        `ln -s #{node[:deployment][:config_path]} config`
-        `[ -h deployed_apps ] && rm deployed_apps`
-        `mkdir -p /var/vcap.local/dea/apps`
-        `ln -s /var/vcap.local/dea/apps deployed_apps`
-      end
-      
-      Dir.chdir ENV["HOME"] do
-        # add the profile to the user's  home.
-        `grep #{node[:deployment][:profile]} .bashrc; [ $? != 0 ] && echo "source #{node[:deployment][:profile]}" >> .bashrc`
-        `grep alias\ #{node[:deployment][:vcap_exec_alias]}= .bashrc; [ $? != 0 ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc`
-        `grep alias\ _psql= .bashrc; [ $? != 0 ] && echo "alias _psql='sudo -u postgres psql'" >> .bashrc`
-        `grep alias\ _mongo= .bashrc; [ $? != 0 ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc`
-      end
-   end
+    bash "Create some symlinks and customize .bashrc" do
+      code <<-EOH
+cd #{node[:cloudfoundry][:home]}
+# few symbolic links (todo: too many assumptions on the layout of the deployment)
+[ -h log ] && rm log
+ln -s #{node[:deployment][:log_path]} log
+[ -h config ] && rm config
+ln -s #{node[:deployment][:config_path]} config
+[ -h deployed_apps ] && rm deployed_apps
+mkdir -p /var/vcap.local/dea/apps
+ln -s /var/vcap.local/dea/apps deployed_apps
+
+cd #{ENV["HOME"]}
+# add the profile to the user's  home.
+grep_it=`grep #{node[:deployment][:profile]} .bashrc`
+[ -z "$grep_it" ] && echo "source #{node[:deployment][:profile]}" >> .bashrc
+grep_it=`grep alias\\ #{node[:deployment][:vcap_exec_alias]}= .bashrc`
+[ -z "$grep_it" ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc
+grep_it=`grep alias\\ _psql= .bashrc`
+[ -z "$grep_it" ] && echo "alias _psql='sudo -u postgres psql'" >> .bashrc
+grep_it=`grep alias\\ _mongo= .bashrc`
+[ -z "$grep_it" ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc
+exit 0
+EOH
+Chef::Log.warn("Code to exec for customizing the deployment #{code}")
   end
   
   node[:deployment][:etc_hosts][:api_dot_domain].each do |ip|

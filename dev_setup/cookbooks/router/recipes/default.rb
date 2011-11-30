@@ -21,16 +21,16 @@ when "ubuntu"
     package "python-avahi"
     bash "Install avahi-alias support" do
       code <<-EOH
-  if [ ! -d "/tmp/avahi-aliases" ]; then
-    cd /tmp
-    git clone https://github.com/hmalphettes/avahi-aliases.git
-    cd avahi-aliases
-    ./install.sh
-    # now make the aliases accessible to the user so that we can add/remove aliases
-    # from here.
-    touch o+w /etc/avahi/aliases
-    touch o+r /etc/avahi/aliases
-  fi
+if [ ! -d "/tmp/avahi-aliases" ]; then
+  cd /tmp
+  git clone https://github.com/hmalphettes/avahi-aliases.git
+  cd avahi-aliases
+  ./install.sh
+  # now make the aliases accessible to the user so that we can add/remove aliases
+  # from here.
+  touch o+w /etc/avahi/aliases
+  touch o+r /etc/avahi/aliases
+fi
 EOH
     end
   end
