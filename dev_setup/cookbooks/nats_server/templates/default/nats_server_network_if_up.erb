@@ -75,6 +75,23 @@ find <%= node[:deployment][:config_path] %>/ -type f -exec sed -i 's/'$NATS_IP'/
 sudo -u postgres psql -d cloud_controller -c "update service_configs set credentials = replace(credentials, '$NATS_IP', '$IP')"
 sudo -u postgres psql -d cloud_controller -c "update service_bindings set credentials = replace(credentials, '$NATS_IP', '$IP')"
 
+
+# Maybe monit that commonly monitors nats_server is already started.
+# In that case let's restart monit
+if [ ! -f /var/run/monit.pid ] || \
+   [ "$(ps -p "$(cat /var/run/monit.pid)" -o comm=)" != 'monit' ]; then
+        echo "    The monit daemon was not running." >> $LOG_FILE
+        cp $LOG_FILE $LOG_FILE.$date
+else
+   echo "    Monit was running. Restarting the vcap-daemons and vcap processes from it." >> $LOG_FILE
+   set e+
+   monit -g vcap stop
+   #/etc/init.d/nats_server stop || true
+   monit -g vcap_daemons restart
+   monit -g vcap start
+   exit 0
+fi
+
 # Make sure that the nats-server is started before we restart it.
 if [ ! -f /var/run/nats_server.pid ] || \
    [ "$(ps -p "$(cat /var/run/nats_server.pid)" -o comm=)" != 'nats-server' ]; then
