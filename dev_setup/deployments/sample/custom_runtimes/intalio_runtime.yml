@@ -59,7 +59,7 @@ jobs:
     - mongodb_node:
         index: "0"
         available_memory: 8192
-        max_memory: 5128
+        max_memory: 512
         version: 2.0.0
         node_timeout: 8 #2 is the default but we keep getting timeout issues.
         mongod_conf:
