@@ -140,6 +140,7 @@ if [ -n "$CONFIG_FILE" ]; then
   ARGS="$ARGS -c $CONFIG_FILE"
 fi
 
+sudo /etc/init.d/monit stop
 $CLOUDFOUNDRY_HOME/vcap/dev_setup/lib/chefsolo_launch.rb $ARGS
 
 # misc: VirtualBox additions
