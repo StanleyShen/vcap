@@ -55,18 +55,33 @@ if [ -z "$IP" ]; then
         exit 0;
 fi
 
+LOG_FILE=/var/log/nats_server.log
+date=$( date +"%Y-%m-%d_%H:%M:%S" )
+
 #Currently written IP: net: 192.168.1.8
 NATS_IP=`grep net: $NATS_CONF | cut -d' ' -f2`
 if [ "$NATS_IP" = "$IP" ]; then
-#no change bye
-        exit 0
+#no change.
+# now that the IP is ready; it is a good time to start vcap:
+  message="$date The tracked network interface's IP is available as IP=$IP."
+  echo "$message" >> $LOG_FILE
+  set +e
+  if [ -f /var/run/nats_server.pid -a "$(ps -p "$(cat /var/run/nats_server.pid)" -o comm=)" == 'nats-server' ]; then
+    echo "  Stopping nats_server and waiting 3 secconds." >> $LOG_FILE
+    /etc/init.d/nats_server stop
+    sleep 3
+  fi
+  echo "  Starting nats_server and waiting 4 secconds." >> $LOG_FILE
+  /etc/init.d/nats_server start || true
+  sleep 3
+  echo "  (Re)Starting vcap." >> $LOG_FILE
+  sudo -u ubuntu /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/vcap restart
+  exit 0
 fi
 
 # It changed. Let's update them all:
 #sed -i "s/#{@old_local_ip}/#{@local_ip}/g
 #/home/ubuntu/cloudfoundry/_vcap update-ip $NATS_TRACKED_IFACE
-LOG_FILE=/var/log/nats_server.log
-date=$( date +"%Y-%m-%d_%H:%M:%S" )
 echo "$date The tracked network interface's IP has changed from $NATS_IP to $IP. Updating all the config of the nats_server and the vcap components." >> $LOG_FILE
 
 find <%= node[:deployment][:config_path] %>/ -type f -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \;
@@ -75,6 +90,24 @@ find <%= node[:deployment][:config_path] %>/ -type f -exec sed -i 's/'$NATS_IP'/
 sudo -u postgres psql -d cloud_controller -c "update service_configs set credentials = replace(credentials, '$NATS_IP', '$IP')"
 sudo -u postgres psql -d cloud_controller -c "update service_bindings set credentials = replace(credentials, '$NATS_IP', '$IP')"
 
+# Maybe monit that commonly monitors nats_server is already started.
+# In that case let's restart monit
+if [ ! -f /var/run/monit.pid ] || \
+   [ "$(ps -p "$(cat /var/run/monit.pid)" -o comm=)" != 'monit' ]; then
+        echo "    The monit daemon was not running." >> $LOG_FILE
+        cp $LOG_FILE $LOG_FILE.$date
+   sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> stop
+else
+   echo "    Monit was running. Restarting the vcap-daemons and vcap processes from it." >> $LOG_FILE
+   set +e
+   monit -g vcap stop
+   monit -g vcap_daemons stop
+   /etc/init.d/nats_server stop || true
+   /etc/init.d/nats_server start || true
+   sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
+   monit -g vcap start
+   exit 0
+fi
 
 # Maybe monit that commonly monitors nats_server is already started.
 # In that case let's restart monit
@@ -88,6 +121,7 @@ else
    monit -g vcap stop
    #/etc/init.d/nats_server stop || true
    monit -g vcap_daemons restart
+   sleep 3
    monit -g vcap start
    exit 0
 fi
@@ -106,8 +140,9 @@ cp $LOG_FILE $LOG_FILE.$date
 /etc/init.d/nats_server stop || true
 /etc/init.d/nats_server start || true
 
-# TODO: We should also reload the vcap components at this point if they are started
-# Counting on monit to do this
+# We should also reload the vcap components at this point if they are started
+sleep 3
+sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
 
 exit 0
 
