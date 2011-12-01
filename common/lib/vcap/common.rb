@@ -19,7 +19,7 @@ module VCAP
       # for example a 'Host-only' private network.
       ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
       raise "Network unreachable." unless ip
-      ip
+      ip.strip
     ensure
       Socket.do_not_reverse_lookup = orig
     end
