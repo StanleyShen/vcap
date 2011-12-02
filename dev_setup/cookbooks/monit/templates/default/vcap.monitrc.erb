@@ -1,16 +1,16 @@
 <% node[:monit][:vcap_daemons].each do |name| %>
 check process <%= name %> with pidfile /var/run/<%= name %>.pid
        group vcap_daemons
-       start program = "/etc/init.d/<%= name %> start"
-       stop program  = "/etc/init.d/<%= name %> stop"
+       start program = "/etc/init.d/<%= name %> start; sleep 10"
+       stop program  = "/etc/init.d/<%= name %> stop; sleep 10"
 
 <% end %>
 <% node[:monit][:vcap_components].each do |name| %>
 check process <%= name %> with pidfile /var/vcap/sys/run/<%= name %>.pid
        group vcap
-       start program = "<%= node[:monit][:vcap_exec] %> start <%= name %>"
+       start program = "<%= node[:monit][:vcap_exec] %> start <%= name %> _monit_; sleep 10"
              as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
-       stop program = "<%= node[:monit][:vcap_exec] %> stop <%= name %>"
+       stop program = "<%= node[:monit][:vcap_exec] %> stop <%= name %> _monit_; sleep 10"
              as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
        <%= "depends on #{node[:monit][:depends_on][name].join(', ')}" unless node[:monit][:depends_on][name].nil? %>
 
