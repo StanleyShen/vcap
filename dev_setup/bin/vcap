@@ -216,15 +216,52 @@ class NatsServer
   alias :was_running? :was_running
 
   class << self
+    def config_file_path()
+      if $config_dir
+        File.join($config_dir, "nats_server/nats_server.yml")
+      else
+        File.join(DIR, "..", name, "config", "nats_server/nats_server.yml")
+      end
+    end
+    def is_os_daemon()
+      configuration ||= YAML.load(File.read(config_file_path()))
+      configuration['is_os_daemon']==true
+    end
+    def read_uri()
+      configuration ||= YAML.load(File.read(config_file_path()))
+      return NATS::AUTOSTART_PID_FILE unless configuration
+      if configuration['authorization'] && configuration['authorization']['user']
+        if configuration['authorization']['password']
+          user_pass="#{configuration['authorization']['user']}:#{configuration['authorization']['password']}@"
+        else
+          user_pass="#{configuration['authorization']['user']}@"
+        end
+      else
+        user_pass=""
+      end
+      "nats://#{user_pass}#{configuration['net']}:#{configuration['port']}"
+    end
+    def read_pid_file_path()
+      configuration ||= YAML.load(File.read(config_file_path()))
+      configuration['pid_file'] || NATS::AUTOSTART_PID_FILE
+    end
+    def read_log_file_path()
+      configuration ||= YAML.load(File.read(config_file_path()))
+      configuration['log_file'] || NATS::AUTOSTART_LOG_FILE
+    end
     def kill_autostart_server
-      pid ||= File.read(NATS::AUTOSTART_PID_FILE).chomp.to_i
+      pid ||= File.read(read_pid_file_path).chomp.to_i
       %x[kill -9 #{pid}] if pid
-      %x[rm #{NATS::AUTOSTART_PID_FILE}]
-      %x[rm #{NATS::AUTOSTART_LOG_FILE}]
+      %x[rm #{read_pid_file_path}]
+      %x[rm #{read_log_file_path}]
     end
   end
 
-  def initialize(uri=NATS::DEFAULT_URI, pid_file=NATS::AUTOSTART_PID_FILE)
+#  def initialize(uri=NATS::DEFAULT_URI, pid_file=NATS::AUTOSTART_PID_FILE)
+  def initialize(uri=nil, pid_file=nil)
+    uri||=NatsServer.read_uri
+    pid_file||=NatsServer.read_pid_file_path
+    @is_os_daemon=NatsServer.is_os_daemon
     @uri = URI.parse(uri)
     @pid_file = pid_file
   end
@@ -238,6 +275,11 @@ class NatsServer
       @was_running = true
       return
     end
+    if @is_os_daemon
+      STDERR.puts "nats-server is a SysV init daemon. Must not be started from vcap. exiting...".red
+      raise "TRACE: nats-server is a SysV init daemon. Must not be started from vcap. exiting..."
+      exit 1
+    end
 
     nats_server = `which nats-server`
     unless $? == 0 && nats_server
@@ -245,7 +287,8 @@ class NatsServer
       exit 1
     end
     nats_server.chomp!
-    `#{nats_server} -p #{@uri.port} -P #{@pid_file} -d 2> /dev/null`
+    #We should use the config file? `#{nats_server} -p #{@uri.port} -P #{@pid_file} -d 2> /dev/null`
+    `#{nats_server} -c #{NatsServer.config_file_path} -d 2> /dev/null`
     NATS.wait_for_server(@uri, 5)
   end
 
@@ -254,6 +297,10 @@ class NatsServer
   end
 
   def kill_server
+    if @is_os_daemon
+      # leave nats alone. it is managed by the OS
+      return
+    end
     if File.exists? @pid_file
       %x[kill -9 #{server_pid} 2> /dev/null]
       %x[rm #{@pid_file} 2> /dev/null]

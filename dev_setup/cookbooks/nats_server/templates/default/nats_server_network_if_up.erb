@@ -55,7 +55,7 @@ if [ -z "$IP" ]; then
         exit 0;
 fi
 
-LOG_FILE=/var/log/nats_server.log
+LOG_FILE=/var/log/nats_server_if_up.log
 date=$( date +"%Y-%m-%d_%H:%M:%S" )
 
 #Currently written IP: net: 192.168.1.8
@@ -66,16 +66,12 @@ if [ "$NATS_IP" = "$IP" ]; then
   message="$date The tracked network interface's IP is available as IP=$IP."
   echo "$message" >> $LOG_FILE
   set +e
-  if [ -f /var/run/nats_server.pid -a "$(ps -p "$(cat /var/run/nats_server.pid)" -o comm=)" == 'nats-server' ]; then
-    echo "  Stopping nats_server and waiting 3 secconds." >> $LOG_FILE
-    /etc/init.d/nats_server stop
-    sleep 3
-  fi
-  echo "  Starting nats_server and waiting 4 secconds." >> $LOG_FILE
-  /etc/init.d/nats_server start || true
-  sleep 3
+  echo "  (Re)Starting nats_server and waiting 5 secconds." >> $LOG_FILE
+  /etc/init.d/nats_server stop || true >> $LOG_FILE
+  /etc/init.d/nats_server start || true >> $LOG_FILE
+  sleep 5
   echo "  (Re)Starting vcap." >> $LOG_FILE
-  sudo -u ubuntu /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/vcap restart
+  sudo -u ubuntu <%= node[:deployment][:vcap_exec] %> restart
   exit 0
 fi
 
@@ -95,7 +91,6 @@ sudo -u postgres psql -d cloud_controller -c "update service_bindings set creden
 if [ ! -f /var/run/monit.pid ] || \
    [ "$(ps -p "$(cat /var/run/monit.pid)" -o comm=)" != 'monit' ]; then
         echo "    The monit daemon was not running." >> $LOG_FILE
-        cp $LOG_FILE $LOG_FILE.$date
    sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> stop
 else
    echo "    Monit was running. Restarting the vcap-daemons and vcap processes from it." >> $LOG_FILE
@@ -105,6 +100,7 @@ else
    /etc/init.d/nats_server stop || true
    /etc/init.d/nats_server start || true
    sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
+   sleep 10
    monit -g vcap start
    exit 0
 fi
@@ -114,14 +110,13 @@ fi
 if [ ! -f /var/run/monit.pid ] || \
    [ "$(ps -p "$(cat /var/run/monit.pid)" -o comm=)" != 'monit' ]; then
         echo "    The monit daemon was not running." >> $LOG_FILE
-        cp $LOG_FILE $LOG_FILE.$date
 else
    echo "    Monit was running. Restarting the vcap-daemons and vcap processes from it." >> $LOG_FILE
    set e+
    monit -g vcap stop
    #/etc/init.d/nats_server stop || true
    monit -g vcap_daemons restart
-   sleep 3
+   sleep 10
    monit -g vcap start
    exit 0
 fi
@@ -134,7 +129,6 @@ if [ ! -f /var/run/nats_server.pid ] || \
         exit 0
 fi
 echo "    The nats_server was running. Restarting it." >> $LOG_FILE
-cp $LOG_FILE $LOG_FILE.$date
 
 # Let's use a force-reload.
 /etc/init.d/nats_server stop || true
