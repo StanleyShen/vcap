@@ -17,7 +17,7 @@ class JavaStartPlugin < StagingPlugin
     if File.exists? "start.jar"
       "java -jar start.jar -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
     else
-      "./start.sh -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
+      "chmod +x start.sh; ./start.sh -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
     end
   end
   private
