@@ -488,6 +488,7 @@ chmod 755 ../stop
     File.open(path, 'wb') do |f|
       f.puts startup_script
     end
+    #raise "startup script file #{path} must not be empty" unless File.size(path) > 1
     FileUtils.chmod(0500, path)
   end
 

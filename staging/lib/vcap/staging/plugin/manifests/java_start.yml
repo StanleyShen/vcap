@@ -9,4 +9,5 @@ runtimes:
 app_servers:
 detection:
   - "start.sh": '.'
+  - "start.jar": '.'
 staged_services:
