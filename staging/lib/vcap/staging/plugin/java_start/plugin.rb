@@ -8,16 +8,16 @@ class JavaStartPlugin < StagingPlugin
     Dir.chdir(destination_directory) do
       create_app_directories
       copy_source_files
-      raise "java application staging failed: unable to find start.jar and start.sh" unless File.exist?("app/start.sh") || File.exist?("app/start.jar")
+      raise "java application staging failed: unable to find start.jar and startcmd.sh" unless File.exist?("app/startcmd.sh") || File.exist?("app/start.jar")
       create_startup_script
     end
   end
 
   def start_command
-    if File.exists? "app/start.jar"
-      "java -jar start.jar -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
+    if File.exists? "app/startcmd.sh"
+      "chmod +x startcmd.sh; cmd=$(. ./startcmd.sh -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT | tail -1); $cmd"
     else
-      "chmod +x start.sh; . ./start.sh -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
+      "java -jar start.jar -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT"
     end
   end
   private
