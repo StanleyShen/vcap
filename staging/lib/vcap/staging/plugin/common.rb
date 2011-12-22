@@ -436,7 +436,7 @@ echo "#!/bin/bash" >> ../stop
 echo "kill -9 $STARTED" >> ../stop
 echo "kill -9 $PPID" >> ../stop
 chmod 755 ../stop
-    SCRIPT
+SCRIPT
   end
 
   def get_launched_process_pid
@@ -451,6 +451,7 @@ chmod 755 ../stop
     after_env_before_script = block_given? ? yield : "\n"
     template = <<-SCRIPT
 #!/bin/bash
+# Generated during staging at #{Time.now}
 <%= environment_statements_for(env_vars) %>
 <%= after_env_before_script %>
 <%= change_directory_for_start %>
@@ -458,7 +459,7 @@ chmod 755 ../stop
 <%= get_launched_process_pid %>
 <%= generate_stop_script %>
 <%= wait_for_launched_process %>
-    SCRIPT
+SCRIPT
     # TODO - ERB is pretty irritating when it comes to blank lines, such as when 'after_env_before_script' is nil.
     # There is probably a better way that doesn't involve making the above Heredoc horrible.
     ERB.new(template).result(binding).lines.reject {|l| l =~ /^\s*$/}.join
@@ -488,7 +489,6 @@ chmod 755 ../stop
     File.open(path, 'wb') do |f|
       f.puts startup_script
     end
-    #raise "startup script file #{path} must not be empty" unless File.size(path) > 1
     FileUtils.chmod(0500, path)
   end
 
