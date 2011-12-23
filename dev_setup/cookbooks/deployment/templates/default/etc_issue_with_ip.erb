@@ -3,9 +3,10 @@ echo "<%= node[:deployment][:etc_issue_msg] %>" > /etc/issue
 ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
 if [ -n "$ip" ]; then
   echo "Running on $ip" >> /etc/issue
-else
-  echo "WARNING: Unable to detect the network address on which the server is running"
+fi
+if [ -n "$VCAP_STATUS" ]
+  echo "$VCAP_STATUS"
 fi
 echo "" >> /etc/issue
-clear >/dev/console
-pkill -9 getty
+sudo env TERM=xterm sh -c 'clear >/dev/console'
+pkill getty
