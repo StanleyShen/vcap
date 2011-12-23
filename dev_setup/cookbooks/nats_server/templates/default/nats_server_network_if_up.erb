@@ -71,7 +71,7 @@ if [ "$NATS_IP" = "$IP" ]; then
   /etc/init.d/nats_server start || true >> $LOG_FILE
   sleep 5
   echo "  (Re)Starting vcap." >> $LOG_FILE
-  sudo -u ubuntu <%= node[:deployment][:vcap_exec] %> restart
+  sudo -i -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
   exit 0
 fi
 
@@ -91,7 +91,7 @@ sudo -u postgres psql -d cloud_controller -c "update service_bindings set creden
 if [ ! -f /var/run/monit.pid ] || \
    [ "$(ps -p "$(cat /var/run/monit.pid)" -o comm=)" != 'monit' ]; then
         echo "    The monit daemon was not running." >> $LOG_FILE
-   sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> stop
+   sudo -i -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> stop
 else
    echo "    Monit was running. Restarting the vcap-daemons and vcap processes from it." >> $LOG_FILE
    set +e
@@ -99,7 +99,7 @@ else
    monit -g vcap_daemons stop
    /etc/init.d/nats_server stop || true
    /etc/init.d/nats_server start || true
-   sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
+   sudo -i -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
    sleep 10
    monit -g vcap start
    exit 0
@@ -136,7 +136,7 @@ echo "    The nats_server was running. Restarting it." >> $LOG_FILE
 
 # We should also reload the vcap components at this point if they are started
 sleep 3
-sudo -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
+sudo -i -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> restart
 
 exit 0
 
