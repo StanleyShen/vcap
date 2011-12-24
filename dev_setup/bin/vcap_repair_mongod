@@ -1,0 +1,129 @@
+#!/usr/bin/env ruby
+# Locate the mongd binary and the mongod instances.
+# Search for the mongod.lock.
+# Issue the repair command and don't return until mongo is repaired.
+
+# a started mongod looks like this:
+# /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/deploy/mongodb/bin/mongod -f /var/vcap/services/mongodb/instances/f82706a0-5226-4ff1-98a3-963eb3e4396f/mongodb.conf
+
+require 'yaml'
+require 'pty'
+
+module VCAP
+  module HELPERS
+    module MONGOD
+      
+      def self.find_mongodb_node_yml(path=nil)
+        yml="#{ENV['CLOUD_FOUNDRY_CONFIG_PATH']}/mongodb_node.yml" if ENV['CLOUD_FOUNDRY_CONFIG_PATH']
+        return yml if File.exist? yml
+        yml="#{ENV['HOME']}/cloudfoundry/config/mongodb_node.yml"
+        return yml if File.exist? yml
+        # TODO: look for the default yml in the vcap checkout of the sources on git
+        raise "Unable to find the mongodb_node.yml"
+      end
+      
+      def self.load_mongodb_node_conf(path=nil)
+        File.open( find_mongodb_node_yml(path) ) do |yf| YAML::load( yf ) end
+      end
+      
+      def self.find_mongod_exec(mongodb_node_conf = nil)
+        mongodb_node_conf ||= load_mongodb_node_conf()
+        mongodb_node_conf['mongod_path']
+      end
+
+      def self.find_mongod_base_dir(mongodb_node_conf = nil)
+        mongodb_node_conf ||= load_mongodb_node_conf()
+        mongodb_node_conf['base_dir']
+      end
+
+      def self.find_mongod_instances(mongodb_node_conf = nil)
+        base_dir = find_mongod_base_dir(mongodb_node_conf)
+        Dir.glob("#{base_dir}/*/mongodb.conf")
+      end
+      
+      # Look for the mongodb instances where there is a data/mongod.lock file
+      # the lock file contains the pid of mongod. If it is clear then it might be a clean shutdown of mongo.
+      # if we can find that process alive and its name contains mongod
+      # then we consider the mongod server running and leave it alone.
+      # otherwise we look if journaling is enabled and if there is indeed a journal folder that is not empty.
+      # if not we repair the DB.
+      def self.find_mongod_instances_for_repair(mongod, mongodb_conf_files)
+        res = Array.new
+        mongodb_conf_files.each do |mongodb_conf|
+          mongodb_dir = File.dirname mongodb_conf
+          mongod_lock = File.join(mongodb_dir,"data","mongod.lock")
+          next unless File.exist?(mongod_lock) && File.size(mongod_lock)>0
+          mongod_journal = File.join(mongodb_dir,"journal")
+          next if File.exist? mongod_journal
+          
+          # now check the pid matches a process that exists
+          pid = IO.read(mongod_lock).strip
+          # we need to rely on the output of ps as ruby does not provide the name of the process
+          # to check on.
+          exec=`ps -p #{pid} -o comm=`.strip
+          res << mongodb_conf unless exec == "mongod"
+        end
+        res
+      end
+      
+      def self.update_etc_issue(vcap_status="")
+        if File.exists? "/etc/network/if-up.d/update-etc-issue"
+          puts `sudo env TERM=xterm VCAP_STATUS="#{vcap_status}" /etc/network/if-up.d/update-etc-issue`
+          puts `sudo pkill getty`
+        end
+
+      end
+
+      
+      class MongodRepair
+        
+        def initialize(conf_yml_path=nil)
+          @mongodb_node_conf = VCAP::HELPERS::MONGOD.load_mongodb_node_conf conf_yml_path
+          @mongod = VCAP::HELPERS::MONGOD.find_mongod_exec @mongodb_node_conf
+          @base_dir = VCAP::HELPERS::MONGOD.find_mongod_base_dir @mongodb_node_conf
+          @mongodb_conf_files = VCAP::HELPERS::MONGOD.find_mongod_instances @mongodb_node_conf
+        end
+        
+        # straight one mongo at a time repair.
+        # this is very IO intensive and there is no point running them in parallel
+        # for now
+        def repair_all
+          mongodb_conf_files = VCAP::HELPERS::MONGOD.find_mongod_instances_for_repair(@mongod,@mongodb_conf_files)
+          case mongodb_conf_files.length
+          when 0
+            p "All mongodb instances were shutdown cleanly."
+          when 1 
+            p "There is 1 mongodb instance that needs to be repaired."
+          else
+            p "There are #{mongodb_conf_files.length}"
+          end
+          mongodb_conf_files.each do |mongodb_conf|
+            puts "Repairing #{mongodb_conf}"
+            VCAP::HELPERS::MONGOD.update_etc_issue "Repairing #{mongodb_conf}"
+            File.delete "#{File.dirname(mongodb_conf)}/data/mongod.lock"
+            cmd = "#{@mongod} -f #{mongodb_conf} --repair"
+            #system "#{@mongod} -f #{@mongodb_conf} --repair"
+            #stream the std ios to us so we can keep watching the process:
+            begin
+              PTY.spawn(cmd) do |stdin,stdout,pid|
+                begin
+                  stdin.each do |line|
+                    puts line
+                  end
+                rescue Errno::EIO
+                  #done
+                end
+              end
+            rescue PTY::ChildExited
+              puts "Done repairing #{mongodb_conf}"
+            ensure
+              VCAP::HELPERS::MONGOD.update_etc_issue ""
+            end
+          end
+        end
+      end
+    end
+  end
+end
+repair_it = VCAP::HELPERS::MONGOD::MongodRepair.new
+repair_it.repair_all
