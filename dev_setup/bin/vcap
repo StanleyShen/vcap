@@ -138,7 +138,14 @@ class Component
 
   def start
     if !running?
-
+      
+      # hack: force a synchroneous repair for mongodb_node
+      # yes this could take a while
+      if @name =~ /mongodb_node/i && File.exists?(File.join(File.dirname(__FILE__),"vcap_repair_mongod"))
+        STDOUT.puts "Repairing the mongodb instances if necessary"
+        p `#{File.join(File.dirname(__FILE__),"vcap_repair_mongod")}`
+      end
+      
       pid = fork do
         # Capture STDOUT when no log file is configured
         if !log_file?
@@ -150,12 +157,14 @@ class Component
         end
         # Make sure db is setup, this is slow and we should make it faster, but
         # should help for now.
+=begin # Moved this into a separate binary vcap_ccdb_rake_migrate to avoid calling this on every cloud_controller restart
         if is_cloud_controller?
           cc_dir = File.expand_path(File.join(DIR, '..', 'cloud_controller'))
           #Should be doing: `bundle exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{@configuration_path}`
           #But the gem file is lacking rake so it fails at the moment. counting on rake installed on the OS.
           Dir.chdir(cc_dir) { `rake db:migrate CLOUD_CONTROLLER_CONFIG=#{@configuration_path}` }
         end
+=end
         exec("#{component_start_path}")
       end
 

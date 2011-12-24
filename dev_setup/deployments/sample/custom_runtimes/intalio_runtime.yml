@@ -3,8 +3,9 @@
 #force postgresql to 127.0.0.1: this is a Micro-CF and the IP keeps changing.
 deployment:
   name: "intalio_devbox"
-  domain: "intalio.me"
+  domain: "intalio.priv"
   etc_issue_msg: "Welcome to Intalio"
+  vmc_knife_default_recipe: /home/ubuntu/cloudfoundry/intalio_recipe.json
 nginx:
   client_max_body_size: 512M
   proxy_connect_timeout: 40

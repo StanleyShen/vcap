@@ -120,6 +120,7 @@ file node[:deployment][:local_run_profile] do
   content <<-EOH
 export PATH=#{node[:ruby][:path]}/bin:`#{node[:ruby][:path]}/bin/gem env gempath`/bin:$PATH
 export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
+export VMC_KNIFE_DEFAULT_RECIPE=#{node[:deployment][:vmc_knife_default_recipe]}
   EOH
 end
 
