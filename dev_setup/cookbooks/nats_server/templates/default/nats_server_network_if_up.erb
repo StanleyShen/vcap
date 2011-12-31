@@ -58,6 +58,31 @@ fi
 LOG_FILE=/var/log/nats_server_if_up.log
 date=$( date +"%Y-%m-%d_%H:%M:%S" )
 
+# Make sure the hostname is unique on the subnet.
+# Computes the ipseed the last couple of digits from the ip depending on the subnet mask
+# For a given prefix, prefix-seed is guaranteed to be unique on the corresponding subnet.
+etc_hostname=`cat /etc/hostname | head -1`
+hostname_now=`hostname`
+for hname in "ubuntu" "vcap" "cloudfoundry" "intalio"; do
+  if [ $etc_hostname = "$hname" -a "$hostname_now" = "$hname" ]; then
+    mask=`ifconfig "$IFACE" | sed -rn '2s/ .*:(.*)$/\1/p'`
+    if [ "255.255.255.0" = "$mask" ]; then
+      seed=`echo $IP | cut -d. -f4`
+    elif [ "255.255.0.0" = "$mask" ]; then
+      seed=`echo $IP | cut -d. -f3,4 | tr . -`
+    elif [ "255.0.0.0" = "$mask" ]; then
+      seed=`echo $IP | cut -d. -f2,3,4 | tr . -`
+    fi
+    hostname_new="$etc_hostname-$seed"
+    hostname "$hostname_new"
+    #also update /etc/hosts unfortunately keep the old one and put the new one too
+    sed -i 's/^127\.0\.1\.1[[:space:]]*.*$/127.0.1.1    '$hname' '$hostname_new'/g' /etc/hosts
+    avahi-daemon --check
+    [ "$?" = "0" ] && avahi-daemon --kill #reload is not enough; avahi-daemon will be respawned
+  fi
+done
+# end of hostname unique on the subnet
+
 #Currently written IP: net: 192.168.1.8
 NATS_IP=`grep net: $NATS_CONF | cut -d' ' -f2`
 if [ "$NATS_IP" = "$IP" ]; then
@@ -66,7 +91,7 @@ if [ "$NATS_IP" = "$IP" ]; then
   message="$date The tracked network interface's IP is available as IP=$IP."
   echo "$message" >> $LOG_FILE
   set +e
-  echo "  (Re)Starting nats_server and waiting 5 secconds." >> $LOG_FILE
+  echo "  (Re)Starting nats_server and waiting 5 seconds." >> $LOG_FILE
   /etc/init.d/nats_server stop || true >> $LOG_FILE
   /etc/init.d/nats_server start || true >> $LOG_FILE
   sleep 5
