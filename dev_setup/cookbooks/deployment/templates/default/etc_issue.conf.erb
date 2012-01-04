@@ -1,0 +1,29 @@
+# etc issues volatile messages
+#
+# This service maintains a directory of temporary messages displayed
+# on the console's issue from the point the system is
+# started until it is shut down again.
+
+description "etc issues volatile messages"
+
+#same than the events for tty1.conf
+start on stopped rc RUNLEVEL=[2345]
+stop on runlevel [!2345]
+
+expect fork
+
+pre-start script
+    # put the folder that will contain the messages in place
+    [ -d /etc/issue.d/volatile.d ] && rm -rf /etc/issue.d/volatile.d
+    mkdir -p /etc/issue.d/volatile.d
+    chmod -R o+rw /etc/issue.d/volatile.d
+end script
+
+post-stop script
+    # remove the folders that contain the messages
+    [ -d /etc/issue.d/volatile.d ] && rm -rf /etc/issue.d/volatile.d
+end script
+
+script
+    /etc/issue_update &
+end script

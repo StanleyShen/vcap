@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+# Copyright (c) 2009-2011 VMware, Inc.
+
+exec(File.expand_path("../../dns_publisher/bin/dns_publisher", __FILE__), *ARGV)

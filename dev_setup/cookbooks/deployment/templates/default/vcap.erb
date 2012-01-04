@@ -28,6 +28,11 @@ elif [ -z "$2" ]; then
   [ "$1" == "start" ] && do_reconfig="true"
 fi
 if [ "$do_reconfig" == "true" ]; then
+
+  if [ -d "/etc/issue.d/volatile.d" ]; then
+     echo "Starting Cloud Foundry" > /etc/issue.d/volatile.d/K50_applications_status
+  fi
+
   # this is called before the apps are started and after the cloud_controller is started
   # let's make sure that the applications are correctly configured with their url
 

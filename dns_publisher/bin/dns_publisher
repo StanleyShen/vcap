@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require File.expand_path('../../lib/vcap_dns_publisher', __FILE__)
+
+#VMC::Cli::KnifeRunner.run(ARGV.dup)
+

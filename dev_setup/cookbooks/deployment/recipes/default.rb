@@ -57,6 +57,13 @@ template "etc_issue_with_ip" do
   mode 0755
 end
 
+template "etc_issue_volatile.conf" do
+  path File.join("", "etc", "init", "etc_issue_volatile.conf")
+  source "etc_issue_volatile.conf.erb"
+  owner node[:deployment][:user]
+  mode 0755
+end
+
 template node[:deployment][:vcap_exec] do
   path node[:deployment][:vcap_exec]
   source "vcap.erb"

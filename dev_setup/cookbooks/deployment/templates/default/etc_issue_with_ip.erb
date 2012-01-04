@@ -1,12 +1,26 @@
 #!/bin/sh
-echo "<%= node[:deployment][:etc_issue_msg] %>" > /etc/issue
+if [ -d /etc/issue.d/volatile.d ]; then
+  message_file=/etc/issue.d/volatile.d/K00_vcap_welcome
+else
+  message_file=/etc/issue
+fi
+echo "<%= node[:deployment][:etc_issue_msg] %>" > $message_file
 ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
 if [ -n "$ip" ]; then
-  echo "Running on $ip" >> /etc/issue
+  echo "Running on $ip" >> $message_file
 fi
-if [ -n "$VCAP_STATUS" ]
-  echo "$VCAP_STATUS"
+if [ -n "$VCAP_STATUS" ]; then
+  echo "$VCAP_STATUS" >> $message_file
 fi
-echo "" >> /etc/issue
+if [ -d /etc/issue.d/volatile.d ]; then
+  if [ !-f /etc/issue.d/volatile.d/K50_applications_status]; then
+    echo "Starting Virtual Machine" > /etc/issue.d/volatile.d/K50_applications_status
+    chmod o+rw /etc/issue.d/volatile.d/K50_applications_status
+  fi
+  cat /etc/issue.d/volatile.d/* >> /etc/issue
+  echo "" >> /etc/issue
+else
+  echo "" >> $message_file
+fi
 sudo env TERM=xterm sh -c 'clear >/dev/console'
 pkill getty

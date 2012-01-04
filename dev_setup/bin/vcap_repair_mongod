@@ -66,10 +66,13 @@ module VCAP
         res
       end
       
-      def self.update_etc_issue(vcap_status="")
-        if File.exists? "/etc/network/if-up.d/update-etc-issue"
-          puts `sudo env TERM=xterm VCAP_STATUS="#{vcap_status}" /etc/network/if-up.d/update-etc-issue`
-          puts `sudo pkill getty`
+      def self.update_etc_issue(vcap_status=nil)
+        if File.exists? "/etc/issue.d/volatile.d"
+          if vcap_status
+            `echo "#{vcap_status}" > /etc/issue.d/volatile.d/K25_repair_mongodb_node`
+          else
+            `rm /etc/issue.d/volatile.d/K25_repair_mongodb_node`
+          end
         end
 
       end

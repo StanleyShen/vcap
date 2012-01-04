@@ -1,0 +1,31 @@
+PATH
+  remote: .
+  specs:
+    vcap-mdns-publisher (0.0.01)
+      nats
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    addressable (2.2.6)
+    crack (0.3.1)
+    daemons (1.1.5)
+    eventmachine (0.12.10)
+    json_pure (1.6.4)
+    nats (0.4.10)
+      daemons (>= 1.1.0)
+      eventmachine (>= 0.12.10)
+      json_pure (>= 1.5.1)
+    rspec (1.3.2)
+    webmock (1.5.0)
+      addressable (>= 2.2.2)
+      crack (>= 0.1.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  nats
+  rspec (~> 1.3.0)
+  vcap-mdns-publisher!
+  webmock (= 1.5.0)
