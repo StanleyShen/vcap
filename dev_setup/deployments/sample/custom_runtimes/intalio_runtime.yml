@@ -47,8 +47,8 @@ jobs:
           apps:     32
         stager:
           max_staging_runtime: 360
-    - router:
-        enable_mdns_avahi_aliases: false
+    - router
+    - dns_publisher
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
         host: 127.0.0.1
@@ -61,7 +61,7 @@ jobs:
         index: "0"
         available_memory: 8192
         max_memory: 512
-        version: 2.0.0
+        version: 2.0.2
         node_timeout: 8 #2 is the default but we keep getting timeout issues.
         mongod_conf:
           journal: false

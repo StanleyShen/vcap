@@ -64,6 +64,13 @@ template "etc_issue.conf" do
   mode 0755
 end
 
+template "etc_issue_update" do
+  path File.join("", "etc", "issue_update")
+  source "etc_issue_update.erb"
+  owner "root"
+  mode 0755
+end
+
 template node[:deployment][:vcap_exec] do
   path node[:deployment][:vcap_exec]
   source "vcap.erb"
