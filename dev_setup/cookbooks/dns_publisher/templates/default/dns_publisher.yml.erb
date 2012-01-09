@@ -14,10 +14,10 @@ publishers:
     impl: VCAP::DNS_PUBLISHER::AvahiPublisher
     hostnames_filter: <% node[:dns_publisher][:publishers][:mdns_avahi][:hostnames_filter] %>
 
-# registers hostnames with route53 (Not implemnted so far)
+# registers hostnames with route53 (Not implemented so far)
   route53:
     require: "#{ROOT_REL}/vcap_dns_publisher/route53/route53_gateway"
-    impl: Route53Gateway
+    impl: VCAP::DNS_PUBLISHER::Route53Gateway
     enable: false
     access_key: 123
     secret_key: 4567890

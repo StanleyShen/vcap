@@ -7,12 +7,12 @@
 # chmod +x run_install.sh
 # ./run_install.sh
 
-[ -z "$runtime_profile" ] && runtime_profile=micro_intalio_cf.yml
+[ -z "$runtime_profile" ] && runtime_profile=intalio.yml
 if [ ! -f "$runtime_profile" ]; then
   echo "The deployment profile file $runtime_profile must exist"
 fi
 [ -z "$repo" ] && repo=https://github.com/hmalphettes/vcap
-[ -z "$branch" ] && branch=tweaks
+[ -z "$branch" ] && branch=java_start
 
 which wget > /dev/null
 [ $? != 0 ] && sudo apt-get install wget
@@ -21,7 +21,7 @@ which curl > /dev/null
 which nano > /dev/null
 [ $? != 0 ] && sudo apt-get install nano
 
-wget -N https://raw.github.com/hmalphettes/vcap/tweaks/dev_setup/bin/vcap_dev_setup
+wget -N https://raw.github.com/hmalphettes/vcap/java_start/dev_setup/bin/vcap_dev_setup
 chmod +x vcap_dev_setup
 
 if [ -d vcap ]; then
