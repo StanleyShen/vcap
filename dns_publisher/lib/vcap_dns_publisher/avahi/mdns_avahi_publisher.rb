@@ -7,12 +7,8 @@ module VCAP
         
         def config(conf)
           hostnames_filter=conf['hostnames_filter']
-          if hostnames_filter
-            hostnames_filter=hostnames_filter[1..-1] if hostnames_filter.start_with?('/') && hostnames_filter.end_with?('/')
-            @dns_url_filter=Regexp.new(hostnames_filter)
-          else
-            @dns_url_filter=/\.local$/
-          end
+          hostnames_filter=hostnames_filter[1,-1] if hostnames_filter.start_with?('/') && hostnames_filter.end_with?('/')
+          @dns_url_filter=(Regexp.new(hostnames_filter) if hostnames_filter) || /\.local$/
           @published_urls = {}
           @log = VCAP::DNS_PUBLISHER::DnsPublisher.log
           log.info "avahi-mdsn publisher in place for #{@dns_url_filter.inspect}"
@@ -28,15 +24,18 @@ module VCAP
         end
 
         def publish(url)
+          log.debug "avahi publish #{url} called #{@published_urls[url]}"
           if @dns_url_filter =~ url && @published_urls[url].nil?
             pid = Process.fork { exec "python #{File.dirname(__FILE__)}/avahi-publish-domain-alias.py #{url}" }
             @published_urls[url]=pid
             log.info "publishing #{url} on avahi mdns: pid #{pid}}"
+          else
+            log.debug "avahi: not publishing #{@published_urls[url]}  -  #{@dns_url_filter =~ url}" 
           end
         end
         def unpublish(url)
-          pid=@published_urls[url.strip]
-          log.info "unpublishing #{url} on avahi mdns: pid #{pid}." if pid
+          pid=@published_urls.delete(url.strip)
+          log.info "unpublishing #{url} on avahi mdns: pid #{pid}."
           Process.kill("HUP", pid) if pid
         end
         
@@ -45,4 +44,3 @@ module VCAP
     end # end of AliasPublisher
   end # end of DNS_PUBLISHER
 end
-
