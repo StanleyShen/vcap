@@ -60,8 +60,8 @@ end
 template "etc_issue.conf" do
   path File.join("", "etc", "init", "etc_issue.conf")
   source "etc_issue.conf.erb"
-  owner node[:deployment][:user]
-  mode 0755
+  owner "root"
+  mode 0644
 end
 
 template "etc_issue_update" do

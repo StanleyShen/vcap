@@ -18,6 +18,10 @@ if [ ! -d monit-5.3 ]; then
   make
   sudo make install
   sudo monit quit
+  
+  # Configure as daemon with a 4 minutes start delay
+  sudo sed -i 's/^#[[:space:]]*set daemon  120/set daemon  120/g' /etc/monit/monitrc
+  sudo sed -i 's/^#[[:space:]]*     with start delay 240/     with start delay 240/g' /etc/monit/monitrc
 
   #Make sure that at least the localhost can connect to monit.
   # Otherwise sudo monit status will return 'errror connecting to monit daemon':
@@ -43,6 +47,14 @@ sed -i 's/^startup=.*$/startup=#{node[:monit][:daemon_startup]}/g' /etc/default/
 sed -i 's/^#.*set daemon  120/set daemon  120/g' /etc/monit/monitrc
 EOH
       end
+    end
+    if node[:monit][:network_startup] == 1 || node[:monit][:network_startup] == true
+      template "/etc/network/if-up.d/monit_dameon" do
+        path "/etc/network/if-up.d/monit_dameon"
+        source "monit_dameon_if_up.erb"
+        mode 0755
+      end
+
     end
     
     #Include directive.
