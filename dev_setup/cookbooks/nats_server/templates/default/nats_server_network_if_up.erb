@@ -48,7 +48,7 @@ if [ "$IFACE" != "$NATS_TRACKED_IFACE" ]; then
         exit 0
 fi
 
-# OK let's read the IP for this IFACE and then make sure that nats_server config file has that IP
+# Read the IP for this IFACE and then make sure that nats_server config file has that IP
 IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
 if [ -z "$IP" ]; then
 #Unexpected to say the least but we don't want to replace a good IP by a blank string.
@@ -66,13 +66,12 @@ hostname_now=`hostname`
 for hname in "ubuntu" "vcap" "cloudfoundry" "intalio"; do
   if [ $etc_hostname = "$hname" -a "$hostname_now" = "$hname" ]; then
     mask=`ifconfig "$IFACE" | sed -rn '2s/ .*:(.*)$/\1/p'`
-    if [ "255.255.255.0" = "$mask" ]; then
-      seed=`echo $IP | cut -d. -f4`
-    elif [ "255.255.0.0" = "$mask" ]; then
-      seed=`echo $IP | cut -d. -f3,4 | tr . -`
-    elif [ "255.0.0.0" = "$mask" ]; then
-      seed=`echo $IP | cut -d. -f2,3,4 | tr . -`
-    fi
+    case $mask in
+      255.255.255.*) seed=`echo $ip | cut -d. -f4` ;;
+      255.255.*) seed=`echo $ip | cut -d. -f3,4 | tr . -` ;;
+      255.*) seed=`echo $ip | cut -d. -f2,3,4 | tr . -` ;;
+      *) seed=`echo $ip | cut -d. -f1,2,3,4 | tr . -` ;;
+    esac
     hostname_new="$etc_hostname-$seed"
     hostname "$hostname_new"
     #also update /etc/hosts unfortunately keep the old one and put the new one too

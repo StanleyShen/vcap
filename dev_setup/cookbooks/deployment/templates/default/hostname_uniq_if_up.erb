@@ -1,0 +1,56 @@
+#!/bin/sh
+# Make sure the hostname for the VM is unique on the same local network.
+#
+# Reload the nats_server when an interface comes up, to allow it to start
+# listening on new addresses.
+# This is only enabled if the config file of the nats_server has a tracked-net-iface line
+# That defines what interface its IP must be.
+
+set -e
+
+# Only act on the 'tracked' network interface
+if [ "$IFACE" != "<%= node[:deployment][:tracked_inet] %>" ]; then
+        exit 0
+fi
+
+# Only run from ifup.
+#if [ "$MODE" != start ]; then
+#        exit 0
+#fi
+
+# nats_server only cares about inet and inet6. Get ye gone, strange people
+# still using ipx.
+#if [ "$ADDRFAM" != inet ] && [ "$ADDRFAM" != inet6 ]; then
+#        exit 0
+#fi
+
+# Read the IP for this IFACE and then make sure that nats_server config file has that IP
+IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
+if [ -z "$IP" ]; then
+#Unexpected to say the least but we don't want to replace a good IP by a blank string.
+        exit 0;
+fi
+
+# Make sure the hostname is unique on the subnet.
+# Computes the ipseed the last couple of digits from the ip depending on the subnet mask
+# For a given prefix, prefix-seed is guaranteed to be unique on the corresponding subnet.
+etc_hostname=`cat /etc/hostname | head -1`
+hostname_now=`hostname`
+for hname in "ubuntu" "vcap" "cloudfoundry" "intalio"; do
+  if [ $etc_hostname = "$hname" -a "$hostname_now" = "$hname" ]; then
+    mask=`ifconfig "$IFACE" | sed -rn '2s/ .*:(.*)$/\1/p'`
+    case $mask in
+      255.255.255.*) seed=`echo $IP | cut -d. -f4` ;;
+      255.255.*) seed=`echo $IP | cut -d. -f3,4 | tr . -` ;;
+      255.*) seed=`echo $IP | cut -d. -f2,3,4 | tr . -` ;;
+      *) seed=`echo $IP | cut -d. -f1,2,3,4 | tr . -` ;;
+    esac
+    hostname_new="$etc_hostname-$seed"
+    hostname "$hostname_new"
+    #also update /etc/hosts unfortunately keep the old one and put the new one too
+    sed -i 's/^127\.0\.1\.1[[:space:]]*.*$/127.0.1.1    '$hname' '$hostname_new'/g' /etc/hosts
+    avahi-daemon --check
+    [ "$?" = "0" ] && avahi-daemon --kill #reload is not enough; avahi-daemon will be respawned
+  fi
+done
+# end of hostname unique on the subnet

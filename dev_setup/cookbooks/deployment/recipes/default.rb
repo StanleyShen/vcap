@@ -50,6 +50,12 @@ template node[:deployment][:info_file] do
   })
 end
 
+template "hostname_uniq_if_up" do
+  path File.join("", "etc", "network", "if-up.d", "hostname_uniq")
+  source "hostname_uniq_if_up.erb"
+  mode 0755
+end
+
 template "etc_issue_with_ip" do
   path File.join("", "etc", "network", "if-up.d", "update-etc-issue")
   source "etc_issue_with_ip.erb"
