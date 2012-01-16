@@ -17,11 +17,6 @@ nginx:
   proxy_connect_timeout: 40
   proxy_send_timeout: 480
   proxy_read_timeout: 480
-dea:
-  runtimes:
-    - ruby19
-    - java
-    - nodejs
 jobs:
   install:
     - cloudfoundry:
@@ -48,12 +43,16 @@ jobs:
         stager:
           max_staging_runtime: 360
     - router
+    - dea:
+        max_memory: 8192
+        runtimes:
+          - ruby19
+          - java
+          - nodejs
     - dns_publisher
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
         host: 127.0.0.1
-    - dea: #The max amount of memory available to run the apps.
-        max_memory: 8192
     - redis_node:
         index: "0"
     - redis_gateway
