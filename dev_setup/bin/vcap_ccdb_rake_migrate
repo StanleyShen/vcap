@@ -16,4 +16,4 @@ fi
 #Should be doing: `bundle exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{@configuration_path}`
 #But the gem file is lacking rake so it fails at the moment. counting on rake installed on the OS which is always the case
 #after a chef install.
-rake db:migrate CLOUD_CONTROLLER_CONFIG=$CLOUD_CONTROLLER_CONFIG
+bundle exec rake db:migrate CLOUD_CONTROLLER_CONFIG=$CLOUD_CONTROLLER_CONFIG
