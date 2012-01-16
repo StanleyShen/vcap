@@ -18,6 +18,7 @@ describe UsersController do
       json = Yajl::Parser.parse(response.body)
       json.should be_kind_of(Hash)
       json['email'].should == @user.email
+      json['admin'].should == @user.admin?
     end
 
     it 'should return an user info as an admin requesting for an existent user' do
@@ -29,6 +30,7 @@ describe UsersController do
       json = Yajl::Parser.parse(response.body)
       json.should be_kind_of(Hash)
       json['email'].should == @user.email
+      json['admin'].should == @user.admin?
     end
 
     it 'should return an error as an admin requesting for a non-existent user' do
@@ -52,6 +54,44 @@ describe UsersController do
       json.should be_kind_of(Hash)
       json['code'].should == 200
       json['description'].should == 'Operation not permitted'
+    end
+  end
+
+  describe '#create' do
+    it 'should return 403 if the user is not an admin and registration is disabled' do
+      AppConfig[:allow_registration] = false
+      post_with_body :create do
+        { :email    => 'foo@bar.com',
+          :password => 'testpass',
+        }
+      end
+      response.status.should == 403
+    end
+
+    it 'should create users if the user is an admin and registration is disabled' do
+      AppConfig[:allow_registration] = false
+      User.find_by_email('foo@bar.com').should be_nil
+      @admin.admin?.should be_true
+      @admin_headers.each {|key, value| request.env[key] = value}
+      post_with_body :create do
+        { :email    => 'foo@bar.com',
+          :password => 'testpass',
+        }
+      end
+      response.status.should == 204
+      User.find_by_email('foo@bar.com').should_not be_nil
+    end
+
+    it 'should create users if the user is not an admin and registration is allowed' do
+      AppConfig[:allow_registration] = true
+      User.find_by_email('foo@bar.com').should be_nil
+      post_with_body :create do
+        { :email    => 'foo@bar.com',
+          :password => 'testpass',
+        }
+      end
+      response.status.should == 204
+      User.find_by_email('foo@bar.com').should_not be_nil
     end
   end
 
@@ -100,5 +140,11 @@ describe UsersController do
       response.status.should == 403
       User.find_by_email(@user.email).should_not be_nil
     end
+  end
+
+  def post_with_body(*args, &blk)
+    body = yield
+    request.env['RAW_POST_DATA'] = Yajl::Encoder.encode(body)
+    post(*args)
   end
 end

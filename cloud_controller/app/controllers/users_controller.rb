@@ -47,7 +47,7 @@ class UsersController < ApplicationController
     target_user = ::User.find_by_email(params['email'])
     if target_user
       if target_user.email == user.email || @current_user.admin?
-        render :json => { :email => target_user.email }
+        render :json => { :email => target_user.email, :admin => target_user.admin? }
       else
         raise CloudError.new(CloudError::FORBIDDEN)
       end
@@ -76,7 +76,8 @@ class UsersController < ApplicationController
 
   def enforce_registration_policy
     return if user && user.admin?
-    if AppConfig[:local_register_only] && remote_request?
+    unless AppConfig[:allow_registration]
+      CloudController.logger.info("User registration is disabled but someone from #{request.remote_ip} is attempting to register the email '#{body_params[:email]}'.")
       raise CloudError.new(CloudError::FORBIDDEN)
     end
   end

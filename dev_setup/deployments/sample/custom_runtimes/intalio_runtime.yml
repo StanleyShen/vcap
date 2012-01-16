@@ -5,7 +5,13 @@ deployment:
   name: "intalio_devbox"
   domain: "intalio.priv"
   etc_issue_msg: "Welcome to Intalio"
+  welcome: "Welcome to Intalio"
   vmc_knife_default_recipe: /home/ubuntu/cloudfoundry/intalio_recipe.json
+capacity:
+  memory: 8192
+  max_uris: 32
+  max_services: 32
+  max_apps: 24
 nginx:
   client_max_body_size: 512M
   proxy_connect_timeout: 40
@@ -13,7 +19,6 @@ nginx:
   proxy_read_timeout: 480
 dea:
   runtimes:
-    - ruby18
     - ruby19
     - java
     - nodejs
@@ -21,7 +26,7 @@ jobs:
   install:
     - cloudfoundry:
         vmc:
-          version: 0.3.14.beta.4
+          version: 0.3.16.beta.1
     - nats_server:
         port: 4222
         user: nats
@@ -40,11 +45,6 @@ jobs:
           - redis
           - mongodb
           - postgresql
-        default_account_capacity:
-          memory:   8192
-          app_uris: 32
-          services: 32
-          apps:     32
         stager:
           max_staging_runtime: 360
     - router
@@ -103,6 +103,8 @@ jobs:
            - redis_gateway
            - redis_node
            - router
+           - stager
+           - dns_publisher
         vcap_daemons:
            - nats_server
         others:
