@@ -89,7 +89,7 @@ https_required_for_admins: false
 # Controls the amount of resources assigned to a user
 # Normal user accounts
 default_account_capacity:
-  memory:   <%= node[:capacity][:memory %>
+  memory:   <%= node[:capacity][:memory] %>
   app_uris: <%= node[:capacity][:max_uris] %>
   services: <%= node[:capacity][:max_services] %>
   apps:     <%= node[:capacity][:max_apps] %>
