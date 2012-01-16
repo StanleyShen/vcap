@@ -17,7 +17,8 @@ if [ ! -d monit-5.3 ]; then
   ./configure --sysconfdir=/etc/monit/
   make
   sudo make install
-  sudo monit quit
+  which monit > /dev/null
+  [ $? != 0 ] && sudo monit quit
   
   # Configure as daemon with a 4 minutes start delay
   sudo sed -i 's/^#[[:space:]]*set daemon  120/set daemon  120/g' /etc/monit/monitrc
