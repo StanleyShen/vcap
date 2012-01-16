@@ -11,7 +11,9 @@ node[:postgresql_node][:host] ||= cf_local_ip
 
 [node[:deployment][:home], File.join(node[:deployment][:home], "deploy"), node[:deployment][:log_path],
  File.join(node[:deployment][:home], "sys", "log"), node[:deployment][:config_path],
- File.join(node[:deployment][:config_path], "staging")].each do |dir|
+ File.join(node[:deployment][:config_path], "staging"),
+ File.join("/var/vcap", "shared"),
+ File.join("/var/vcap/shared", "staged")].each do |dir|
   directory dir do
     owner node[:deployment][:user]
     group node[:deployment][:group]
@@ -99,9 +101,9 @@ mkdir -p /var/vcap.local/dea/apps
 ln -s /var/vcap.local/dea/apps deployed_apps
 
 cd #{ENV["HOME"]}
-# add the profile to the user's  home.
-grep_it=`grep #{node[:deployment][:profile]} .bashrc`
-[ -z "$grep_it" ] && echo "source #{node[:deployment][:profile]}" >> .bashrc
+# add the local_run_profile to the user's  home.
+grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
+[ -z "$grep_it" ] && echo "source #{node[:deployment][:local_run_profile]}" >> .bashrc
 grep_it=`grep alias\\ #{node[:deployment][:vcap_exec_alias]}= .bashrc`
 [ -z "$grep_it" ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc
 grep_it=`grep alias\\ _psql= .bashrc`
