@@ -1,0 +1,13 @@
+---
+name: "java_start"
+runtimes:
+  - "java":
+      description: "Java 6"
+      version: "1.6"
+      executable: "java"
+      default: true
+app_servers:
+detection:
+  - "start.sh": '.'
+  - "start.jar": '.'
+staged_services:
