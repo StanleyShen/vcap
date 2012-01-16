@@ -25,9 +25,9 @@ fi
 
 # Make sure the binaries for this vcap runtime are ready:
 if [ -z "$CLOUD_FOUNDRY_CONFIG_PATH" ]; then
-  echo "sourcing the cloudfoundry deployment profile and local" | tee -a $_vcap_log
-  source $HOME/.cloudfoundry_deployment_local | tee -a $_vcap_log
-  source $HOME/.cloudfoundry_deployment_profile | tee -a $_vcap_log
+#  echo "sourcing the cloudfoundry deployment profile and local" | tee -a $_vcap_log
+  source $HOME/.cloudfoundry_deployment_local
+  source $HOME/.cloudfoundry_deployment_profile
 fi
 
 
