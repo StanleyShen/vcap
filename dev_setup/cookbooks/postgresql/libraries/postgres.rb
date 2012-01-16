@@ -21,7 +21,8 @@ module CloudFoundryPostgres
     `#{postgresql_ctl} #{cmd}`
   end
   
-  def cf_pg_update_hba_conf(db, user, ip_and_mask='0.0.0.0/0', pass_encrypt='md5', connection_type='host')
+  def cf_pg_update_hba_conf(db, user, ip_and_mask=nil, pass_encrypt='md5', connection_type='host')
+    ip_and_mask='0.0.0.0/0' if ip_and_mask.nil? || ip_and_mask.strip.empty?
     case node['platform']
     when "ubuntu"
       ruby_block "Update PostgreSQL config for db=#{db} user=#{user} ip_and_mask=#{ip_and_mask} pass_encrypt=#{pass_encrypt} connection_type=#{connection_type}" do
@@ -31,15 +32,15 @@ module CloudFoundryPostgres
 
           # Update pg_hba.conf
           pg_hba_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
-          `grep "#{connection_type}\s*#{db}\s*#{user}" #{pg_hba_conf_file}`
+          `grep "#{connection_type}\s*#{db}\s*#{user}\s*#{ip_and_mask}\s*#{pass_encrypt}" #{pg_hba_conf_file}`
           if $?.exitstatus != 0
             #append a new rule
             `echo "#{connection_type} #{db} #{user} #{ip_and_mask} #{pass_encrypt}" >> #{pg_hba_conf_file}`
-          else
+          #else # nothing to do.
             #replace the rule
-            
+            #`sed -i -e "s/^#{connection_type}[[:space:]]*#{db}[[:space:]]*#{user}[[:space:]].*$/#{connection_type} #{db} #{user} #{ip_and_mask} #{pass_encrypt}/g" #{pg_hba_conf_file}`
           end
-          
+
           #no need to restart. reloading the conf is enough.
           pg_server_command 'reload'
         end

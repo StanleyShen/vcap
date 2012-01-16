@@ -85,11 +85,16 @@ end
 # Add the current IP to the allowed ones
 #The network/if-up.d script takes care of changing this IP by a new one when it changes
 # and i we decide to track a particular network interface.
-cf_pg_update_hba_conf("all", "all", "#{cf_local_ip} 255.255.255.255", "md5") unless cf_local_ip == '127.0.0.1'
+cf_pg_update_hba_conf("all", "all", "#{cf_local_ip} 255.255.255.255", "md5") if cf_local_ip != '127.0.0.1'
+Chef::Log.error("cf_pg_update_hba_conf added a line for the local user #{cf_local_ip}")
 
-unless node[:postgresql_node][:pg_hba_extra].nil?
+
+if node[:postgresql_node][:pg_hba_extra]
   #relax the rules to connect to postgres.
   cf_pg_update_hba_conf(node[:postgresql_node][:pg_hba_extra][:database], node[:postgresql_node][:pg_hba_extra][:user], node[:postgresql_node][:pg_hba_extra][:ip_range], node[:postgresql_node][:pg_hba_extra][:pass_encrypt])
+else
+   Chef::Log.error("cf_pg_update_hba_conf added a line for the local user #{cf_local_ip}")
+   exit
 end
 
 cf_pg_update_hba_conf(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user])
