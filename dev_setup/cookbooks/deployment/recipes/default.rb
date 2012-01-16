@@ -29,7 +29,9 @@ var_vcap = File.join("", "var", "vcap")
  File.join(var_vcap, "sys", "log"), File.join(var_vcap, "data", "cloud_controller", "tmp"),
  File.join(var_vcap, "data", "cloud_controller", "staging"),
  File.join(var_vcap, "data", "db"), File.join("", "var", "vcap.local"),
- File.join("", "var", "vcap.local", "staging")].each do |dir|
+ File.join("", "var", "vcap.local", "staging"),
+ File.join("", "var", "vcap.local", "dea"),
+ File.join("", "var", "vcap.local", "dea", "apps")].each do |dir|
   directory dir do
     owner node[:deployment][:user]
     group node[:deployment][:group]
@@ -43,6 +45,7 @@ template node[:deployment][:info_file] do
   path node[:deployment][:info_file]
   source "deployment_info.json.erb"
   owner node[:deployment][:user]
+  group node[:deployment][:group]
   mode 0644
   variables({
     :name => node[:deployment][:name],
@@ -62,6 +65,7 @@ template "etc_issue_with_ip" do
   path File.join("", "etc", "network", "if-up.d", "update-etc-issue")
   source "etc_issue_with_ip.erb"
   owner node[:deployment][:user]
+  owner node[:deployment][:group]
   mode 0755
 end
 
@@ -83,6 +87,7 @@ template node[:deployment][:vcap_exec] do
   path node[:deployment][:vcap_exec]
   source "vcap.erb"
   owner node[:deployment][:user]
+  group node[:deployment][:group]
   mode 0755
 end
 
@@ -97,7 +102,10 @@ ln -s #{node[:deployment][:log_path]} log
 [ -h config ] && rm config
 ln -s #{node[:deployment][:config_path]} config
 [ -h deployed_apps ] && rm deployed_apps
-mkdir -p /var/vcap.local/dea/apps
+if [ ! -d /var/vcap.local/dea/apps ]; then
+  mkdir -p /var/vcap.local/dea/apps
+  chown #{node[:deployment][:user]}:#{node[:deployment][:group]} /var/vcap.local/dea/apps
+fi
 ln -s /var/vcap.local/dea/apps deployed_apps
 
 cd #{ENV["HOME"]}
