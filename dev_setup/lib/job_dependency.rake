@@ -17,6 +17,12 @@ class JobManager
     end
   end
 
+  [DNS_PUBLISHER].each do |job|
+    task job.to_sym => [ROUTER.to_sym] do
+      install(job)
+    end
+  end
+
   SERVICES_NODE.each do |job|
     task job.to_sym => [CF.to_sym, NATS.to_sym] do
       install(job)

@@ -5,5 +5,5 @@
   "json_class": "Chef::Role",
   "description": "Cloudfoundry DNS Publisher",
   "chef_type": "role",
-  "run_list" : [ "recipe[router]"]
+  "run_list" : [ "recipe[router]" ]
 }
