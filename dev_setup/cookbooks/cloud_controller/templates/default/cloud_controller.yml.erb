@@ -11,7 +11,7 @@ support_address: <%= node[:cloud_controller][:support_address] %>
 local_route: <%= node[:cloud_controller][:local_route] %>
 
 # Specifies if new users are allowed to register via VMC
-local_register_only: <%= node[:cloud_controller][:local_register_only] %>
+allow_registration: <%= node[:cloud_controller][:allow_registration] %>
 
 # Allow applications to register URIs that are outside your domain.
 # Legacy (FIXME REMOVE)
@@ -47,19 +47,30 @@ rails_logging:
   level: debug
 # file:
 
+redis:
+  host: 127.0.0.1
+  port: 5454
+# password:
+
 directories:
   droplets: /var/vcap/shared/droplets
   resources: /var/vcap/shared/resources
   # default values, relative to Rails.root. Leading slash for full path.
   staging_manifests: <%= File.join(node[:deployment][:config_path], "staging") %>
   staging_cache: /var/vcap/data/cloud_controller/staging
+
+  # set to true to prevent filesystem resource leaks
+  # nukes tmpdir on startup -- be careful!
+  nuke_tmp_on_startup: false
+
   tmpdir: /var/vcap/data/cloud_controller/tmp
 
 # NATS message bus URI
 mbus: nats://<%= node[:nats_server][:user] %>:<%= node[:nats_server][:password] %>@<%= node[:nats_server][:host] %>:<%= node[:nats_server][:port] %>/
 keys:
-  password: 'password key goes here'
-  token: 'token key goes here'
+  password: '<%= node[:cloud_controller][:keys][:password] %>'
+  token: '<%= node[:cloud_controller][:keys][:token] %>'
+  token_expiration: <%= node[:cloud_controller][:keys][:token_expiration] %>
 pid: /var/vcap/sys/run/cloud_controller.pid
 rails_environment: production
 database_environment: # replaces database.yml
@@ -80,6 +91,11 @@ staging:
   max_staging_runtime:    <%= node[:cloud_controller][:stager][:max_staging_runtime] %> # secs
   # Create a secure environment for staging
   secure: <%= node[:cloud_controller][:stager][:secure] %>
+  new_stager_percent: <%= node[:cloud_controller][:stager][:new_stager_percent] %>
+  new_stager_email_regexp: <%= node[:cloud_controller][:stager][:new_stager_email_regexp] %>
+  auth:
+    user: <%= node[:cloud_controller][:stager][:user] %>
+    password: <%= node[:cloud_controller][:stager][:password] %>
 
 # admin support
 admins: [ <%= node[:cloud_controller][:admins].join(", ") %> ]

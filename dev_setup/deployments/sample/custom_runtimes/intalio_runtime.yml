@@ -35,11 +35,13 @@ jobs:
         support_address: "http://support.intalio.com"
         app_uris:
           { allow_external: true }
-        local_register_only: false
+        allow_registration: true
         builtin_services:
           - redis
           - mongodb
           - postgresql
+        keys:
+          token_expiration: 60480000 # 7 * 24 * 60 * 60 (= 1 week) * 100
         stager:
           max_staging_runtime: 360
     - router

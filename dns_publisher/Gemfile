@@ -3,7 +3,7 @@ source "http://rubygems.org"
 gem 'nats', '>= 0.4.10', :require => 'nats/client'
 gem 'eventmachine',  '~> 0.12.11.cloudfoundry.1'
 
-gem 'vcap_common', :path => '../common'
+gem 'vcap_common'
 gem 'vcap_logging', :require => ['vcap/logging']
 
 gemspec
