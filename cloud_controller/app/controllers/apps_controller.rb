@@ -275,7 +275,7 @@ class AppsController < ApplicationController
   # Checks to make sure the update can proceed, then updates the given
   # App from the request params and makes the necessary AppManager calls.
   def update_app_from_params(app)
-    CloudController.logger.debug "app: #{app.id || "nil"} update_from_parms"
+    CloudController.logger.debug "app: #{app.id || "nil"} update_from_parms #{body_params.inspect}"
     error_on_lock_mismatch(app)
     app.lock_version += 1
 
@@ -298,7 +298,19 @@ class AppsController < ApplicationController
     end
 
     app.metadata[:debug] = body_params[:debug] if body_params
-
+    
+    # Experimental: let applications explicitly avoid restaging on database changes.
+    # Useful for node; sinatra and some java apps for example.
+    if body_params && body_params[:meta] && body_params[:meta][:restage_on_service_change]
+      restage_on_service_change = body_params[:meta][:restage_on_service_change]
+      if restage_on_service_change == false || restage_on_service_change == 'false'
+        app.metadata[:restage_on_service_change] = false
+      else
+        app.metadata.delete(:restage_on_service_change)
+      end
+      CloudController.logger.debug "app.metadata[:restage_on_service_change] #{app.metadata[:restage_on_service_change]}"
+    end
+    
     # 'app.save' can actually raise an exception, if whatever is
     # invalid happens all the way down at the DB layer.
     begin
@@ -448,8 +460,12 @@ class AppsController < ApplicationController
       raise CloudError.new(CloudError::FORBIDDEN) unless app.collaborator?(user)
       app.unbind_from_config(cfg)
     end
-    # Since we made binding changes, we expect to be restaged.
-    app.package_state = 'PENDING'
+    unless app.metadata[:restage_on_service_change] == false || app.metadata[:restage_on_service_change] == 'false'
+      # Since we made binding changes, we expect to be restaged.
+      app.package_state = 'PENDING'
+    else
+      CloudController.logger.debug "app: #{app.id} states that it does not need to be re-staged after a service change."
+    end
   end
 
   # Note that the state needs to be updated prior to calling this check.
