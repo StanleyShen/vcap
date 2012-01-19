@@ -49,10 +49,12 @@ http {
         access_log   <%= node[:nginx][:vcap_log] %> main;
         server_name_in_redirect off;
 
-        location /static {
+        location /nginx {
                 root   /var/www;
                 expires     max;
         }
+        # Make sure there is a /var/www/nginx/404/404.html page
+        error_page  404  /nginx/404/404.html;
 
         location / {
                 proxy_buffering                 off;
