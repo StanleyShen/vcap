@@ -21,7 +21,11 @@ class Router
       VCAP::Logging.setup_from_config(config['logging'] || {})
       @log = VCAP::Logging.logger('router')
       if config['404_redirect']
-        @notfound_redirect = "HTTP/1.1 302 Not Found\r\nConnection: close\r\nLocation: #{config['404_redirect']}\r\n\r\n".freeze
+       # @notfound_redirect = "HTTP/1.1 302 Not Found\r\nConnection: close\r\nLocation: #{config['404_redirect']}\r\n\r\n".freeze
+       # nicer redirect for rest and web-services: they will receive a straight http status 404 instead of a redirect.
+       # html browsers will execute the redirect and see the 404 html page
+        @notfound_redirect = "HTTP/1.1 404 Not Found\r\nConnection: close\r\nLocation: #{config['404_redirect']}\r\n\r\n" +
+                    "<html><head><meta HTTP-EQUIV='REFRESH' content='0; url=#{config['404_redirect']}'></meta></head></html>".freeze
         log.info "Registered 404 redirect at #{config['404_redirect']}"
       end
 
