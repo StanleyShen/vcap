@@ -3,6 +3,9 @@
 [ -z "$HOME" ] && export HOME=/home/<%= node[:deployment][:user] %>
 [ -z "$USER" ] && export USER=<%= node[:deployment][:user] %>
 [ -z "$TERM" ] && export TERM=xterm
+CLOUD_FOUNDRY_HOME=<%= node[:cloudfoundry][:home] %>
+CLOUD_FOUNDRY_VCAP_PATH=<%= node[:cloudfoundry][:path] %>
+CLOUD_FOUNDRY_DEPLOYMENT_NAME=<%= node[:deployment][:name] %>
 
 _vcap_log=<%= node[:deployment][:log_path] %>/vcap.log
 #don't log status calls:
@@ -25,9 +28,8 @@ fi
 
 # Make sure the binaries for this vcap runtime are ready:
 if [ -z "$CLOUD_FOUNDRY_CONFIG_PATH" ]; then
-#  echo "sourcing the cloudfoundry deployment profile and local" | tee -a $_vcap_log
+#  echo "sourcing the cloudfoundry deployment local" | tee -a $_vcap_log
   source $HOME/.cloudfoundry_deployment_local
-  source $HOME/.cloudfoundry_deployment_profile
 fi
 
 
@@ -55,13 +57,46 @@ if [ "$do_reconfig" == "true" ]; then
      ruby start_register_app.rb >> $_vcap_log 2>&1 # | tee -a $_vcap_log # can't redirect
   fi
 
-  cd /home/<%= node[:deployment][:user] %>
+  cd /home/ubuntu
   echo "calling vmc_knife to make sure the urls are up to date." | tee -a $_vcap_log
-  vmc_knife login | tee -a $_vcap_log
+  $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start cloud_controller | tee -a $_vcap_log
+  $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start router | tee -a $_vcap_log
+  # wait until cloud_controller is indeed available:
+  COUNTER=0
+  while [  $COUNTER -lt 20 ]; do
+    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv 2>&1 | grep "200 OK"`
+    if [ -n "$ready" ]; then
+      COUNTER=40
+      [ COUNTER != "0" ] && echo "Cloud Controller is available"
+    else
+      echo "[ $COUNTER ] Cloud controller is not available yet."
+      let COUNTER=COUNTER+1
+      sleep 5
+    fi
+  done  
+  #vmc_knife login | tee -a $_vcap_log
   vmc_knife configure-applications | tee -a $_vcap_log
   vmc_knife configure-vcap-etc-hosts | tee -a $_vcap_log
   #vmc_knife configure-vcap-mdns | tee -a $_vcap_log
 fi
 
 #call vcap with the cmd-line args:
-<%= node[:cloudfoundry][:path] %>/dev_setup/bin/vcap_dev --name <%= node[:deployment][:name] %> --dir <%= node[:cloudfoundry][:home] %> $@ | tee -a $_vcap_log
+$CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME $@ | tee -a $_vcap_log
+
+if [ "$2" == "cloud_controller" ]; then
+if [ "$1" == "start" -o "$1" == "restart" ]; then 
+  # wait until cloud_controller is indeed available:
+  COUNTER=0
+  while [  $COUNTER -lt 20 ]; do
+    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv 2>&1 | grep "200 OK"`
+    if [ -n "$ready" ]; then
+      COUNTER=40
+      [ COUNTER != "0" ] && echo "Cloud Controller is available"
+    else
+      echo "[ $COUNTER ] Cloud controller is not available yet."
+      let COUNTER=COUNTER+1
+      sleep 5
+    fi
+  done
+fi
+fi
