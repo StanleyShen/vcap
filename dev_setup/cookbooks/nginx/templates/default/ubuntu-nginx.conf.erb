@@ -49,6 +49,11 @@ http {
         access_log   <%= node[:nginx][:vcap_log] %> main;
         server_name_in_redirect off;
 
+        location /static {
+                root   /var/www;
+                expires     max;
+        }
+
         location / {
                 proxy_buffering                 off;
                 proxy_set_header                Host $host;
