@@ -28,7 +28,7 @@ jobs:
         password: nats  #override this
         tracked_net_iface: eth0
     - stager:
-        max_staging_duration: 360
+        max_staging_duration: 480
     - cloud_controller:
         admins: [ hmalphettes@intalio.com ]
         description: "Intalio CF"
@@ -41,16 +41,21 @@ jobs:
           - mongodb
           - postgresql
         keys:
-          token_expiration: 60480000 # 7 * 24 * 60 * 60 (= 1 week) * 100
+          token_expiration: 604800000 # 7 * 24 * 60 * 60 (= 1 week) * 1000
         stager:
-          max_staging_runtime: 360
-    - router
+          max_staging_runtime: 480
+          secure: false
+          new_stager_percent: 100
+          new_stager_email_regexp: system@intalio\.com
+    - router:
+        404_redirect: /static/404/404.html
     - dea:
         max_memory: 8192
         runtimes:
           - ruby19
           - java
           - nodejs
+        force_http_sharing: false
     - dns_publisher
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP

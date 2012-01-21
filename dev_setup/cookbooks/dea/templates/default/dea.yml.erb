@@ -37,7 +37,7 @@ pid: /var/vcap/sys/run/dea.pid
 
 #Force droplets to be downloaded over http even when
 #there is a shared directory containing the droplet.
-force_http_sharing: true
+force_http_sharing: <%= node[:dea][:force_http_sharing] %>
 
 # This is where the execution agent determines its available runtimes.
 # version flags are assumed to be '-v' unless noted below.
