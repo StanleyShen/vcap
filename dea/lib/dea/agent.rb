@@ -914,6 +914,7 @@ module DEA
 
     def download_app_bits(bits_uri, sha1, tgz_file)
       f = Fiber.current
+      @except = nil unless @except
       @downloads_pending[sha1] = []
       http = EventMachine::HttpRequest.new(bits_uri).get
 
@@ -922,14 +923,34 @@ module DEA
 
       file = File.open(pending_tgz_file, 'w')
       http.errback { |error|
-        @logger.warn("Failed to download app bits from #{bits_uri}; error #{error}")
+        @logger.warn("Failed to download app bits from #{bits_uri}; error #{error} #{error.inspect} #{error.to_s}")
         file.close
+        size_bytes=File.size(pending_tgz_file)
+        if size_bytes > 0
+          units = %w{B KB MB GB TB}
+          e = (Math.log(size_bytes)/Math.log(1024)).floor
+          s = "%.3f" % (size_bytes.to_f / 1024**e)
+          size_pretty = s.sub(/\.?0*$/, units[e])
+        else
+          size_pretty = 0
+        end
+        @logger.debug("Size of the downloaded file before we delete it #{size_pretty}")
+        
         FileUtils.rm_rf(pending_tgz_file)
         f.resume
       }
+      
       http.stream { |chunk|
-        file.write(chunk)
+        begin
+          file.write(chunk)
+        rescue Exception => except
+          @except = except
+          @logger.warn("Got an exception while writing a chunk #{except}")
+          @logger.warn(except.inspect)
+          raise except
+        end
       }
+      
       http.callback {
         file.close
         unless http.response_header.status == 200
@@ -944,6 +965,10 @@ module DEA
       Fiber.yield
 
     ensure
+      if @except
+        @logger.warn("___Got an exception while writing a chunk #{@except}")
+        @logger.warn(@except.inspect)
+      end
       # Make sure we release any pending
       pending = @downloads_pending[sha1]
       @downloads_pending.delete(sha1)
@@ -968,6 +993,17 @@ module DEA
       File.open(startup, 'w') { |f| f.write(new_startup) }
       FileUtils.chmod(0500, startup)
     end
+    
+    def file_size_human(size_bytes)
+      if size_bytes > 0
+        units = %w{B KB MB GB TB}
+        e = (Math.log(size_bytes)/Math.log(1024)).floor
+        s = "%.3f" % (size_bytes.to_f / 1024**e)
+        s.sub(/\.?0*$/, units[e])
+      else
+        0
+      end
+    end
 
     def stage_app_dir(bits_file, bits_uri, sha1, tgz_file, instance_dir, runtime)
       # See if we have bits first..
@@ -984,7 +1020,8 @@ module DEA
           @logger.debug("Sharing cloud controller's staging directories")
           start = Time.now
           FileUtils.cp(bits_file, tgz_file)
-          @logger.debug("Took #{Time.now - start} to copy from shared directory")
+          size_pretty = file_size_human(File.size(tgz_file))
+          @logger.debug("Took #{Time.now - start} to copy the staged droplet #{size_pretty} from shared directory")
         else
           start = Time.now
           @logger.debug("Need to download app bits from #{bits_uri}")
@@ -1000,14 +1037,26 @@ module DEA
           end
           download_end = Time.now
           if File.exists? tgz_file
-            size_bytes=File.size(tgz_file)
-            units = %w{B KB MB GB TB}
-            e = (Math.log(size_bytes)/Math.log(1024)).floor
-            s = "%.3f" % (size_bytes.to_f / 1024**e)
-            size_pretty = s.sub(/\.?0*$/, units[e])
+            size_pretty = file_size_human(File.size(tgz_file))
             @logger.debug("Took #{download_end - start} to download and write the staged droplet of size #{size_pretty}")
           else
             @logger.warn("The download of the staged droplet as #{tgz_file} failed after #{download_end - start}; exiting without further due.")
+=begin            @logger.warn("Ugly but works: Trying with wget")
+            `wget -q -O #{tgz_file}.wgetpending #{bits_uri}`
+            if File.exists? "#{tgz_file}.wgetpending"
+              FileUtils.mv("#{tgz_file}.wgetpending", tgz_file)
+              size_bytes=File.size(tgz_file)
+              if size_bytes > 0
+                size_pretty = file_size_human(size_bytes)
+                @logger.debug("Took #{download_end - start} to download and write the staged droplet of size #{size_pretty}")
+              else
+                @logger.warn("wget failed as well")
+                return false
+              end
+            else
+              return false
+            end
+=end
             return false
           end
         end
