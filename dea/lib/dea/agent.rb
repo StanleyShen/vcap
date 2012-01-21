@@ -921,8 +921,8 @@ module DEA
       pending_tgz_file = File.join(@staged_dir, "#{sha1}.pending")
 
       file = File.open(pending_tgz_file, 'w')
-      http.errback {
-        @logger.warn("Failed to download app bits from #{bits_uri}")
+      http.errback { |error|
+        @logger.warn("Failed to download app bits from #{bits_uri}; error #{error}")
         file.close
         FileUtils.rm_rf(pending_tgz_file)
         f.resume
@@ -932,7 +932,13 @@ module DEA
       }
       http.callback {
         file.close
-        FileUtils.mv(pending_tgz_file, tgz_file)
+        unless http.response_header.status == 200
+          error = IO.read(pending_tgz_file)
+          FileUtils.rm_rf(pending_tgz_file)
+          @logger.warn("Failed to download app bits from #{bits_uri}; HTTP status #{http.response_header.status}; message #{error}" )
+        else
+          FileUtils.mv(pending_tgz_file, tgz_file)
+        end
         f.resume
       }
       Fiber.yield
@@ -993,10 +999,20 @@ module DEA
             download_app_bits(bits_uri, sha1, tgz_file)
           end
           download_end = Time.now
-          @logger.debug("Took #{download_end - start} to download and write file")
+          if File.exists? tgz_file
+            size_bytes=File.size(tgz_file)
+            units = %w{B KB MB GB TB}
+            e = (Math.log(size_bytes)/Math.log(1024)).floor
+            s = "%.3f" % (size_bytes.to_f / 1024**e)
+            size_pretty = s.sub(/\.?0*$/, units[e])
+            @logger.debug("Took #{download_end - start} to download and write the staged droplet of size #{size_pretty}")
+          else
+            @logger.warn("The download of the staged droplet as #{tgz_file} failed after #{download_end - start}; exiting without further due.")
+            return false
+          end
         end
       end
-
+      
       start = Time.now
 
       # Explode the app into its directory and optionally bind its
