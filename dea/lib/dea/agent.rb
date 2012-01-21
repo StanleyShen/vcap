@@ -944,7 +944,6 @@ module DEA
         begin
           file.write(chunk)
         rescue Exception => except
-          @except = except
           @logger.warn("Got an exception while writing a chunk #{except}")
           @logger.warn(except.inspect)
           raise except
@@ -965,10 +964,6 @@ module DEA
       Fiber.yield
 
     ensure
-      if @except
-        @logger.warn("___Got an exception while writing a chunk #{@except}")
-        @logger.warn(@except.inspect)
-      end
       # Make sure we release any pending
       pending = @downloads_pending[sha1]
       @downloads_pending.delete(sha1)
