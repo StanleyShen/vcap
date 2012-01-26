@@ -56,6 +56,8 @@ if [ -z "$IP" ]; then
 fi
 
 LOG_FILE=/var/log/nats_server_if_up.log
+touch $LOG_FILE
+chmod o+rw $LOG_FILE # so that the postgres user can write into it.
 date=$( date +"%Y-%m-%d_%H:%M:%S" )
 
 # Make sure the hostname is unique on the subnet.
@@ -104,11 +106,52 @@ fi
 #/home/ubuntu/cloudfoundry/_vcap update-ip $NATS_TRACKED_IFACE
 echo "$date The tracked network interface's IP has changed from $NATS_IP to $IP. Updating all the config of the nats_server and the vcap components." >> $LOG_FILE
 
-find <%= node[:deployment][:config_path] %>/ -type f -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \;
 #migrate the credentials that also contain the old IP.
 #todo: add a few more parameters and put this into a separate file related to the cloud_controller
-sudo -u postgres psql -d cloud_controller -c "update service_configs set credentials = replace(credentials, '$NATS_IP', '$IP')"
-sudo -u postgres psql -d cloud_controller -c "update service_bindings set credentials = replace(credentials, '$NATS_IP', '$IP')"
+# make sure that postgresql is actually started
+
+PSQL_RAW_RES_ARGS="-P format=unaligned -P footer=off -P tuples_only=on"
+postgres_pid=`[ -d /var/run/postgresql -a -n "$(ls /var/run/postgresql/)" ] && ls /var/run/postgresql/*.pid || echo ""`
+if [ -z "$postgres_pid" ]; then
+  echo "Starting Postgresql" >> $LOG_FILE
+  /etc/init.d/postgresql start
+  COUNTER=0
+  while [  $COUNTER -lt 20 ]; do
+    sudo -u postgres psql -e -c "select 1" 2>&1 | tee -a $LOG_FILE
+    psql_exit_status=$?
+    res=`sudo -u postgres psql -c "select 1" $PSQL_RAW_RES_ARGS`
+    if [ "$psql_exit_status" == 0 -a "$res" == "1" ]; then
+      COUNTER=40
+      [ COUNTER != "0" ] && echo "Postgresql is available" >> $LOG_FILE
+    else
+      echo "[ $COUNTER ] Postgresql is not available yet." >> $LOG_FILE
+      let COUNTER=COUNTER+1
+      sleep 5
+    fi
+  done
+else
+  echo "Postgresql was started $postgres_pid" >> $LOG_FILE
+fi
+sudo -u postgres psql -d cloud_controller -e -c "update service_configs set credentials = replace(credentials, '$NATS_IP', '$IP')" 2>&1 | tee -a $LOG_FILE
+echo "Exit status from the psql command $?" >> $LOG_FILE
+sudo -u postgres psql -d cloud_controller -e -c "update service_bindings set credentials = replace(credentials, '$NATS_IP', '$IP')" 2>&1 | tee -a $LOG_FILE
+psql_exit_status=$?
+if [ "$psql_exit_status" != 0 ]; then
+  echo "Exit status from the psql command $psql_exit_status; We exit and don't change the IP in the config file; try again!" >> $LOG_FILE
+  exit 12
+else
+  # double check.
+  sudo -u postgres psql -d cloud_controller -e -c "select count(*) from service_bindings where credentials like '%$NATS_IP%'" 2>&1 | tee -a $LOG_FILE
+  rows_with_old_ip=`sudo -u postgres psql -d cloud_controller -c "select count(*) from service_bindings where credentials like '%$NATS_IP%'" $PSQL_RAW_RES_ARGS`
+  echo "Number of rows with old ip $NATS_IP: $rows_with_old_ip" >> $LOG_FILE
+  if [ "$rows_with_old_ip" != 0 ]; then
+    echo "The refactoring in the DB did not happen $rows_with_old_ip; failure!" >> $LOG_FILE
+    echo 11
+  fi
+#echo "Just testing: exit for now" >> $LOG_FILE
+#exit 0
+fi
+find <%= node[:deployment][:config_path] %>/ -type f -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \;
 
 # Maybe monit that commonly monitors nats_server is already started.
 # In that case let's restart monit
@@ -149,7 +192,6 @@ fi
 if [ ! -f /var/run/nats_server.pid ] || \
    [ "$(ps -p "$(cat /var/run/nats_server.pid)" -o comm=)" != 'nats-server' ]; then
         echo "    The nats_server was not running." >> $LOG_FILE
-        cp $LOG_FILE $LOG_FILE.$date
         exit 0
 fi
 echo "    The nats_server was running. Restarting it." >> $LOG_FILE

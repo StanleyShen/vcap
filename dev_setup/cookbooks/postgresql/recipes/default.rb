@@ -86,18 +86,17 @@ end
 #The network/if-up.d script takes care of changing this IP by a new one when it changes
 # and i we decide to track a particular network interface.
 cf_pg_update_hba_conf("all", "all", "#{cf_local_ip} 255.255.255.255", "md5") if cf_local_ip != '127.0.0.1'
-Chef::Log.error("cf_pg_update_hba_conf added a line for the local user #{cf_local_ip}")
-
 
 if node[:postgresql_node][:pg_hba_extra]
   #relax the rules to connect to postgres.
   cf_pg_update_hba_conf(node[:postgresql_node][:pg_hba_extra][:database], node[:postgresql_node][:pg_hba_extra][:user], node[:postgresql_node][:pg_hba_extra][:ip_range], node[:postgresql_node][:pg_hba_extra][:pass_encrypt])
-else
-   Chef::Log.error("cf_pg_update_hba_conf added a line for the local user #{cf_local_ip}")
-   exit
 end
 
 cf_pg_update_hba_conf(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user])
-cf_pg_setup_db(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user], node[:postgresql_node][:server_root_password], nil, 'CREATEDB CREATEROLE')
+cf_pg_setup_db(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user], node[:postgresql_node][:server_root_password],
+               'SUPERUSER', # superuser necessary to read pg_stat_activity see http://blog.kimiensoftware.com/2011/05/querying-pg_stat_activity-and-insufficient-privilege-291
+               'CREATEDB CREATEROLE', # will create the roles and databases for postgresnode
+               # the extra grants are not necessary now that we are a superuser.
+               [ "GRANT SELECT ON pg_authid to #{node[:postgresql_node][:server_root_user]}" ])
 
 

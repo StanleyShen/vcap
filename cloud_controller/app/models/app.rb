@@ -329,11 +329,11 @@ class App < ActiveRecord::Base
     # Clean up the packages/droplets
     unless self.package_hash.nil?
       app_package = File.join(AppPackage.package_dir, self.package_hash)
-      FileUtils.rm_f(app_package)
+      FileUtils.rm_f(app_package) if File.exist?(app_package)
     end
     unless self.staged_package_hash.nil?
       staged_package = File.join(AppPackage.package_dir, self.staged_package_hash)
-      FileUtils.rm_f(staged_package)
+      FileUtils.rm_f(staged_package) if File.exist?(staged_package)
     end
   end
 
@@ -353,7 +353,7 @@ class App < ActiveRecord::Base
       # Remove old one
       unless self.package_hash.nil?
         app_package = File.join(AppPackage.package_dir, self.package_hash)
-        FileUtils.rm_f(app_package)
+        FileUtils.rm_f(app_package) if File.exist?(app_package)
       end
       self.package_state = 'PENDING'
       self.package_hash = sha1

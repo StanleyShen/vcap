@@ -202,7 +202,7 @@ class AppManager
             CloudController.logger.debug("Sending start message #{json} to DEA #{dea_id}")
             NATS.publish("dea.#{dea_id}.start", json)
           else
-            CloudController.logger.warn("No resources available to start instance #{json}")
+            CloudController.logger.warn("No resources available to start instance #{index} of app #{app.id} - #{app.name}")
           end
         end
       end

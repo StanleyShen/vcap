@@ -54,7 +54,7 @@ module CloudFoundryPostgres
   # the user is granted other privileges.
   # @param privileges When nil or undefined, then 'NOSUPERUSER LOGIN INHERIT'
   # @param extra_privileges More privileges to add to the default ones
-  def cf_pg_setup_db(db, user, passwd, privileges=nil, extra_privileges='', template='template1')
+  def cf_pg_setup_db(db, user, passwd, privileges=nil, extra_privileges='', template='template1', extra_sql_statements=[])
     case node['platform']
     when "ubuntu"
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
@@ -68,6 +68,7 @@ psql -c \"CREATE ROLE #{user} WITH NOSUPERUSER\"
 psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
 psql -c \"ALTER ROLE #{user} WITH #{privileges} #{extra_privileges}\"
 psql -c \"CREATE DATABASE #{db} OWNER=#{user} TEMPLATE=#{template}\"
+#{extra_sql_statements.collect do |statement| "psql -c \\\""+statement+"\\\"" end.join("\n")}
 echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
 EOH
 Chef::Log.warn("Code to exec for the user+his-db #{code}")

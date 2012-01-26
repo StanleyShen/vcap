@@ -16,8 +16,9 @@ module VCAP
       UDPSocket.open {|s| s.connect(route, 1); s.addr.last }
     rescue
       # this is when the public internet is not reachable.
-      # for example a 'Host-only' private network.
-      ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
+      # for example a 'Host-only' private network. On mac we should use ifconfig getifaddr <if_name>
+      ifconfig = File.exist?("/sbin/ifconfig") ? "/sbin/ifconfig" : "ifconfig"
+      ip=`#{ifconfig} | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
       raise "Network unreachable." unless ip
       ip.strip
     ensure

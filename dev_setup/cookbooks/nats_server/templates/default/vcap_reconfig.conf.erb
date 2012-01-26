@@ -1,0 +1,142 @@
+# vcap_reconfig - task to reconfigure vcap once we know the IP and once postgresql is started.
+#
+# The Avahi daemon provides mDNS/DNS-SD discovery support (Bonjour/Zeroconf)
+# allowing applications to discover services on the network.
+
+description     "vcap reconfiguration"
+
+start on (started postgresql and net-device-up IFACE=eth0)
+
+task
+
+script
+
+CLOUD_FOUNDRY_HOME=<%= node[:cloudfoundry][:home] %>
+CLOUD_FOUNDRY_VCAP_PATH=<%= node[:cloudfoundry][:path] %>
+CLOUD_FOUNDRY_DEPLOYMENT_NAME=<%= node[:deployment][:name] %>
+CLOUD_FOUNDRY_CONFIG_PATH=<%= node[:deployment][:config_path] %>
+
+LOG_FILE=<%= node[:deployment][:log_path] %>/vcap_reconfig.log
+touch $LOG_FILE
+chmod o+r $LOG_FILE
+date=$( date +"%Y-%m-%d_%H:%M:%S" )
+
+echo "$date Checking vcap config now that the network and postgresql are up $IFACE" >> $LOG_FILE
+
+# Update the host on which the nats-server is running.
+# At the moment we only look after one particular interface which
+# is defined in the config file of nats-server.
+# Read the path of the config file: it look like this:
+# DAEMON_ARGS="-d -c /home/ubuntu/cloudfoundry/.deployments/intalio_micro_cf/config/nats_server/nats_server.yml"
+NATS_CONF=`grep DAEMON_ARGS=  /etc/init.d/nats_server | egrep -o ' -c [^\"]*' | cut -d' ' -f3`
+if [ ! -e "$NATS_CONF" ]; then
+  # Attempt to read the path of the config file directly from the /etc/init.d/nats_server: it look like this:
+  # DAEMON_ARGS="-d -c /home/ubuntu/cloudfoundry/.deployments/intalio_micro_cf/config/nats_server/nats_server.yml"
+  NATS_CONF=`grep DAEMON_ARGS=  /etc/init.d/nats_server | egrep -o ' -c [^\"]*' | cut -d' ' -f3`
+fi
+if [ ! -e "$NATS_CONF" ]; then
+echo "cant find NATS_CONF" >> $LOG_FILE
+        exit 0
+fi
+# Now in that file look for the tracked interface:
+# tracked-net-iface: eth0
+NATS_TRACKED_IFACE=`grep tracked_net_iface: $NATS_CONF | cut -d' ' -f2`
+if [ "$IFACE" != "$NATS_TRACKED_IFACE" ]; then
+echo "wrong IFACE? NATS_TRACKED_IFACE=$NATS_TRACKED_IFACE" >> $LOG_FILE
+        exit 0
+fi
+
+# Read the IP for this IFACE and then make sure that nats_server config file has that IP
+IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
+echo "Found IP $IP for nats_conf $NATS_CONF" >> $LOG_FILE
+if [ -z "$IP" ]; then
+echo "Could not find the IP! IFACE=$IFACE" >> $LOG_FILE
+#Unexpected to say the least but we don't want to replace a good IP by a blank string.
+        exit 0;
+fi
+
+
+# Make extra sure that postgresql is in fact ready and available.
+#postgres_pid=`[ -d /var/run/postgresql -a -n "$(ls /var/run/postgresql/)" ] && ls /var/run/postgresql/*.pid || echo ""`
+set +e
+PSQL_RAW_RES_ARGS="-P format=unaligned -P footer=off -P tuples_only=on"
+COUNTER=0
+while [ $COUNTER -lt 20 ]; do
+  sudo -u postgres psql -e -c "select 1" $PSQL_RAW_RES_ARGS 2>&1 | tee -a $LOG_FILE
+  psql_exit_status=$?
+  res=`sudo -u postgres psql -c "select 1" $PSQL_RAW_RES_ARGS | tr -d '\n'`
+  if [ "$psql_exit_status" = "0" -a "$res" = "1" ]; then
+    [ $COUNTER != "0" ] && echo "Postgresql is available" >> $LOG_FILE
+    COUNTER=40
+  else
+    [ "$psql_exit_status" = "0" ] && echo "ex st is 0" >> $LOG_FILE || echo "ex st is not 0 it is $psql_exit_status" >> $LOG_FILE 
+    [ "$res" = "1" ] && echo "res is 1 it is $res" >> $LOG_FILE || echo "res is not 1 it is $res" >> $LOG_FILE 
+    echo "[ $COUNTER ] Postgresql is not available yet: $psql_exit_status -  $res." >> $LOG_FILE
+    COUNTER=`expr $COUNTER + 1`
+    echo "new counter $COUNTER" >> $LOG_FILE
+    sleep 5
+  fi
+done
+
+
+#Currently written IP: net: 192.168.1.8
+NATS_IP=`grep net: $NATS_CONF | cut -d' ' -f2`
+if [ "$NATS_IP" != "$IP" ]; then
+  RESTART_VCAP="true"
+
+  # It changed. Let's update them all:
+  #sed -i "s/#{@old_local_ip}/#{@local_ip}/g
+  #/home/ubuntu/cloudfoundry/_vcap update-ip $NATS_TRACKED_IFACE
+  echo "$date The tracked network interface's IP has changed from $NATS_IP to $IP. Updating all the config of the nats_server and the vcap components." >> $LOG_FILE
+
+  #migrate the credentials that also contain the old IP.
+  sudo -u postgres psql -d cloud_controller -e -c "update service_configs set credentials = replace(credentials, '$NATS_IP', '$IP')" 2>&1 | tee -a $LOG_FILE
+  echo "Exit status from the psql command $?" >> $LOG_FILE
+  sudo -u postgres psql -d cloud_controller -e -c "update service_bindings set credentials = replace(credentials, '$NATS_IP', '$IP')" 2>&1 | tee -a $LOG_FILE
+  psql_exit_status=$?
+  if [ "$psql_exit_status" != 0 ]; then
+    echo "Exit status from the psql command $psql_exit_status; We exit and don't change the IP in the config file; try again!" >> $LOG_FILE
+    exit 12
+  else
+    # double check.
+    sudo -u postgres psql -d cloud_controller -e -c "select count(*) from service_bindings where credentials like '%$NATS_IP%'" 2>&1 | tee -a $LOG_FILE
+    rows_with_old_ip=`sudo -u postgres psql -d cloud_controller -c "select count(*) from service_bindings where credentials like '%$NATS_IP%'" $PSQL_RAW_RES_ARGS`
+    echo "Number of rows with old ip $NATS_IP: $rows_with_old_ip" >> $LOG_FILE
+    if [ "$rows_with_old_ip" != 0 ]; then
+      echo "The refactoring in the DB did not happen; failure!" >> $LOG_FILE
+      echo 11
+    fi
+  fi
+
+  find $CLOUD_FOUNDRY_CONFIG_PATH -type f -exec sed -i 's/'$NATS_IP'/'$IP'/g' {} \;
+
+fi
+
+
+# Maybe monit that commonly monitors nats_server is already started.
+if [ ! -f /var/run/monit.pid ] || \
+   [ "$(ps -p "$(cat /var/run/monit.pid)" -o comm=)" != 'monit' ]; then
+        echo "  The monit daemon was not running." >> $LOG_FILE
+  monit_was_started=""
+else
+  monit_was_started="true"
+  echo "  The monit daemon was running: stop it." >> $LOG_FILE
+  monit quit
+fi
+
+# restart nats
+[ -n "$RESTART_VCAP" ] && sudo -i -u ubuntu <%= node[:deployment][:vcap_exec] %> stop
+/etc/init.d/nats_server stop || true
+/etc/init.d/nats_server start || true
+# head start for nats
+sleep 5
+sudo -i -u ubuntu <%= node[:deployment][:vcap_exec] %> start
+
+if [ -n "$monit_was_started" ]; then
+   sleep 60
+   monit start
+fi
+
+exit 0
+
+end script

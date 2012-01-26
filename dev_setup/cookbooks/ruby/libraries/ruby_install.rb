@@ -9,6 +9,7 @@ module RubyInstall
     end
 
     remote_file File.join("", "tmp", "ruby-#{ruby_version}.tar.gz") do
+      retries 4
       owner node[:deployment][:user]
       source ruby_source
       not_if { ::File.exists?(File.join("", "tmp", "ruby-#{ruby_version}.tar.gz")) }
@@ -58,11 +59,13 @@ module RubyInstall
     end
 
     gem_package "bundler" do
+      retries 4
       version bundler_version
       gem_binary File.join(ruby_path, "bin", "gem")
     end
 
     gem_package "rake" do
+      retries 4
       version rake_version
       gem_binary File.join(ruby_path, "bin", "gem")
     end
@@ -72,6 +75,7 @@ module RubyInstall
     # chef package gets updated.
     %w[ rack eventmachine thin sinatra mysql pg vmc ].each do |gem|
       gem_package gem do
+        retries 4
         gem_binary File.join(ruby_path, "bin", "gem")
       end
     end

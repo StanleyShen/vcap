@@ -30,6 +30,7 @@ jobs:
     - stager:
         max_staging_duration: 480
     - cloud_controller:
+        local_route: 127.0.0.1
         admins: [ hmalphettes@intalio.com ]
         description: "Intalio CF"
         support_address: "http://support.intalio.com"

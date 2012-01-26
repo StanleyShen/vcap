@@ -30,9 +30,15 @@ when "ubuntu"
     notifies :restart, "service[nats_server]"
   end
   
-  template "nats_server_network_if_up" do
-    path File.join("", "etc", "network", "if-up.d", "nats_server")
-    source "nats_server_network_if_up.erb"
+#  template "nats_server_network_if_up" do
+#    path File.join("", "etc", "network", "if-up.d", "nats_server")
+#    source "nats_server_network_if_up.erb"
+#    owner node[:deployment][:user]
+#    mode 0755
+#  end
+  template "vcap_reconfig" do
+    path File.join("/init/vcap_reconfig.conf")
+    source "vcap_reconfig.conf.erb"
     owner node[:deployment][:user]
     mode 0755
   end
