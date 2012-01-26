@@ -344,6 +344,53 @@ class StagingPlugin
   end
 
   def stop_command
+stop_cmd = <<-SCRIPT
+APP_PID=$1
+APP_PPID=`ps -o ppid= -p $APP_PID`
+
+set +e
+forceful=0
+[ -z "$STOP_TIMEOUT" ] && STOP_TIMEOUT="60"
+
+if [ -z "$pid" ]; then
+    echo "App already stopped"
+    return 0
+fi
+
+echo "Stopping App [pid $pid]"
+kill $APP_PID
+
+#  calculate when it should stop waiting
+((limit_secs=$(date +%s) + $STOP_TIMEOUT))
+
+while [ true ]; do
+  sleep 1
+  process_found=$(ps -p $APP_PID | grep $APP_PID)
+  if [ -z "$process_found" ]; then
+      break
+  fi
+  
+  if [ $(date +%s) -ge $limit_secs ]; then
+    if [ $forceful -eq 0 ]; then
+      forceful=1
+      echo "Stopping application forcefully [pid $APP_PID]"
+      kill -9 $APP_PID
+      # recalc when it should stop waiting
+      ((limit_secs=$(date +%s) + $STOP_TIMEOUT))
+    else 
+      echo "App failed to stop [pid $APP_PID]"
+      break
+    fi
+  fi
+done
+
+#kill -9 $APP_PID
+kill -9 $APP_PPID
+exit 0
+SCRIPT
+    stop_cmd
+  end
+  def stop_command_old
     cmds = []
     cmds << 'APP_PID=$1'
     cmds << 'APP_PPID=`ps -o ppid= -p $APP_PID`'
@@ -469,7 +516,7 @@ SCRIPT
 #!/bin/bash
 <%= environment_statements_for(env_vars) %>
 <%= stop_command %>
-    SCRIPT
+SCRIPT
     ERB.new(template).result(binding)
   end
 
