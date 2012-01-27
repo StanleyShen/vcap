@@ -117,7 +117,22 @@ class Component
     running = false
     # Only evaluate 'pid' once per call to 'running?'
     if procid = pid
-      running = `ps -o rss= -p #{procid}`.length > 0
+      #the following command is not safe: it does not check that
+      # the process running behind this pid is indeed a vcap component
+      # and in fact the vcap component we want.
+      #running = `ps -o rss= -p #{procid}`.length > 0
+      ps_desc=`ps -o euser,comm,cmd= --pid #{procid} | grep -v EUSER`
+      if ps_desc && ps_desc.length > 2
+        toks = ps_desc.split(" ")
+        euser = toks.shift
+        comm = toks.shift
+        cmd = toks.join(' ')
+        return false unless ENV['USER'].nil? || euser == ENV['USER']
+        return false unless "ruby" == comm
+#        p "#{@name} got #{ps_desc}" unless cmd =~ /#{@name}/
+        return false unless cmd =~ /#{@name}/
+        running =true
+      end
     end
     running
   end
