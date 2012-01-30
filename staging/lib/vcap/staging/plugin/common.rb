@@ -495,9 +495,12 @@ SCRIPT
 
   def generate_startup_script(env_vars = {})
     after_env_before_script = block_given? ? yield : "\n"
+    
     template = <<-SCRIPT
 #!/bin/bash
 # Generated during staging at #{Time.now}
+#TS=#{Time.now.to_i}
+#APP_ID=#{ENV['STAGED_APP_ID']}
 <%= environment_statements_for(env_vars) %>
 <%= after_env_before_script %>
 <%= change_directory_for_start %>

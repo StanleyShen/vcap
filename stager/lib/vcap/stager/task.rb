@@ -230,7 +230,7 @@ class VCAP::Stager::Task
     plugin_config['manifest_dir'] = @manifest_dir if @manifest_dir
     plugin_config_path = File.join(work_dir, 'plugin_config.yaml')
     StagingPlugin::Config.to_file(plugin_config, plugin_config_path)
-    cmd = "#{@ruby_path} #{@run_plugin_path} #{@app_props['framework']} #{plugin_config_path}"
+    cmd = "export STAGED_APP_ID=#{@app_id}; #{@ruby_path} #{@run_plugin_path} #{@app_props['framework']} #{plugin_config_path}"
 
     @vcap_logger.debug("Running staging command: '#{cmd}'")
     res = run_logged(cmd, 0, @max_staging_duration)
