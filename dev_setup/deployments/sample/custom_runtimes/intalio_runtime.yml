@@ -21,7 +21,7 @@ jobs:
   install:
     - cloudfoundry:
         vmc:
-          version: 0.3.16.beta.1
+          version: 0.3.16.beta.3
     - nats_server:
         port: 4222
         user: nats

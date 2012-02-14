@@ -350,14 +350,10 @@ APP_PPID=`ps -o ppid= -p $APP_PID`
 
 set +e
 forceful=0
-[ -z "$STOP_TIMEOUT" ] && STOP_TIMEOUT="60"
+[ -z "$STOP_TIMEOUT" ] && STOP_TIMEOUT="3"
+[ -z "$STOP_TIMEOUT_FORCEFUL" ] && STOP_TIMEOUT_FORCEFUL="15"
 
-if [ -z "$pid" ]; then
-    echo "App already stopped"
-    return 0
-fi
-
-echo "Stopping App [pid $pid]"
+echo "Stopping App [pid $APP_PID]"
 kill $APP_PID
 
 #  calculate when it should stop waiting
@@ -369,14 +365,18 @@ while [ true ]; do
   if [ -z "$process_found" ]; then
       break
   fi
-  
+  if [ $forceful -eq 0 ]; then
+    kill $APP_PID
+  else
+    kill -9 $APP_PID
+  fi
   if [ $(date +%s) -ge $limit_secs ]; then
     if [ $forceful -eq 0 ]; then
       forceful=1
       echo "Stopping application forcefully [pid $APP_PID]"
       kill -9 $APP_PID
       # recalc when it should stop waiting
-      ((limit_secs=$(date +%s) + $STOP_TIMEOUT))
+      ((limit_secs=$(date +%s) + $STOP_TIMEOUT_FORCEFUL))
     else 
       echo "App failed to stop [pid $APP_PID]"
       break

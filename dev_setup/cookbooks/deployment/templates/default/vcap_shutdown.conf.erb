@@ -14,6 +14,9 @@ script
  monit quit
  sudo -i -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> stop
 
+ # prevent the dea from recovering crashed apps when the VM is restarted
+ [ -f "/var/vcap.local/dea/db/applications.json" ] && rm /var/vcap.local/dea/db/applications.json
+
  echo "post-stop for this vcap_reconfig is called to clean-up the pid files" >> $LOG_FILE
  [ -d "/var/vcap/sys/run" ] && rm -rf /var/vcap/sys/run/*
 

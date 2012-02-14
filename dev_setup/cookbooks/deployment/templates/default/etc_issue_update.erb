@@ -18,7 +18,7 @@ while [ true ] ; do
       cat $dir/* > /etc/issue
       echo "" >> /etc/issue
       sudo env TERM=xterm sh -c 'clear >/dev/console'
-      pkill getty
+      sudo pkill getty
   fi
 
 done
