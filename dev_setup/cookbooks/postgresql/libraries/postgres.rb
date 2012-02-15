@@ -150,8 +150,11 @@ EOH
         code <<-EOH
 psql template1 -c \"CREATE EXTENSION IF NOT EXISTS \\\"#{extension_name}\\\";\"
 psql template1 -c \"GRANT ALL ON ALL FUNCTIONS IN SCHEMA PUBLIC TO PUBLIC\"
-[ 'ltree' = #{extension_name} ] && psql template1 -c \"select '1.1'::ltree;\"
-[ 'uuid-ossp' = #{extension_name} ] && psql template1 -c \"select uuid_generate_v4();\"
+if [ 'ltree' = #{extension_name} ]; then
+  psql #{db_template_name} -c \"select '1.1'::ltree;\"
+elif [ 'uuid-ossp' = #{extension_name} ]; then
+  psql #{db_template_name} -c \"select uuid_generate_v4();\"
+fi
 exit $?
 EOH
         end

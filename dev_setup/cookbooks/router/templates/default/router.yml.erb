@@ -7,4 +7,4 @@ logging:
   level: info
 pid: /var/vcap/sys/run/router.pid
 
-<%= "404_redirect: #{node[:nats_server][:404_redirect]}" if node[:nats_server][:404_redirect] %>
+<%= "redirect404: #{node[:nats_server][:redirect404]}" if node[:nats_server][:redirect404] %>

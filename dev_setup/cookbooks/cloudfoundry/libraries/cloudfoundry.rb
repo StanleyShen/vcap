@@ -5,7 +5,24 @@ module CloudFoundry
     bash "Bundle install for #{path}" do
       cwd path
       user node[:deployment][:user]
-      code "#{File.join(node[:ruby][:path], "bin", "bundle")} install"
+      code  <<-EOH
+      cmd="#{File.join(node[:ruby][:path], "bin", "bundle")} install"
+      set +e
+      $cmd
+      if [ $? != 0 ]; then
+        echo "Retry 1 $cmd"
+        $cmd
+      fi 
+      if [ $? != 0 ]; then
+        echo "Retry 2 $cmd"
+        $cmd
+      fi
+      set -e 
+      if [ $? != 0 ]; then
+        echo "Retry 3 $cmd"
+        $cmd
+      fi
+EOH
       only_if { ::File.exist?(File.join(path, 'Gemfile')) }
     end
   end

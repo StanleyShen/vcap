@@ -3,8 +3,15 @@ module RubyInstall
     rubygems_version = node[:rubygems][:version]
     bundler_version = node[:rubygems][:bundler][:version]
     rake_version = node[:rubygems][:rake][:version]
+    ubuntu_version=`lsb_release -sr`
+    if ubuntu_version =~ /^10\./
+      package "libreadline5-dev"
+    else
+      package "libreadline6-dev"
+      package "libffi-dev"
+    end
 
-    %w[ build-essential libssl-dev zlib1g-dev libreadline5-dev libxml2-dev libpq-dev].each do |pkg|
+    %w[ build-essential libssl-dev zlib1g-dev libxml2-dev libpq-dev].each do |pkg|
       package pkg
     end
 
@@ -27,8 +34,14 @@ module RubyInstall
       cwd File.join("", "tmp")
       user node[:deployment][:user]
       code <<-EOH
-      tar xzf ruby-#{ruby_version}.tar.gz
+      if [ ! -d "ruby-#{ruby_version}" ]; then
+        echo "Unzipping the ruby-#{ruby_version}"
+        tar xzf ruby-#{ruby_version}.tar.gz
+      fi
       cd ruby-#{ruby_version}
+      # disable SSLv2: it is not present in modern linux distrib as it is insecure.
+      sed -e -i 's/^[[:space:]]*OSSL_SSL_METHOD_ENTRY(SSLv2)/\/\/    OSSL_SSL_METHOD_ENTRY(SSLv2)/g' ext/openssl/ossl_ssl.c
+      sed -e -i 's/^[[:space:]]*OSSL_SSL_METHOD_ENTRY(SSLv2_/\/\/    OSSL_SSL_METHOD_ENTRY(SSLv2_/g' ext/openssl/ossl_ssl.c
       ./configure --disable-pthread --prefix=#{ruby_path}
       make
       make install

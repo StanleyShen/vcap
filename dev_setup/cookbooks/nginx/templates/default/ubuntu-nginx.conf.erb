@@ -37,6 +37,7 @@ http {
     gzip_disable "MSIE [1-6]\.(?!.*SV1)";
 
     client_max_body_size <%= node[:nginx][:client_max_body_size] %>;
+    types_hash_max_size 8192;
 
     upstream vcap_router {
       server  unix:/tmp/router.sock;

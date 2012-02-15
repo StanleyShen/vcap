@@ -37,7 +37,7 @@ when "ubuntu"
 #    mode 0755
 #  end
   template "vcap_reconfig" do
-    path File.join("/init/vcap_reconfig.conf")
+    path "/etc/init/vcap_reconfig.conf"
     source "vcap_reconfig.conf.erb"
     owner node[:deployment][:user]
     mode 0755
