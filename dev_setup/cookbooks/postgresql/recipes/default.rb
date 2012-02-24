@@ -30,6 +30,13 @@ fi
 EOH
   end.run_action(:run)
   
+  template "nats_server.yml" do
+    path "/etc/init.d/postgresql"
+    source "etc_initd_postgresql.erb"
+    mode 0755
+  end
+
+  
   ruby_block "postgresql_conf_update" do
     block do
       / \d*.\d*/ =~ `pg_config --version`
