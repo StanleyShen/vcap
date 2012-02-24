@@ -50,6 +50,7 @@ jobs:
           new_stager_email_regexp: system@intalio\.com
     - router:
         redirect404: /static/404/404.html
+        client_inactivity_timeout: 480
     - dns_publisher
     - health_manager
     - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
