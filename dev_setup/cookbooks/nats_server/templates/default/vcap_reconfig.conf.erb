@@ -5,7 +5,7 @@
 
 description     "vcap reconfiguration"
 
-start on (started postgresql and net-device-up IFACE=eth0)
+start on (started-postgresql and net-device-up IFACE=eth0)
 
 task
 

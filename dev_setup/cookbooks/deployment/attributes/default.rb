@@ -1,7 +1,7 @@
 include_attribute "cloudfoundry"
 default[:deployment][:name] = "devbox"
-default[:deployment][:user] = ENV["USER"]
-default[:deployment][:group] = "vcap"
+default[:deployment][:user] = ENV["USER"] # this is in fact computed as `id -nu` by the chef-sololaunch.rb
+default[:deployment][:group] = "vcap" # this is in fact computed as `id -ng` by the chef-sololaunch.rb
 default[:deployment][:home] = File.join(node[:cloudfoundry][:home], ".deployments", deployment[:name])
 default[:deployment][:config_path] = File.join(deployment[:home], "config")
 default[:deployment][:info_file] = File.join(deployment[:config_path], "deployment_info.json")

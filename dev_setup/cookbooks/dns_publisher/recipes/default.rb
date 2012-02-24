@@ -3,6 +3,7 @@
 # Recipe:: default
 #
 package "avahi-daemon"
+package "avahi-utils"
 package "python-avahi"
 
 node[:dns_publisher][:config_file] = File.join(node[:deployment][:config_path], "dns_publisher.yml")

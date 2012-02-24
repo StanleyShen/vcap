@@ -6,9 +6,9 @@ while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR/../../cloud_controller
 echo "Now in directory "`pwd`
-[ -n "$CLOUD_FOUNDRY_CONFIG_PATH" ] && CLOUD_CONTROLLER_CONFIG="$CLOUD_FOUNDRY_CONFIG_PATH" || CLOUD_CONTROLLER_CONFIG=`pwd`/config
-if [ ! -f "$CLOUD_FOUNDRY_CONFIG_PATH/cloud_controller.yml" ]; then
-  echo "Could not find the config $CLOUD_FOUNDRY_CONFIG_PATH/cloud_controller.yml"
+[ -n "$CLOUD_FOUNDRY_CONFIG_PATH" ] && CLOUD_CONTROLLER_CONFIG="$CLOUD_FOUNDRY_CONFIG_PATH/cloud_controller.yml" || CLOUD_CONTROLLER_CONFIG=`pwd`/config/cloud_controller.y$
+if [ ! -f "$CLOUD_CONTROLLER_CONFIG" ]; then
+  echo "Could not find the config $CLOUD_CONTROLLER_CONFIG"
   exit 2
 fi
 

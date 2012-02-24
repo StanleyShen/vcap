@@ -28,7 +28,7 @@ jobs:
         password: nats  #override this
         tracked_net_iface: eth0
     - stager:
-        max_staging_duration: 480
+        max_staging_duration: 360
     - cloud_controller:
         local_route: 127.0.0.1
         admins: [ hmalphettes@intalio.com ]
@@ -42,25 +42,25 @@ jobs:
           - mongodb
           - postgresql
         keys:
-          token_expiration: 604800000 # 7 * 24 * 60 * 60 (= 1 week) * 1000
+          token_expiration: 604800 # 7 * 24 * 60 * 60 (= 1 week) * 10
         stager:
           max_staging_runtime: 480
           secure: false
           new_stager_percent: 100
           new_stager_email_regexp: system@intalio\.com
     - router:
-        404_redirect: /static/404/404.html
-    - dea:
+        redirect404: /static/404/404.html
+    - dns_publisher
+    - health_manager
+    - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
+        host: 127.0.0.1
+    - dea: #The max amount of memory available to run the apps.
         max_memory: 8192
         runtimes:
           - ruby19
           - java
           - nodejs
         force_http_sharing: false
-    - dns_publisher
-    - health_manager
-    - ccdb: #127.0.0.1 is good for a micro-cloud setup. otherwise comment out and let the IP
-        host: 127.0.0.1
     - redis_node:
         index: "0"
     - redis_gateway
@@ -69,16 +69,18 @@ jobs:
         available_memory: 8192
         max_memory: 512
         version: 2.0.2
-        node_timeout: 8 #2 is the default but we keep getting timeout issues.
+        node_timeout: 35 #2 is the default but we keep getting timeout issues. 8 works well on virtualbox. on kvm with raw disk, ...
         mongod_conf:
           journal: false
           noprealloc: true
           quota: false
           quotafiles: -1
           smallfiles: false
-    - mongodb_gateway
+    - mongodb_gateway:
+        service:
+          timeout: 30
     - postgresql_node:
-        version: "9.0"
+        version: "9.1"
         index: "0"
         max_db_size: 5128 #each db max
         available_storage: 65536 #65G max of total DBs on this node
@@ -116,3 +118,15 @@ jobs:
            - nats_server
         others:
            - postgresql
+intalio_cf:
+  delete_recipe: true
+  delete_apps: true
+  delete_data: true
+  delete_downloaded_apps: true
+  checkout_vmc_knife: true
+  checkout_vmc_knife_url: https://github.com/hmalphettes/vmc-knife.git
+  checkout_vmc_knife_install: false
+# these 2 values would update intalio.war to the last build:
+#  intalio_download_url: "#{this['download_server']}/p2repo/com/intalio/cloud/hydrogen/master/current/intalio.war"
+#  intalio_update_available_version_url: #{this['download_server']}/p2repo/com/intalio/cloud/hydrogen/master/current/compositeArtifacts.xml
+
