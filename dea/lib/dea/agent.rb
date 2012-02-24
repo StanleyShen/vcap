@@ -1687,7 +1687,8 @@ module DEA
 
         next unless runtime['version']
         # Check the version for a match
-        if /#{runtime['version']}/ =~ version_check
+        version_regexp = runtime['version_regexp'] || runtime['version']
+        if /#{version_regexp}/ =~ version_check
           # Additional checks should return true
           if runtime['additional_checks']
             additional_check = `#{runtime['executable']} #{runtime['additional_checks']} 2>&1`
