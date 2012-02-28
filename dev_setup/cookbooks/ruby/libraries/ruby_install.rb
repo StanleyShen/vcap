@@ -32,8 +32,9 @@ module RubyInstall
 
     bash "Install Ruby #{ruby_path}" do
       cwd File.join("", "tmp")
-      user node[:deployment][:user]
+      #user node[:deployment][:user] #does not work: CHEF-2288
       code <<-EOH
+      sudo -i -u #{node[:deployment][:user]}
       if [ ! -d "ruby-#{ruby_version}" ]; then
         echo "Unzipping the ruby-#{ruby_version}"
         tar xzf ruby-#{ruby_version}.tar.gz
@@ -59,8 +60,9 @@ module RubyInstall
 
     bash "Install RubyGems #{ruby_path}" do
       cwd File.join("", "tmp")
-      user node[:deployment][:user]
+      #user node[:deployment][:user] #does not work: CHEF-2288
       code <<-EOH
+      sudo -i -u #{node[:deployment][:user]}
       tar xzf rubygems-#{rubygems_version}.tgz
       cd rubygems-#{rubygems_version}
       #{File.join(ruby_path, "bin", "ruby")} setup.rb

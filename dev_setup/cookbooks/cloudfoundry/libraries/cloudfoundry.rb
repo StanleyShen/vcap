@@ -4,8 +4,9 @@ module CloudFoundry
   def cf_bundle_install(path)
     bash "Bundle install for #{path}" do
       cwd path
-      user node[:deployment][:user]
+      #user node[:deployment][:user] #does not work: CHEF-2288
       code  <<-EOH
+      sudo -i -u #{node[:deployment][:user]}
       cmd="#{File.join(node[:ruby][:path], "bin", "bundle")} install"
       set +e
       $cmd

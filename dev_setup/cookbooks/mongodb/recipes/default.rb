@@ -21,8 +21,9 @@ end
 
 bash "Install Mongodb" do
   cwd File.join("", "tmp")
-  user node[:deployment][:user]
+  #user node[:deployment][:user] #does not work: CHEF-2288
   code <<-EOH
+  sudo -i -u #{node[:deployment][:user]}
   tar xvzf mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz
   cd mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}
   cp #{File.join("bin", "*")} #{File.join(node[:mongodb_node][:path], "bin")}

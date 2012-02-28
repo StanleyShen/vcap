@@ -22,8 +22,9 @@ end
 
 bash "Install Redis" do
   cwd File.join("", "tmp")
-  user node[:deployment][:user]
+  #user node[:deployment][:user] #does not work: CHEF-2288
   code <<-EOH
+  sudo -i -u #{node[:deployment][:user]}
   tar xzf redis-#{node[:redis][:version]}.tar.gz
   cd redis-#{node[:redis][:version]}
   make

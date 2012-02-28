@@ -26,8 +26,9 @@ end
 
 bash "Install Nodejs" do
   cwd File.join("", "tmp")
-  user node[:deployment][:user]
+  #user node[:deployment][:user] #does not work: CHEF-2288
   code <<-EOH
+  sudo -i -u #{node[:deployment][:user]}
   tar xzf node-v#{node[:nodejs][:version]}.tar.gz
   cd node-v#{node[:nodejs][:version]}
   ./configure --prefix=#{node[:nodejs][:path]}
