@@ -112,7 +112,10 @@ if [ -z "$response" ]; then
   sudo ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem /var/lib/postgresql/$pg_version/main/server.crt
   sudo cp /var/lib/postgresql/$pg_version/main/postgresql.conf .
   sudo rm /var/lib/postgresql/$pg_version/main/postgresql.conf
-  [ -e "/etc/init.d/postgresql" ] && sudo /etc/init.d/postgresql start || sudo initctl start postgresql
+## this does not work yet?
+  # start postgresql without emitting the upstart daemon starting/started events which would make vcap start again.
+  #sudo /usr/lib/postgresql/$pg_version/bin/postgres -D /var/lib/postgresql/$pg_version/main
+[ -e "/etc/init.d/postgresql" ] && sudo /etc/init.d/postgresql start || sudo initctl start postgresql
 
   set +e
   PSQL_RAW_RES_ARGS="-P format=unaligned -P footer=off -P tuples_only=on"
@@ -174,7 +177,8 @@ rm -rf ~/.cache
 rm -rf ~/.bash_history
 rm -rf ~/.nano_history
 rm -rf ~/vmc_knife_downloads
-rm -rf /var/vcap.local/dea/apps/*
+sudo rm -rf /var/vcap.local/dea/apps/*
+sudo rm -rf /var/vcap.local/staging/*
 rm -rf /var/vcap/services/mongodb/logs/
 rm -rf /var/vcap/services/mongodb/instances/*/data/journal/
 rm -rf /var/vcap/shared/resources/*
