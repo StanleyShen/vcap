@@ -19,6 +19,22 @@ if [ "0" != "$not_started_count" ]; then
   exit 1
 fi
 
+if [ -f "/etc/chef/client.pem" ]; then
+  echo "Delete the chef permission client.pem; required if the IP will change? (default yes)"
+  read response
+  if [ -z "$response" ]; then
+    sudo rm /etc/chef/client.pem
+  fi
+fi
+if [ -d "/etc/chef/validation.pem" ]; then
+ echo "Delete the chef permission validation.pem; required if this will be distributed outside of intalio (default yes)?"
+  read response
+  if [ -z "$response" ]; then
+    sudo rm -rf /etc/chef
+  fi
+fi
+
+
 # Make sure the recipe is clean:
 if [ -d /home/ubuntu/intalio/registration_app/start_register_app.rb ]; then
   echo "Reset the vmc_knife recipe to the default (default yes)"
@@ -186,6 +202,7 @@ sudo rm /var/log/*.[0-9].gz
 sudo rm /var/log/*.[0-9]
 sudo rm /var/cache/apt/srcpkgcache.bin
 sudo rm /var/cache/apt/pkgcache.bin
+sudo rm -rf /var/chef/cache/*
 sudo rm -rf /var/log/apache2/*
 sudo rm -rf /var/log/cloud-jetty/*
 sudo rm -rf /var/www/cloud/jetty/wk*
