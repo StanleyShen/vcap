@@ -22,6 +22,14 @@ jobs:
     - cloudfoundry:
         vmc:
           version: 0.3.16.beta.3
+        git:
+          vcap:
+             repo: "https://github.com/hmalphettes/vcap"
+             branch: "java_start"
+             enable_submodules: false
+          vcap_services:
+             repo: "https://github.com/hmalphettes/vcap-services"
+             branch: "mongodb_more_params"
     - nats_server:
         port: 4222
         user: nats

@@ -5,6 +5,42 @@
 # Copyright 2011, VMware
 #
 
+case node['platform']
+when "ubuntu"
+  package "git-core"
+else
+  Chef::Log.error("Installation of cloudfoundr not supported on this platform.")
+end
+
+# main repo
+git node[:cloudfoundry][:path] do
+  repository node[:cloudfoundry][:git][:vcap][:repo]
+  revision node[:cloudfoundry][:git][:vcap][:branch]
+  depth: 1
+  action :sync
+  user node[:deployment][:user]
+  group node[:deployment][:group]
+end
+unless [:cloudfoundry][:git][:vcap][:enable_submodules]
+  git "#{node[:cloudfoundry][:path]}/services" do
+    repository node[:cloudfoundry][:git][:vcap_services][:repo]
+    revision node[:cloudfoundry][:git][:vcap_services][:branch]
+    depth: 1
+    action :sync
+    user node[:deployment][:user]
+    group node[:deployment][:group]
+  end
+  git "#{node[:cloudfoundry][:path]}/java" do
+    repository node[:cloudfoundry][:git][:vcap_java][:repo]
+    revision node[:cloudfoundry][:git][:vcap_java][:branch]
+    depth: 1
+    action :sync
+    user node[:deployment][:user]
+    group node[:deployment][:group]
+  end
+end
+
+
 node[:nats_server][:host] ||= cf_local_ip
 node[:ccdb][:host] ||= cf_local_ip
 node[:postgresql_node][:host] ||= cf_local_ip
@@ -101,6 +137,10 @@ end
 case node['platform']
 when "ubuntu"
     bash "Create some symlinks and customize .bashrc" do
+    user node[:deployment][:user] #does not work: CHEF-2288
+    group node[:deployment][:group] #does not work: CHEF-2288
+    environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                  'USER' => "#{node[:deployment][:user]}"})
       code <<-EOH
 cd #{node[:cloudfoundry][:home]}
 # few symbolic links (todo: too many assumptions on the layout of the deployment)
@@ -115,7 +155,7 @@ if [ ! -d /var/vcap.local/dea/apps ]; then
 fi
 ln -s /var/vcap.local/dea/apps deployed_apps
 
-cd #{ENV["HOME"]}
+cd /home/#{node[:deployment][:user]
 # add the local_run_profile to the user's  home.
 grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
 [ -z "$grep_it" ] && echo "source #{node[:deployment][:local_run_profile]}" >> .bashrc
@@ -160,4 +200,9 @@ export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
 export VMC_KNIFE_DEFAULT_RECIPE=#{node[:deployment][:vmc_knife_default_recipe]}
   EOH
 end
+
+
+
+
+
 

@@ -32,9 +32,16 @@ module RubyInstall
 
     bash "Install Ruby #{ruby_path}" do
       cwd File.join("", "tmp")
-      #user node[:deployment][:user] #does not work: CHEF-2288
+      user node[:deployment][:user] #does not work: CHEF-2288
+      group node[:deployment][:group] #does not work: CHEF-2288
+      environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                    'USER' => "#{node[:deployment][:user]}"})
       code <<-EOH
-      sudo -i -u #{node[:deployment][:user]}
+      source $HOME/.bashrc
+      cd /tmp
+      if [ -d "ruby-#{ruby_version}/.ext" ]; then
+        rm -rf ruby-#{ruby_version}/.ext
+      fi
       if [ ! -d "ruby-#{ruby_version}" ]; then
         echo "Unzipping the ruby-#{ruby_version}"
         tar xzf ruby-#{ruby_version}.tar.gz
@@ -43,6 +50,7 @@ module RubyInstall
       # disable SSLv2: it is not present in modern linux distrib as it is insecure.
       sed -e -i 's/^[[:space:]]*OSSL_SSL_METHOD_ENTRY(SSLv2)/\/\/    OSSL_SSL_METHOD_ENTRY(SSLv2)/g' ext/openssl/ossl_ssl.c
       sed -e -i 's/^[[:space:]]*OSSL_SSL_METHOD_ENTRY(SSLv2_/\/\/    OSSL_SSL_METHOD_ENTRY(SSLv2_/g' ext/openssl/ossl_ssl.c
+      echo "About to do: configure --disable-pthread --prefix=#{ruby_path}"
       ./configure --disable-pthread --prefix=#{ruby_path}
       make
       make install
@@ -60,9 +68,13 @@ module RubyInstall
 
     bash "Install RubyGems #{ruby_path}" do
       cwd File.join("", "tmp")
-      #user node[:deployment][:user] #does not work: CHEF-2288
+      user node[:deployment][:user] #does not work: CHEF-2288
+      group node[:deployment][:group] #does not work: CHEF-2288
+      environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                    'USER' => "#{node[:deployment][:user]}"})
       code <<-EOH
-      sudo -i -u #{node[:deployment][:user]}
+      source $HOME/.bashrc
+      cd /tmp
       tar xzf rubygems-#{rubygems_version}.tgz
       cd rubygems-#{rubygems_version}
       #{File.join(ruby_path, "bin", "ruby")} setup.rb
@@ -88,7 +100,12 @@ module RubyInstall
     # The default chef installed with Ubuntu 10.04 does not support the "retries" option
     # for gem_package. It may be a good idea to add/use that option once the ubuntu
     # chef package gets updated.
-    %w[ rack eventmachine thin sinatra mysql pg vmc ].each do |gem|
+
+    # ruby install will install the myql gem so we need its dependnecy:
+    package "mysql-client"
+    package "libmysqlclient-dev"
+    
+    %w[ rack eventmachine thin sinatra mysql pg ].each do |gem|
       gem_package gem do
         retries 4
         gem_binary File.join(ruby_path, "bin", "gem")

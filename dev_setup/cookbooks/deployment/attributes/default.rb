@@ -7,8 +7,8 @@ default[:deployment][:config_path] = File.join(deployment[:home], "config")
 default[:deployment][:info_file] = File.join(deployment[:config_path], "deployment_info.json")
 default[:deployment][:domain] = "vcap.me"
 default[:deployment][:log_path] = File.join(deployment[:home], "log")
-default[:deployment][:profile] = File.expand_path(File.join(ENV["HOME"], ".cloudfoundry_deployment_profile"))
-default[:deployment][:local_run_profile] = File.expand_path(File.join(ENV["HOME"], ".cloudfoundry_deployment_local"))
+default[:deployment][:profile] = File.expand_path(File.join(node[:cloudfoundry][:user_home], ".cloudfoundry_deployment_profile"))
+default[:deployment][:local_run_profile] = File.expand_path(node[:cloudfoundry][:user_home], ".cloudfoundry_deployment_local")
 default[:deployment][:vcap_exec] = File.join(default[:deployment][:home], "vcap")
 default[:deployment][:vcap_exec_alias] = "vcap"
 

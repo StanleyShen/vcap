@@ -25,9 +25,12 @@ end
 
 bash "Install Erlang" do
   cwd File.join("", "tmp")
-  #user node[:deployment][:user] #does not work: CHEF-2288
+  user node[:deployment][:user] #does not work: CHEF-2288
+  environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                'USER' => "#{node[:deployment][:user]}"})
   code <<-EOH
-  sudo -i -u #{node[:deployment][:user]}
+  source $HOME/.bashrc
+  cd /tmp
   tar xvzf otp_src_#{node[:erlang][:version]}.tar.gz
   cd otp_src_#{node[:erlang][:version]}
   #{File.join(".", "configure")} --prefix=#{node[:erlang][:path]}

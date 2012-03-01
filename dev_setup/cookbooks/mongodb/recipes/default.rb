@@ -21,9 +21,12 @@ end
 
 bash "Install Mongodb" do
   cwd File.join("", "tmp")
-  #user node[:deployment][:user] #does not work: CHEF-2288
+  user node[:deployment][:user] #does not work: CHEF-2288
+  environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                'USER' => "#{node[:deployment][:user]}"})
   code <<-EOH
-  sudo -i -u #{node[:deployment][:user]}
+  source $HOME/.bashrc
+  cd /tmp
   tar xvzf mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz
   cd mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}
   cp #{File.join("bin", "*")} #{File.join(node[:mongodb_node][:path], "bin")}

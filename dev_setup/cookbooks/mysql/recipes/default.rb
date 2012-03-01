@@ -9,6 +9,7 @@
 case node['platform']
 when "ubuntu"
   package "mysql-client"
+  package "libmysqlclient-dev"
 
   bash "Setup mysql" do
     code <<-EOH
