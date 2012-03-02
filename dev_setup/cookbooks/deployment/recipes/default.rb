@@ -16,16 +16,16 @@ end
 git node[:cloudfoundry][:path] do
   repository node[:cloudfoundry][:git][:vcap][:repo]
   revision node[:cloudfoundry][:git][:vcap][:branch]
-  depth: 1
+  depth 1
   action :sync
   user node[:deployment][:user]
   group node[:deployment][:group]
 end
-unless [:cloudfoundry][:git][:vcap][:enable_submodules]
+unless node[:cloudfoundry][:git][:vcap][:enable_submodules]
   git "#{node[:cloudfoundry][:path]}/services" do
     repository node[:cloudfoundry][:git][:vcap_services][:repo]
     revision node[:cloudfoundry][:git][:vcap_services][:branch]
-    depth: 1
+    depth 1
     action :sync
     user node[:deployment][:user]
     group node[:deployment][:group]
@@ -33,17 +33,25 @@ unless [:cloudfoundry][:git][:vcap][:enable_submodules]
   git "#{node[:cloudfoundry][:path]}/java" do
     repository node[:cloudfoundry][:git][:vcap_java][:repo]
     revision node[:cloudfoundry][:git][:vcap_java][:branch]
-    depth: 1
+    depth 1
     action :sync
     user node[:deployment][:user]
     group node[:deployment][:group]
   end
 end
+bash "Chown vcap sources to the user in case git was executed from root" do
+  user node[:deployment][:user] #does not work: CHEF-2288
+  group node[:deployment][:group] #does not work: CHEF-2288
+  environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                'USER' => "#{node[:deployment][:user]}"})
+  code <<-EOH
+    chown -R #{node[:deployment][:user]}:#{node[:deployment][:group]} #{node[:cloudfoundry][:path]}
+EOH
+end
 
-
-node[:nats_server][:host] ||= cf_local_ip
-node[:ccdb][:host] ||= cf_local_ip
-node[:postgresql_node][:host] ||= cf_local_ip
+node[:nats_server][:host] ||= cf_local_ip if node[:nats_server]
+node[:ccdb][:host] ||= cf_local_ip node[:ccdb]
+node[:postgresql_node][:host] ||= cf_local_ip if node[:postgresql_node]
 
 [node[:deployment][:home], File.join(node[:deployment][:home], "deploy"), node[:deployment][:log_path],
  File.join(node[:deployment][:home], "sys", "log"), node[:deployment][:config_path],
@@ -155,7 +163,7 @@ if [ ! -d /var/vcap.local/dea/apps ]; then
 fi
 ln -s /var/vcap.local/dea/apps deployed_apps
 
-cd /home/#{node[:deployment][:user]
+cd /home/#{node[:deployment][:user]}
 # add the local_run_profile to the user's  home.
 grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
 [ -z "$grep_it" ] && echo "source #{node[:deployment][:local_run_profile]}" >> .bashrc
@@ -200,9 +208,3 @@ export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
 export VMC_KNIFE_DEFAULT_RECIPE=#{node[:deployment][:vmc_knife_default_recipe]}
   EOH
 end
-
-
-
-
-
-

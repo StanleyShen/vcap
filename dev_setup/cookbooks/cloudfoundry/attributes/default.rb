@@ -1,10 +1,12 @@
-include_attribute "ruby"
-default[:cloudfoundry][:user_home] = ENV["HOME"]=='/root' ? '/home/ubuntu':ENV["HOME"]# messy the deployment's user and group should be here....
+#include_attribute "ruby"
+# these attributes were introduced to resolve issues with chef hosted that would not compute correctly the value of the attributes.
+# in the 'deployment' recipe.
+default[:cloudfoundry][:user_home] = ENV["HOME"]=='/root' ? "/home/ubuntu" : ENV["HOME"] # messy
 default[:cloudfoundry][:home] = File.join(node[:cloudfoundry][:user_home], "cloudfoundry")
 default[:cloudfoundry][:path] = File.join(cloudfoundry[:home], "vcap")
 default[:cloudfoundry][:vmc][:version] = nil
 
-default[:cloudfoundry][:git][:vcap][:repo] = "https://github.com/cloudfoundry/vcap"
+default[:cloudfoundry][:git][:vcap][:repo] = "https://github.com/cloudfoundry/vcap.git"
 default[:cloudfoundry][:git][:vcap][:branch] = "master"
 # use sub-modules by default. straight to the other repos is another style
 default[:cloudfoundry][:git][:vcap][:enable_submodules] = true

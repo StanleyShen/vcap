@@ -4,9 +4,10 @@
 #
 # Copyright 2011, VMware
 #
+compute_derived_attributes
 
 gem_package "nats" do
-  gem_binary File.join(node[:ruby][:path], "bin", "gem")
+  gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(node[:ruby][:path], "bin", "gem")}"
 end
 
 nats_config_dir = File.join(node[:deployment][:config_path], "nats_server")

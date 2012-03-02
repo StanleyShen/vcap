@@ -1,7 +1,17 @@
+# Compute the 'effective' deployment attributes
+compute_derived_attributes
+
 # convenience variables
 ruby_version = node[:ruby][:version]
 ruby_source = node[:ruby][:source]
 ruby_path = node[:ruby][:path]
+
+deployment_name=node[:deployment][:name]
+Chef::Log.debug("#{deployment_name} is the current deployment_name")
+raise "Not the expected deployment_name deployment_name: #{deployment_name}" if deployment_name != "intalio_devbox"
+
+Chef::Log.debug("#{ruby_path} is the current ruby_path")
+raise "deployment_name: #{deployment_name}; deployment_home: #{node[:deployment][:home]} Not the expected deployment_name ruby_path: #{ruby_path}" if ruby_path != "/home/ubuntu/cloudfoundry/.deployments/intalio_devbox/deploy/rubies/ruby-1.9.2-p290"
 
 do_install = true
 if File.exists?("#{ruby_path}/bin/ruby") &&
@@ -14,6 +24,7 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
   do_install = false if /#{ruby_version_regexp}/ =~ ruby_version
   if do_install
     Chef::Log.debug("#{ruby_path} exists, but the version #{ruby_version} is different: from the one expected: #{ruby_version_regexp}")
+    FileUtils.rm_rf ruby_path
   end
   
   unless do_install
@@ -26,7 +37,7 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
   end
   
   unless do_install
-    version = node[:ruby][:rubygems][:version]
+    version = node[:rubygems][:version]
     the_version=`#{ruby_path}/bin/gem --version`
     do_install = false if /#{version}/ =~ the_version
     if do_install
@@ -44,7 +55,5 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
   end
   
 end
-if do_install && File.exists?(ruby_path)
-  FileUtils.rm_rf ruby_path
-end
+
 cf_ruby_install(ruby_version, ruby_source, ruby_path) if do_install

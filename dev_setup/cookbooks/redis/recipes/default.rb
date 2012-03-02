@@ -1,3 +1,5 @@
+compute_derived_attributes
+
 remote_file File.join("", "tmp", "redis-#{node[:redis][:version]}.tar.gz") do
   owner node[:deployment][:user]
   source "http://redis.googlecode.com/files/redis-#{node[:redis][:version]}.tar.gz"

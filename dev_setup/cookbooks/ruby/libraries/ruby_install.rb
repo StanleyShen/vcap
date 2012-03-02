@@ -54,7 +54,7 @@ module RubyInstall
       ./configure --disable-pthread --prefix=#{ruby_path}
       make
       make install
-      EOH
+EOH
       not_if do
         ::File.exists?(File.join(ruby_path, "bin", "ruby"))
       end
@@ -78,23 +78,24 @@ module RubyInstall
       tar xzf rubygems-#{rubygems_version}.tgz
       cd rubygems-#{rubygems_version}
       #{File.join(ruby_path, "bin", "ruby")} setup.rb
-      EOH
+EOH
       not_if do
         ::File.exists?(File.join(ruby_path, "bin", "gem")) &&
             system("#{File.join(ruby_path, "bin", "gem")} -v | grep -q '#{rubygems_version}$'")
       end
     end
-
+    
     gem_package "bundler" do
+      options "--config-file #{ruby_path}/lib/chef.gemrc"
       retries 4
       version bundler_version
-      gem_binary File.join(ruby_path, "bin", "gem")
+      gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
     end
 
     gem_package "rake" do
       retries 4
       version rake_version
-      gem_binary File.join(ruby_path, "bin", "gem")
+      gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
     end
 
     # The default chef installed with Ubuntu 10.04 does not support the "retries" option
@@ -108,7 +109,7 @@ module RubyInstall
     %w[ rack eventmachine thin sinatra mysql pg ].each do |gem|
       gem_package gem do
         retries 4
-        gem_binary File.join(ruby_path, "bin", "gem")
+        gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
       end
     end
   end

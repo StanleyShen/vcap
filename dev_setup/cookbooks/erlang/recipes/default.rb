@@ -5,6 +5,8 @@
 # Copyright 2011, VMware
 #
 #
+compute_derived_attributes
+
 %w[ build-essential libncurses5-dev openssl libssl-dev ].each do |pkg|
   package pkg
 end
