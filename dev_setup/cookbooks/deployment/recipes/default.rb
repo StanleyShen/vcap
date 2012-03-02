@@ -4,7 +4,7 @@
 #
 # Copyright 2011, VMware
 #
-
+compute_derived_attributes
 case node['platform']
 when "ubuntu"
   package "git-core"

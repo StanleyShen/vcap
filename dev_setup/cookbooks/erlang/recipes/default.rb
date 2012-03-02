@@ -11,10 +11,16 @@ compute_derived_attributes
   package pkg
 end
 
+erl_bin_path=File.join(node[:erlang][:path], "bin", "erl")
+erl_release_folder_path=File.join(node[:erlang][:path], "lib/erlang/releases/R14B02")
+
 remote_file File.join("", "tmp", "otp_src_#{node[:erlang][:version]}.tar.gz") do
   owner node[:deployment][:user]
   source node[:erlang][:source]
-  not_if { ::File.exists?(File.join("", "tmp", "otp_src_#{node[:erlang][:version]}.tar.gz")) }
+  not_if do
+    ::File.exists?(File.join("", "tmp", "otp_src_#{node[:erlang][:version]}.tar.gz")) ||
+          (::File.exists?(erl_bin_path) && ::File.exists?(erl_release_folder_path))
+  end
 end
 
 directory node[:erlang][:path] do
@@ -31,15 +37,14 @@ bash "Install Erlang" do
   environment ({'HOME' => "/home/#{node[:deployment][:user]}",
                 'USER' => "#{node[:deployment][:user]}"})
   code <<-EOH
-  source $HOME/.bashrc
   cd /tmp
   tar xvzf otp_src_#{node[:erlang][:version]}.tar.gz
   cd otp_src_#{node[:erlang][:version]}
   #{File.join(".", "configure")} --prefix=#{node[:erlang][:path]}
   make
   make install
-  EOH
+EOH
   not_if do
-    ::File.exists?(File.join(node[:erlang][:path], "bin", "erl"))
+    ::File.exists?(erl_bin_path) && ::File.exists?(erl_release_folder_path)
   end
 end

@@ -1,9 +1,9 @@
 #include_attribute "ruby"
 # these attributes were introduced to resolve issues with chef hosted that would not compute correctly the value of the attributes.
 # in the 'deployment' recipe.
-default[:cloudfoundry][:user_home] = ENV["HOME"]=='/root' ? "/home/ubuntu" : ENV["HOME"] # messy
-default[:cloudfoundry][:home] = File.join(node[:cloudfoundry][:user_home], "cloudfoundry")
-default[:cloudfoundry][:path] = File.join(cloudfoundry[:home], "vcap")
+##default[:cloudfoundry][:user_home] = ENV["HOME"]=='/root' ? "/home/ubuntu" : ENV["HOME"] # messy
+##default[:cloudfoundry][:home] = File.join(node[:cloudfoundry][:user_home], "cloudfoundry")
+##default[:cloudfoundry][:path] = File.join(cloudfoundry[:home], "vcap")
 default[:cloudfoundry][:vmc][:version] = nil
 
 default[:cloudfoundry][:git][:vcap][:repo] = "https://github.com/cloudfoundry/vcap.git"
@@ -15,5 +15,3 @@ default[:cloudfoundry][:git][:vcap_java][:repo] = "https://github.com/cloudfound
 default[:cloudfoundry][:git][:vcap_java][:branch] = "master"
 default[:cloudfoundry][:git][:vcap_services][:repo] = "https://github.com/cloudfoundry/vcap-services.git"
 default[:cloudfoundry][:git][:vcap_services][:branch] = "master"
-
-

@@ -7,11 +7,16 @@
 #
 #
 
+require 'digest'
+
 #this would always install the latest version of postgres.
 #for now we keep it under our control
 #%w[libpq-dev postgresql].each do |pkg|
 #  package pkg
 #end
+
+postgres_etc_install_folder="/etc/postgresql/#{node[:postgresql_node][:version]}"
+
 
 case node['platform']
 when "ubuntu"
@@ -20,17 +25,18 @@ when "ubuntu"
   bash "Install postgres-#{node[:postgresql_node][:version]}" do
     code <<-EOH
 POSTGRES_MAJOR_VERSION="#{node[:postgresql_node][:version]}"
-if [ ! -d "/etc/postgresql/$POSTGRES_MAJOR_VERSION" ]; then
-  apt-get install -qy python-software-properties
-  add-apt-repository ppa:pitti/postgresql
-  apt-get -qy update
-  apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION
-  apt-get install -qy postgresql-server-dev-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
-fi
+apt-get install -qy python-software-properties
+add-apt-repository ppa:pitti/postgresql
+apt-get -qy update
+apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION
+apt-get install -qy postgresql-server-dev-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
 EOH
+    not_if do
+      ::File.exists?(postgres_etc_install_folder)
+    end
   end.run_action(:run)
   
-  template "nats_server.yml" do
+  template "/etc/init.d/postgresql with upstart events when postgres starts and stops" do
     path "/etc/init.d/postgresql"
     source "etc_initd_postgresql.erb"
     mode 0755
@@ -44,6 +50,10 @@ EOH
 
       # update postgresql.conf
       postgresql_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "postgresql.conf")
+      pg_hba_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
+      postgresql_conf_file_digest=Digest::SHA256.file(postgresql_conf_file).hexdigest
+      pg_hba_file_digest=Digest::SHA256.file(pg_hba_file).hexdigest
+      
       `grep "^\s*listen_addresses" #{postgresql_conf_file}`
       if $?.exitstatus != 0
         #This command is easy but it inserts it at the very end which is surprising to the sys admin.
@@ -61,16 +71,21 @@ EOH
       
       # update the local psql connections to psotgres.
       unless node[:postgresql_node][:local_acl].nil?
-        pg_hba_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
         #replace 'local   all             all                                     peer'
-        #by 'local   all             all                                     #{}'
-        `sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' #{pg_hba_file}`
+        #by      'local   all             all                                     #{}'
+`sed -i 's/^local[ \t]*all[ \t]*all[ \t]*[a-z]*[ \t]*$/local   all             all                                     #{node[:postgresql_node][:local_acl]}/g' #{pg_hba_file}`
       end
-      pg_server_command 'restart'
+      postgresql_conf_file_digest_after=Digest::SHA256.file(postgresql_conf_file).hexdigest
+      pg_hba_file_digest_after=Digest::SHA256.file(pg_hba_file).hexdigest
+      if postgresql_conf_file_digest_after != postgresql_conf_file_digest ||
+          pg_hba_file_digest_after != pg_hba_file_digest
+        Chef::Log.warn("Restarting postgresql server as the configuration files have changed")
+        pg_server_command 'restart'
+      end
     end
   end
   
-  # make sure template1 uses UTF encording and locale:
+  # make sure template1 uses UTF encoding and locale:
   cf_pg_setup_template()
   
   # configure ltree.sql with some extensions:
@@ -80,7 +95,7 @@ EOH
       cf_pg_setup_extension(extension_name.strip)
     end
   else
-    `echo not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}`
+    Chef::Log.warn("not configuring ltree on template1 #{node[:postgresql_node][:ltree_in_template1]}")
   end
   
   cf_pg_server_command 'reload'
@@ -100,9 +115,12 @@ if node[:postgresql_node][:pg_hba_extra]
 end
 
 cf_pg_update_hba_conf(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user])
-cf_pg_setup_db(node[:postgresql_node][:database], node[:postgresql_node][:server_root_user], node[:postgresql_node][:server_root_password],
+cf_pg_setup_db(node[:postgresql_node][:database],
+               node[:postgresql_node][:server_root_user],
+               node[:postgresql_node][:server_root_password],
                'SUPERUSER', # superuser necessary to read pg_stat_activity see http://blog.kimiensoftware.com/2011/05/querying-pg_stat_activity-and-insufficient-privilege-291
-               'CREATEDB CREATEROLE', # will create the roles and databases for postgresnode
+               'CREATEDB CREATEROLE', # will create the roles and databases for postgresnode,
+               'template1',
                # the extra grants are not necessary now that we are a superuser.
                [ "GRANT SELECT ON pg_authid to #{node[:postgresql_node][:server_root_user]}" ])
 

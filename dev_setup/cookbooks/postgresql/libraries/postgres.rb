@@ -1,5 +1,5 @@
 module CloudFoundryPostgres
-  
+  PSQL_RAW_RES_ARGS="-P format=unaligned -P footer=off -P tuples_only=on"  
   def cf_pg_server_command(cmd='restart')
     case node['platform']
     when "ubuntu"
@@ -60,16 +60,32 @@ module CloudFoundryPostgres
       bash "Setup PostgreSQL database #{db} with user=#{user}" do
         user "postgres"
         privileges = 'NOSUPERUSER LOGIN INHERIT' if privileges.nil?
+        extra_sql_statements_str = extra_sql_statements.collect do |statement|
+          "echo \"About to execute "+statement+"\"\n psql -c '"+statement+"'"
+        end.join("\n")
         #This bash script tolerates existings roles and databases,
         #does not remove extra privileges and try to apply the passed privileges.
         code <<-EOH
 set +e
-psql -c \"CREATE ROLE #{user} WITH NOSUPERUSER\"
-psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
-psql -c \"ALTER ROLE #{user} WITH #{privileges} #{extra_privileges}\"
-psql -c \"CREATE DATABASE #{db} OWNER=#{user} TEMPLATE=#{template}\"
-#{extra_sql_statements.collect do |statement| "psql -c \\\""+statement+"\\\"" end.join("\n")}
-echo \"db #{db} user #{user} pass #{passwd}\" >> #{File.join("", "tmp", "cf_pg_setup_db")}
+echo "About to execute select count(*) from pg_roles where rolname='#{user}'"
+already=`psql #{PSQL_RAW_RES_ARGS} -c \"select count(*) from pg_roles where rolname='#{user}'\"`
+if [ -z "$already" ]; then
+  psql -c \"CREATE ROLE #{user} WITH NOSUPERUSER\"
+fi
+if [ -z "$dont_alter_existing_role"  ]; then
+  psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
+  psql -c \"ALTER ROLE #{user} WITH #{privileges} #{extra_privileges}\"
+fi
+echo "About to execute select count(*) from pg_database where datname='#{db}'"
+psql #{PSQL_RAW_RES_ARGS} -c \"select count(*) from pg_database where datname='#{db}'\"
+already_db=`psql #{PSQL_RAW_RES_ARGS} -c \"select count(*) from pg_database where datname='#{db}'\"`
+echo "already_db $already_db"
+if [ "$already_db" = "1" ]; then
+  psql -c \"ALTER DATABASE #{db} OWNER TO #{user}\"
+else
+  psql -c \"CREATE DATABASE #{db} OWNER=#{user} TEMPLATE=#{template}\"
+fi
+#{extra_sql_statements_str}
 EOH
 Chef::Log.warn("Code to exec for the user+his-db #{code}")
       end
@@ -84,6 +100,7 @@ Chef::Log.warn("Code to exec for the user+his-db #{code}")
     locale||=ENV["$LANG"]
     locale||='en_US.UTF-8' # we might be in trouble if we are here. postgres will let us know.
     raise "The locale #{locale} does not use UTF." unless /UTF/ =~ locale
+        
     #CREATE DATABASE template1 with TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
     case node['platform']
     when "ubuntu"
@@ -91,6 +108,13 @@ Chef::Log.warn("Code to exec for the user+his-db #{code}")
         user "postgres"
         code <<-EOH
 set +e
+# see if the encoding is already correct (the following could be improved)
+already=`psql -c "\\l"  | grep #{template_db_name} | grep #{encoding}`
+if [ -n "$already" ]; then
+  echo "The template #{template_db_name} is already set with the proper encoding. No need to re-create it."
+  exit 0
+fi
+
 psql -c \"UPDATE pg_database SET datistemplate = FALSE WHERE datname = '#{template_db_name}'\"
 psql -c \"DROP DATABASE IF EXISTS #{template_db_name}\"
 psql -c \"CREATE DATABASE #{template_db_name} TEMPLATE=template0 ENCODING '#{encoding}' LC_COLLATE '#{locale}' LC_CTYPE '#{locale}'\"
@@ -148,6 +172,20 @@ EOH
         #see http://www.depesz.com/index.php/2011/03/02/waiting-for-9-1-extensions/
         #see also http://crafted-software.blogspot.com/2011/10/extensions-in-postgres.html
         code <<-EOH
+set +e
+extension_already_installed_exit_code=11
+if [ 'ltree' = #{extension_name} ]; then
+  psql #{db_template_name} -c \"select '1.1'::ltree;\"
+  extension_already_installed_exit_code=$?
+elif [ 'uuid-ossp' = #{extension_name} ]; then
+  psql #{db_template_name} -c \"select uuid_generate_v4();\"
+  extension_already_installed_exit_code=$?
+fi
+if [ "$extension_already_installed_exit_code" = 0 ]; then
+  echo "The extension #{extension_name} is already installed"
+  exit 0
+fi
+echo "The extension #{extension_name} is not already installed $extension_already_installed_exit_code"
 psql template1 -c \"CREATE EXTENSION IF NOT EXISTS \\\"#{extension_name}\\\";\"
 psql template1 -c \"GRANT ALL ON ALL FUNCTIONS IN SCHEMA PUBLIC TO PUBLIC\"
 if [ 'ltree' = #{extension_name} ]; then
