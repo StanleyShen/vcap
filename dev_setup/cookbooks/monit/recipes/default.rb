@@ -2,7 +2,11 @@
 # Cookbook Name:: monit
 # Recipe:: default
 #
+compute_derived_attributes
+
 package "monit"
+
+node[:monit][:config_file] = File.join(node[:deployment][:config_path], "vcap.monitrc")
 
 case node['platform']
   when "ubuntu"

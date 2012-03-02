@@ -118,7 +118,7 @@ case "$1" in
        ;;
   restart|force-reload)
     log_daemon_msg "Restarting $DESC" "$NAME"
-    do_stop
+    do_stop || true
     case "$?" in
       0|1)
         do_start

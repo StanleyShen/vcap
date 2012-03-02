@@ -5,7 +5,8 @@
 # Copyright 2011, VMware
 #
 #
-
+compute_derived_attributes
+node[:nginx][:vcap_log] = File.join(node[:deployment][:home], "sys", "log", "vcap.access.log") unless node[:nginx][:vcap_log]
 case node['platform']
 when "ubuntu"
   package "nginx"

@@ -4,6 +4,8 @@
 #
 package "redis-server"
 
+compute_derived_attributes
+
 node[:stager][:config_file] = File.join(node[:deployment][:config_path], "stager.yml")
 node[:stager][:config_file_redis] = File.join(node[:deployment][:config_path], "stager-redis-server.conf")
 

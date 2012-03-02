@@ -6,6 +6,7 @@ package "avahi-daemon"
 package "avahi-utils"
 package "python-avahi"
 
+compute_derived_attributes
 node[:dns_publisher][:config_file] = File.join(node[:deployment][:config_path], "dns_publisher.yml")
 
 template node[:dns_publisher][:config_file] do
