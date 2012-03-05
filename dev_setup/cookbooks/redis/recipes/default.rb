@@ -1,9 +1,15 @@
 compute_derived_attributes
+node[:redis][:redis_bin_path] = File.join(node[:redis][:path], "bin", "redis-server")
+expected_version=node[:redis][:version]
+expected_version_found=`echo $(#{node[:redis][:redis_bin_path]} --version 2>&1) | grep #{expected_version}` if File.exists?(node[:redis][:redis_bin_path])
 
 remote_file File.join("", "tmp", "redis-#{node[:redis][:version]}.tar.gz") do
   owner node[:deployment][:user]
   source "http://redis.googlecode.com/files/redis-#{node[:redis][:version]}.tar.gz"
-  not_if { ::File.exists?(File.join("", "tmp", "redis-#{node[:redis][:version]}.tar.gz")) }
+  not_if do
+    expected_version_found ||
+      ::File.exists?(File.join("", "tmp", "redis-#{node[:redis][:version]}.tar.gz"))
+  end
 end
 
 directory "#{node[:redis][:path]}" do
@@ -35,9 +41,9 @@ bash "Install Redis" do
   make
   cd src
   cp redis-benchmark redis-cli redis-server redis-check-dump redis-check-aof #{File.join(node[:redis][:path], "bin")}
-  EOH
+EOH
   not_if do
-    ::File.exists?(File.join(node[:redis][:path], "bin", "redis-server"))
+    expected_version_found
   end
 end
 

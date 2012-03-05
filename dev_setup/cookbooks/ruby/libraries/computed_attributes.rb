@@ -42,6 +42,9 @@ module CloudFoundryAttributes
     if node[:nodejs]
       node[:nodejs][:path] = File.join(node[:deployment][:home], "deploy", "nodejs") unless node[:nodejs][:path]
     end
+    if node[:mongodb_node]
+      node[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb") unless node[:mongodb_node][:path]
+    end
     
   end
 end

@@ -40,13 +40,16 @@ unless node[:cloudfoundry][:git][:vcap][:enable_submodules]
   end
 end
 bash "Chown vcap sources to the user in case git was executed from root" do
-  user node[:deployment][:user] #does not work: CHEF-2288
-  group node[:deployment][:group] #does not work: CHEF-2288
-  environment ({'HOME' => "/home/#{node[:deployment][:user]}",
-                'USER' => "#{node[:deployment][:user]}"})
+  #user node[:deployment][:user] #does not work: CHEF-2288
+  #group node[:deployment][:group] #does not work: CHEF-2288
+  #environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+  #              'USER' => "#{node[:deployment][:user]}"})
   code <<-EOH
     chown -R #{node[:deployment][:user]}:#{node[:deployment][:group]} #{node[:cloudfoundry][:path]}
 EOH
+  not_if do
+    Process.uid != 0
+  end
 end
 
 node[:nats_server][:host] ||= cf_local_ip if node[:nats_server]

@@ -5,6 +5,7 @@
 # Copyright 2011, VMware
 #
 define :cloudfoundry_service do
+  compute_derived_attributes
   params[:components].each do |component|
     service "vcap_#{component}" do
       provider CloudFoundry::VCapChefService

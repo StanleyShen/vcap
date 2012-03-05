@@ -6,7 +6,6 @@
 #
 #
 compute_derived_attributes
-node[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb") unless node[:mongodb_node][:path]
 
 mongod_bin_path=node[:mongodb_node][:path]
 expected_version=node[:mongodb_node][:version]
