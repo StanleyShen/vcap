@@ -13,5 +13,5 @@ raise "deployment_name: #{node[:deployment][:name]}; deployment_home: #{node[:de
 gem_package "vmc" do
   ignore_failure true
   version node[:cloudfoundry][:vmc][:version] if node[:cloudfoundry][:vmc] && node[:cloudfoundry][:vmc][:version]
-  gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(node[:ruby][:path], "bin", "gem")}"
+  gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(node[:ruby][:path], "bin", "gem")}"
 end

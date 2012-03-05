@@ -1,11 +1,13 @@
 module CloudFoundryAttributes
+  
+  @@already=false
   # this is a workaround for the fact that we must not compute
   # default attributes values derived from other attributes.
   # directly in the attributes.rb files.
   # see http://help.opscode.com/discussions/questions/1161-expanding-node-attributes
   def compute_derived_attributes
-    return unless node[:deployment][:compute_derived_attributes] = true
-    node[:deployment][:compute_derived_attributes] = true
+    return if @@already
+    @@already = true
     Chef::Log.info("Compute the derived attributes from the ruby recipe library")
     
     node[:cloudfoundry][:user_home] = ENV["HOME"]=='/root' ? "/home/#{node[:deployment][:user]}" : ENV["HOME"] unless node[:cloudfoundry][:user_home] # messy
@@ -13,12 +15,7 @@ module CloudFoundryAttributes
     node[:cloudfoundry][:path] = File.join(node[:cloudfoundry][:home], "vcap") unless node[:cloudfoundry][:path]
     node[:deployment][:home] = File.join(node[:cloudfoundry][:home], ".deployments", node[:deployment][:name]) unless node[:deployment][:home]
     node[:deployment][:config_path] = File.join(node[:deployment][:home], "config") unless node[:deployment][:config_path]
-    Chef::Log.warn("Before2 #{node[:deployment][:vcap_components]}")    
     node[:deployment][:vcap_components] = File.join(node[:deployment][:config_path], "vcap_components.json") unless node[:deployment][:vcap_components]
-    Chef::Log.warn("After2 #{node[:deployment][:vcap_components]}")
-    
-    raise "Unexpected path #{node[:deployment][:vcap_components]}" unless "/home/ubuntu/cloudfoundry/.deployments/intalio_devbox/config/vcap_components.json" == node[:deployment][:vcap_components]
-    
     node[:deployment][:info_file] = File.join(node[:deployment][:config_path], "deployment_info.json") unless node[:deployment][:info_file]
     node[:deployment][:log_path] = File.join(node[:deployment][:home], "log") unless node[:deployment][:log_path]
     node[:deployment][:profile] = File.expand_path(File.join(node[:cloudfoundry][:user_home], ".cloudfoundry_deployment_profile")) unless node[:deployment][:profile]
@@ -40,10 +37,14 @@ module CloudFoundryAttributes
       node[:erlang][:path] = File.join(node[:deployment][:home], "deploy", "erlang") unless node[:erlang][:path]
     end
     if node[:nodejs]
+      Chef::Log.warn("Before node[:nodejs][:path]: #{node[:nodejs][:path]}")
+      node[:nodejs][:source] = "http://nodejs.org/dist/node-v#{node[:nodejs][:version]}.tar.gz" unless node[:nodejs][:source]
       node[:nodejs][:path] = File.join(node[:deployment][:home], "deploy", "nodejs") unless node[:nodejs][:path]
+      Chef::Log.warn("After node[:nodejs][:path]: #{node[:nodejs][:path]}")
     end
     if node[:mongodb_node]
       node[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb") unless node[:mongodb_node][:path]
+      node[:mongodb_node][:source] = "http://fastdl.mongodb.org/linux/mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz"# unless node[:mongodb_node][:source]
     end
     
   end
