@@ -14,12 +14,20 @@ template node[:stager][:config_file] do
   source "stager.yml.erb"
   owner node[:deployment][:user]
   mode 0644
+  notifies :restart, "service[vcap_stager]"
 end
 template node[:stager][:config_file_redis] do
   path node[:stager][:config_file_redis]
   source "stager-redis-server.conf.erb"
   owner node[:deployment][:user]
   mode 0644
+  notifies :restart, "service[vcap_stager]"
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "stager")))
+
+service "vcap_stager" do
+  provider CloudFoundry::VCapChefService
+  supports :status => true, :restart => true, :start => true, :stop => true
+  action [ :start ]
+end

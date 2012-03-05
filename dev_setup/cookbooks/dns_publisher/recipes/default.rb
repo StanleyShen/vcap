@@ -14,6 +14,13 @@ template node[:dns_publisher][:config_file] do
   source "dns_publisher.yml.erb"
   owner node[:deployment][:user]
   mode 0644
+  notifies :restart, "service[vcap_dns_publisher]"
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "dns_publisher")))
+
+service "vcap_dns_publisher" do
+  provider CloudFoundry::VCapChefService
+  supports :status => true, :restart => true, :start => true, :stop => true
+  action [ :start ]
+end

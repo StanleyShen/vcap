@@ -11,8 +11,6 @@ node_bin_path=File.join(node[:nodejs][:path], "bin", "node")
 expected_version=node[:nodejs][:version]
 expected_version_found=`echo $(#{node_bin_path} --version 2>&1) | grep #{expected_version}` if File.exists?(node_bin_path)
 
-raise "TESTING: node should have been detected as installed" unless expected_version_found
-
 %w[ build-essential ].each do |pkg|
   package pkg
 end

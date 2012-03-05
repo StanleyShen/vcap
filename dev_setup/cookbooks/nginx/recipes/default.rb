@@ -16,6 +16,7 @@ when "ubuntu"
     owner "root"
     group "root"
     mode 0644
+    notifies :reload, "service[nginx]"
   end
 
   service "nginx" do

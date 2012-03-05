@@ -4,6 +4,9 @@
 #
 # Copyright 2011, VMware
 #
+compute_derived_attributes
+node[:neo4j][:distribution_file] = "neo4j-#{node[:neo4j][:version]}-unix.tar.gz" unless node[:neo4j][:distribution_file]
+
 [node[:neo4j][:service_dir], File.join(node[:neo4j][:service_dir], "instances")].each do |dir|
   directory dir do
     owner node[:deployment][:user]

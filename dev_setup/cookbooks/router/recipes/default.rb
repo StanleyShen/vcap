@@ -10,6 +10,13 @@ template node[:router][:config_file] do
   source "router.yml.erb"
   owner node[:deployment][:user]
   mode 0644
+  notifies :restart, "service[vcap_router]"
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "router")))
+
+service "vcap_router" do
+  provider CloudFoundry::VCapChefService
+  supports :status => true, :restart => true, :start => true, :stop => true
+  action [ :start ]
+end

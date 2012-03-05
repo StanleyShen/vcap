@@ -114,7 +114,9 @@ default_account_capacity:
 builtin_services:
   <% @builtin_services.each do |service_name| %>
   <%= service_name %>:
-    token: <%= node[(service_name + "_node").to_sym][:token] %>
+<%= node["#{service_name}_node".to_sym] ?
+    "   token: #{node[(service_name + "_node").to_sym][:token]}" :
+    "#no service node for #{service_name}" %>
   <% end %>
 
 # Enable/disable starting apps in debug modes.

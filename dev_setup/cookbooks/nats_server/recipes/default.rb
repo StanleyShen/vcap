@@ -31,12 +31,6 @@ when "ubuntu"
     notifies :restart, "service[nats_server]"
   end
   
-#  template "nats_server_network_if_up" do
-#    path File.join("", "etc", "network", "if-up.d", "nats_server")
-#    source "nats_server_network_if_up.erb"
-#    owner node[:deployment][:user]
-#    mode 0755
-#  end
   template "vcap_reconfig" do
     path "/etc/init/vcap_reconfig.conf"
     source "vcap_reconfig.conf.erb"
@@ -44,8 +38,9 @@ when "ubuntu"
     mode 0755
   end
 
+  # runs /etc/init.d/nats_server (start|stop|restart), etc.
   service "nats_server" do
-    supports :status => true, :restart => true, :reload => true
+    supports :status => true, :restart => true, :reload => true, :start => true, :stop => true
     action [ :enable, :start ]
   end
 else
@@ -59,3 +54,5 @@ template "nats_server.yml" do
   mode 0644
   notifies :restart, "service[nats_server]"
 end
+
+

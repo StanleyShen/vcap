@@ -1,7 +1,7 @@
 include_attribute "deployment"
 default[:mongodb_node][:version] = "1.8.1"
 default[:mongodb_node][:source] = "http://fastdl.mongodb.org/linux/mongodb-linux-#{node[:kernel][:machine]}-#{mongodb_node[:version]}.tgz"
-default[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb")
+##default[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb")
 
 default[:mongodb_node][:index] = "0"
 default[:mongodb_node][:available_memory] = "4096"

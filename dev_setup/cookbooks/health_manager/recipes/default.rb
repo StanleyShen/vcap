@@ -9,6 +9,12 @@ template node[:health_manager][:config_file] do
   source "health_manager.yml.erb"
   owner node[:deployment][:user]
   mode 0644
+  notifies :restart, "service[vcap_health_manager]"
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "health_manager")))
+
+service "vcap_health_manager" do
+  provider CloudFoundry::VCapChefService
+  supports :status => true, :restart => true, :start => true, :stop => true
+end

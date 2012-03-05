@@ -7,7 +7,8 @@ default[:deployment][:group] = "vcap" # this is in fact computed as `id -ng` by 
 ## they can still be overridden
 ##default[:deployment][:home] = File.join(node[:cloudfoundry][:home], ".deployments", deployment[:name])
 ##default[:deployment][:config_path] = File.join(deployment[:home], "config")
-##default[:deployment][:info_file] = File.join(deployment[:config_path], "deployment_info.json")
+##default[:deployment][:vcap_components] = File.join(deployment[:home], "vcap_components.json"0
+##default[:deployment][:info_file] = File.join(node[:deployment][:config_path], "deployment_info.json")
 ##default[:deployment][:domain] = "vcap.me"
 ##default[:deployment][:log_path] = File.join(deployment[:home], "log")
 ##default[:deployment][:profile] = File.expand_path(File.join(node[:cloudfoundry][:user_home], ".cloudfoundry_deployment_profile"))

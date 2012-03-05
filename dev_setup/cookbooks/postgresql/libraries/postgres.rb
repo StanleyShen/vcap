@@ -27,21 +27,27 @@ module CloudFoundryPostgres
     when "ubuntu"
       ruby_block "Update PostgreSQL config for db=#{db} user=#{user} ip_and_mask=#{ip_and_mask} pass_encrypt=#{pass_encrypt} connection_type=#{connection_type}" do
         block do
-          / \d*.\d*/ =~ `pg_config --version`
+          pg_config_version=`pg_config --version`.strip
+          raise "pg_config --version did not return a thing" unless pg_config_version
+          / \d*.\d*/ =~ pg_config_version
           pg_major_version = $&.strip
 
           # Update pg_hba.conf
           pg_hba_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
+          Chef::Log.warn("About to execute. grep \"#{connection_type}\s*#{db}\s*#{user}\s*#{ip_and_mask}\s*#{pass_encrypt}\" #{pg_hba_conf_file}")
           `grep "#{connection_type}\s*#{db}\s*#{user}\s*#{ip_and_mask}\s*#{pass_encrypt}" #{pg_hba_conf_file}`
           if $?.exitstatus != 0
             #append a new rule
+            Chef::Log.warn(" could not find it... adding it then")
             `echo "#{connection_type} #{db} #{user} #{ip_and_mask} #{pass_encrypt}" >> #{pg_hba_conf_file}`
-          #else # nothing to do.
+          else # nothing to do.
+            Chef::Log.warn(" ok it was already there")
             #replace the rule
             #`sed -i -e "s/^#{connection_type}[[:space:]]*#{db}[[:space:]]*#{user}[[:space:]].*$/#{connection_type} #{db} #{user} #{ip_and_mask} #{pass_encrypt}/g" #{pg_hba_conf_file}`
           end
 
           #no need to restart. reloading the conf is enough.
+          Chef::Log.warn(" issuing the reload command")
           pg_server_command 'reload'
         end
       end

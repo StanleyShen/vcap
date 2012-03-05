@@ -1,6 +1,7 @@
 default[:dea][:config_file] = "dea.yml"
 default[:dea][:local_route] = nil
-default[:dea][:runtimes] = ["ruby18", "ruby19", "nodejs", "java", "erlang", "php"]
+default[:dea][:runtimes_default] = ["ruby18", "ruby19", "nodejs", "java", "erlang", "php"]
+# see http://lists.opscode.com/sympa/arc/chef/2011-12/msg00203.html
 default[:dea][:max_memory] = 2048
 default[:dea][:logging] = 'debug'
 default[:dea][:secure] = false
