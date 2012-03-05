@@ -9,7 +9,7 @@ compute_derived_attributes
 
 mongod_bin_path=node[:mongodb_node][:path]
 expected_version=node[:mongodb_node][:version]
-expected_version_found=`echo $(#{mongod_bin_path} --version 2>&1) | grep v#{expected_version}` if File.exists?(node_bin_path)
+expected_version_found=`echo $(#{mongod_bin_path} --version 2>&1) | grep v#{expected_version}` if File.exists?(mongod_bin_path)
 
 
 remote_file File.join("", "tmp", "mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz") do
