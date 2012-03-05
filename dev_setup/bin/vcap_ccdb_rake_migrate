@@ -1,5 +1,6 @@
 #!/bin/bash
 # Extracted the execution of rake db:migrate from the vcap so that we don't run it everytime we restart the cloud_controller
+# This db admin task is alread taken care by Chef separately when the cloud_controller.yml is changed.
 # This script needs to be executed from the current directory:
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done

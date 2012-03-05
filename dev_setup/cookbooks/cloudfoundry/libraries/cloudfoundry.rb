@@ -1,31 +1,52 @@
 require 'socket'
 
 module CloudFoundry
-  
+
+  # returns the appropriate bundle command
+  # call this before the bash/ruby block. not inside it.
+  def self.cf_invoke_bundler_cmd(node, path, cmd='install --verbose')
+    Chef::Log.warn("CURENT Process.uid=#{Process.uid}")
+    if Process.uid == 0
+      gemdir=`sudo -i -u #{node[:deployment][:user]} #{node[:ruby][:path]}/bin/gem env gemdir`.strip
+      path_option = /install/ =~ cmd ? "--path #{gemdir}" : ""
+      # why is it so difficult to correctly load the gem environment for the ubuntu user?
+      # so far this has been the best formula to prevent bundler from using the root's user's gem install directory.
+      # I suspect that rvm (used by root) is really setting its directories everywhere.
+      ## env GEM_HOME=#{gemdir} GEM_PATH=#{gemdir} RUBYOPT=rubygems
+      "sudo -i -u #{node[:deployment][:user]}\
+ bash -c \"source $HOME/.bashrc; source $HOME/.cloudfoundry_deployment_profile; cd #{path};\
+ #{File.join(node[:ruby][:path], "bin", "bundle")} #{cmd}#{path_option}\""
+    else
+      Chef::Log.warn("NOT using sudo")
+      File.join(node[:ruby][:path], "bin", "bundle")
+    end
+  end
+
   def cf_bundle_install(path)
+    bundle_install_cmd=CloudFoundry::cf_invoke_bundler_cmd(node, path, 'install --verbose')
+    Chef::Log.warn("bundle_install_cmd #{bundle_install_cmd}")
     bash "Bundle install for #{path}" do
       cwd path
       environment ({'HOME' => "/home/#{node[:deployment][:user]}",
                     'USER' => "#{node[:deployment][:user]}"})
       code <<-EOH
-      source $HOME/.bashrc
-      cd #{path}
-      cmd="#{File.join(node[:ruby][:path], "bin", "bundle")} install"
-      set +e
-      $cmd
-      if [ $? != 0 ]; then
-        echo "Retry 1 $cmd"
-        $cmd
-      fi 
-      if [ $? != 0 ]; then
-        echo "Retry 2 $cmd"
-        $cmd
-      fi
-      set -e 
-      if [ $? != 0 ]; then
-        echo "Retry 3 $cmd"
-        $cmd
-      fi
+source $HOME/.bashrc
+cd #{path}
+set +e
+#{bundle_install_cmd}
+if [ $? != 0 ]; then
+  echo "Retry 1"
+  #{bundle_install_cmd}
+fi
+if [ $? != 0 ]; then
+  echo "Retry 2"
+  #{bundle_install_cmd}
+fi
+set -e 
+if [ $? != 0 ]; then
+  echo "Retry 3"
+  #{bundle_install_cmd}
+fi
 EOH
       only_if { ::File.exist?(File.join(path, 'Gemfile')) }
     end
@@ -48,6 +69,7 @@ EOH
       Socket.do_not_reverse_lookup = orig
     end
   end
+    
 end
 
 class Chef::Recipe

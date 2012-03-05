@@ -6,6 +6,12 @@
 #
 define :cloudfoundry_service do
   params[:components].each do |component|
+    service "vcap_#{component}" do
+      provider CloudFoundry::VCapChefService
+      supports :status => true, :restart => true, :start => true, :stop => true
+      action [ :start ]
+    end
+    add_to_vcap_components(component)
     template "#{params[:name]}.yml" do
       path File.join(node[:deployment][:config_path], "#{component}.yml")
       source "#{component}.yml.erb"
@@ -15,11 +21,5 @@ define :cloudfoundry_service do
     end
   end
   cf_bundle_install(File.expand_path(File.join(node[:cloudfoundry][:path], "services", params[:name])))
-  
-  service "vcap_#{component}" do
-    provider CloudFoundry::VCapChefService
-    supports :status => true, :restart => true, :start => true, :stop => true
-    action [ :start ]
-  end
 
 end

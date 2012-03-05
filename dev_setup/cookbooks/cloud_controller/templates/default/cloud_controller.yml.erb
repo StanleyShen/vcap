@@ -110,13 +110,12 @@ default_account_capacity:
   services: <%= node[:capacity][:max_services] %>
   apps:     <%= node[:capacity][:max_apps] %>
 
-# Services we provide, and their tokens. Avoids bootstrapping DB.
+# Services we provide, and their tokens. Avoids bootstrapping DB
 builtin_services:
   <% @builtin_services.each do |service_name| %>
   <%= service_name %>:
-<%= node["#{service_name}_node".to_sym] ?
-    "   token: #{node[(service_name + "_node").to_sym][:token]}" :
-    "#no service node for #{service_name}" %>
+   token: <%= node[(service_name + "_node").to_sym] && node[(service_name + "_node").to_sym][:token] ?
+      node[(service_name + "_node").to_sym][:token] : "0xdeadbeef" %>
   <% end %>
 
 # Enable/disable starting apps in debug modes.

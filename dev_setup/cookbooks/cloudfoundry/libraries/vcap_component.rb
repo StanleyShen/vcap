@@ -9,6 +9,7 @@ module CloudFoundry
   # Add the component name to the list of components
   def add_to_vcap_components(component_name)
     vcap_components_path = node[:deployment][:vcap_components]
+    raise "Unexpected path #{node[:deployment][:vcap_components]}" unless "/home/ubuntu/cloudfoundry/.deployments/intalio_devbox/config/vcap_components.json" == node[:deployment][:vcap_components]
     if File.exists?(vcap_components_path)
       begin
         vcap_components = File.open(vcap_components_path, "r") do |infile| JSON.parse infile.read end
@@ -21,16 +22,17 @@ module CloudFoundry
     end
     vcap_components ||= Hash.new
     components_list ||= Array.new
-    components_list << component_name unless components_list.includes?(component_name)
+    components_list << component_name unless components_list.include?(component_name)
     vcap_components["components"] = components_list
     File.open(vcap_components_path, 'w') do |f|
       f.write(JSON.pretty_generate(vcap_components))
     end
+    Chef::Log.warn "WROTE #{vcap_components_path}"
     ## change the ownership of the file to the proper user when chef executes as root
     if Process.uid == 0
-      user_id = `id -u #{node[:deployment][:user]}`.strip
-      group_id = `id -g #{node[:deployment][:group]}`.strip
-      File.chown vcap_components_path
+      user_id = `id -u #{node[:deployment][:user]}`.strip.to_i
+      group_id = `id -g #{node[:deployment][:group]}`.strip.to_i
+      File.chown user_id, group_id, vcap_components_path
     end
   end
 

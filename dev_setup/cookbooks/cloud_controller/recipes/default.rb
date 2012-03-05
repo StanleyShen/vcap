@@ -5,7 +5,13 @@
 # Copyright 2011, VMware
 #
 #
-cloud_controller_yml_path=File.join(node[:deployment][:config_path], node[:cloud_controller][:config_file])
+compute_derived_attributes
+node[:cloud_controller][:cloud_controller_yml_path]=File.join(node[:deployment][:config_path], node[:cloud_controller][:config_file])
+
+node[:cloud_controller][:bundle_exec_cmd]=CloudFoundry::cf_invoke_bundler_cmd(node,
+                             File.join(node[:cloudfoundry][:path], "cloud_controller"),
+                             "exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{node[:cloud_controller][:cloud_controller_yml_path]}")
+Chef::Log.warn("bundle_exec_cmd #{node[:cloud_controller][:bundle_exec_cmd]}")
 
 bash "rake_migrate_ccdb" do
   user node[:deployment][:user] #does not work: CHEF-2288
@@ -13,24 +19,24 @@ bash "rake_migrate_ccdb" do
                 'USER' => "#{node[:deployment][:user]}"})
   cwd = File.join(node[:cloudfoundry][:path], "cloud_controller")
   code <<-EOH
-source $HOME/.bashrc
-cd #{File.join(node[:cloudfoundry][:path], "cloud_controller")}
-echo "About to execute bundle exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{cloud_controller_yml_path}"
-#{node[:ruby][:path]}/bin/bundle exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{cloud_controller_yml_path}
+#source $HOME/.bashrc
+#source $HOME/.cloudfoundry_deployment_profile
+#cd #{File.join(node[:cloudfoundry][:path], "cloud_controller")}
+#{node[:cloud_controller][:bundle_exec_cmd]}
 EOH
-  notifies :restart, "service[vcap_cloud_controller]"
+  Chef::Log.warn("rake_migrate_ccdb: #{code}")
+  #notifies :restart, "service[vcap_cloud_controller]"
   action :nothing
 end
 
+cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "cloud_controller")))
+add_to_vcap_components("cloud_controller")
 
 template node[:cloud_controller][:config_file] do
-  path cloud_controller_yml_path
+  path node[:cloud_controller][:cloud_controller_yml_path]
   source "cloud_controller.yml.erb"
   owner node[:deployment][:user]
   mode 0644
-  # see http://wiki.opscode.com/display/chef/Resources#Resources-Execute
-  notifies :run, resources(:bash => "rake_migrate_ccdb")
-  
   builtin_services = []
   case node[:cloud_controller][:builtin_services]
   when Array
@@ -40,22 +46,16 @@ template node[:cloud_controller][:config_file] do
   when String
     builtin_services = node[:cloud_controller][:builtin_services].split(" ")
   else
-    Chef::Log.info("Input error: Please specify cloud_controller builtin_services as a list, \
+    Chef::Log.error("Input error: Please specify cloud_controller builtin_services as a list, \
                    it has an unsupported type #{node[:cloud_controller][:builtin_services].class}")
     exit 1
-  end
-  # make sure that indeed we are installing the node service for each one of those.
-  builtin_services.collect do |service_name|
-    unless node[(service_name + "_node").to_sym]
-      Chef::Log.warn("The service #{service_name} is included in the builtin services of the cloud_controller \
-                     but the #{service_name}_node is not configured in this recipe_run; can't use it in the cloud_controller.yml (probably not a big deal)")
-    end
   end
   variables({
     :builtin_services => builtin_services
   })
+  # see http://wiki.opscode.com/display/chef/Resources#Resources-Execute
+  notifies :run, resources(:bash => "rake_migrate_ccdb")
 end
-cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "cloud_controller")))
 
 staging_dir = File.join(node[:deployment][:config_path], "staging")
 node[:cloud_controller][:staging].each_pair do |framework, config|

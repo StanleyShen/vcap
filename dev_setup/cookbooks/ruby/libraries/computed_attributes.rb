@@ -13,7 +13,12 @@ module CloudFoundryAttributes
     node[:cloudfoundry][:path] = File.join(node[:cloudfoundry][:home], "vcap") unless node[:cloudfoundry][:path]
     node[:deployment][:home] = File.join(node[:cloudfoundry][:home], ".deployments", node[:deployment][:name]) unless node[:deployment][:home]
     node[:deployment][:config_path] = File.join(node[:deployment][:home], "config") unless node[:deployment][:config_path]
-    node[:deployment][:vcap_components] = File.join(node[:deployment][:home], "vcap_components.json") unless node[:deployment][:vcap_components]
+    Chef::Log.warn("Before2 #{node[:deployment][:vcap_components]}")    
+    node[:deployment][:vcap_components] = File.join(node[:deployment][:config_path], "vcap_components.json") unless node[:deployment][:vcap_components]
+    Chef::Log.warn("After2 #{node[:deployment][:vcap_components]}")
+    
+    raise "Unexpected path #{node[:deployment][:vcap_components]}" unless "/home/ubuntu/cloudfoundry/.deployments/intalio_devbox/config/vcap_components.json" == node[:deployment][:vcap_components]
+    
     node[:deployment][:info_file] = File.join(node[:deployment][:config_path], "deployment_info.json") unless node[:deployment][:info_file]
     node[:deployment][:log_path] = File.join(node[:deployment][:home], "log") unless node[:deployment][:log_path]
     node[:deployment][:profile] = File.expand_path(File.join(node[:cloudfoundry][:user_home], ".cloudfoundry_deployment_profile")) unless node[:deployment][:profile]
