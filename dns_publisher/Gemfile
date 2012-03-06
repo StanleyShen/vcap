@@ -1,7 +1,7 @@
 source "http://rubygems.org"
 
 gem 'nats', '>= 0.4.10', :require => 'nats/client'
-gem 'eventmachine',  '~> 0.12.11.cloudfoundry.1'
+gem 'eventmachine'
 
 gem 'vcap_common'
 gem 'vcap_logging', :require => ['vcap/logging']
