@@ -620,7 +620,8 @@ SCRIPT
     @ruby ||= \
     begin
       rb = runtime['executable']
-      pattern = Regexp.new(Regexp.quote(runtime['version']))
+      version_reg = runtime['version_regexp'] || Regexp.quote(runtime['version'])
+      pattern = Regexp.new(version_reg)
       output = StagingPlugin.get_ruby_version(rb)
       if $? == 0 && output.strip =~ pattern
         rb

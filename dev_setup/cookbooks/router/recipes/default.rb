@@ -14,6 +14,7 @@ template node[:router][:config_file] do
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "router")))
+add_to_vcap_components("router")
 
 service "vcap_router" do
   provider CloudFoundry::VCapChefService

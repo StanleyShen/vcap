@@ -41,6 +41,10 @@ if [ ! -d monit-5.3 ]; then
   sudo monit
 fi
 EOH
+      not_if do
+        # only 10.04 has a really old version of monit that needs an upgrade
+        node[:platform_version].to_f >= 11.10
+      end
     end
     
     #Startup mode

@@ -18,6 +18,7 @@ template node[:dns_publisher][:config_file] do
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "dns_publisher")))
+add_to_vcap_components("dns_publisher")
 
 service "vcap_dns_publisher" do
   provider CloudFoundry::VCapChefService

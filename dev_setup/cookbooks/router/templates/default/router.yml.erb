@@ -6,5 +6,5 @@ mbus: nats://<%= node[:nats_server][:user] %>:<%= node[:nats_server][:password] 
 logging:
   level: info
 pid: /var/vcap/sys/run/router.pid
-
-<%= "redirect404: #{node[:nats_server][:redirect404]}" if node[:nats_server][:redirect404] %>
+<%= "client_inactivity_timeout: #{node[:router][:client_inactivity_timeout]}" if node[:router][:client_inactivity_timeout] %>
+<%= "redirect404: #{node[:router][:redirect404]}" if node[:router][:redirect404] %>

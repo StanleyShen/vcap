@@ -21,13 +21,14 @@ template node[:stager][:config_file_redis] do
   source "stager-redis-server.conf.erb"
   owner node[:deployment][:user]
   mode 0644
-  notifies :restart, "service[vcap_stager]"
+#  notifies :restart, "service[vcap_stager]"
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "stager")))
+add_to_vcap_components("stager")
 
 service "vcap_stager" do
   provider CloudFoundry::VCapChefService
   supports :status => true, :restart => true, :start => true, :stop => true
-  action [ :start ]
+#  action [ :start ]
 end

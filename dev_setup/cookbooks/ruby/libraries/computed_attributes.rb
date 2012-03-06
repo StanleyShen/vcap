@@ -29,6 +29,9 @@ module CloudFoundryAttributes
     node[:ruby][:path]    = File.join(node[:deployment][:home], "deploy", "rubies", "ruby-#{node[:ruby][:version]}") unless node[:ruby][:path]
     node[:ruby18][:path]    = File.join(node[:deployment][:home], "deploy", "rubies", "ruby-#{node[:ruby18][:version]}") unless node[:ruby18][:path]
 
+    node[:ruby][:version_regexp] = Regexp.quote(node[:ruby][:version]).gsub(/-/, '.?')
+    node[:ruby18][:version_regexp] = Regexp.quote(node[:ruby18][:version]).gsub(/-/, '.?') if node[:ruby18]
+
     ## other recipe's derived attributes:
     if node[:redis]
       node[:redis][:path] = File.join(node[:deployment][:home], "deploy", "redis") unless node[:redis][:path]
@@ -46,7 +49,14 @@ module CloudFoundryAttributes
       node[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb") unless node[:mongodb_node][:path]
       node[:mongodb_node][:source] = "http://fastdl.mongodb.org/linux/mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz"# unless node[:mongodb_node][:source]
     end
-    
+    node[:nats_server][:host] ||= cf_local_ip if node[:nats_server]
+    node[:ccdb][:host] ||= cf_local_ip node[:ccdb]
+    node[:postgresql_node][:host] ||= cf_local_ip if node[:postgresql_node]
+    if node[:dea]
+      node[:dea][:runtimes] = node[:dea][:runtimes_default] unless node[:dea][:runtimes]
+    end
+    node[:cloud_controller] = {} unless node[:cloud_controller]
+    node[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}" unless node[:cloud_controller][:service_api_uri]
   end
 end
 

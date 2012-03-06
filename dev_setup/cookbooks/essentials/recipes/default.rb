@@ -18,6 +18,6 @@ if node[:deployment][:profile]
   file node[:deployment][:profile] do
     owner node[:deployment][:user]
     group node[:deployment][:group]
-    content "export PATH=#{node[:ruby][:path]}/bin:`#{node[:ruby][:path]}/bin/gem env gempath`/bin:$PATH"
+    content "[ -z $(echo $PATH | grep #{node[:ruby][:path]}/bin ) ] && export PATH=#{node[:ruby][:path]}/bin:`#{node[:ruby][:path]}/bin/gem env gemhome`/bin:$PATH"
   end
 end

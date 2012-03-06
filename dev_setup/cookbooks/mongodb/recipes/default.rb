@@ -32,6 +32,7 @@ cd /tmp
 tar xvzf mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz
 cd mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}
 [ -d #{node[:mongodb_node][:path]} ] && rm -rf #{node[:mongodb_node][:path]}/*
+mkdir -p #{node[:mongodb_node][:path]}/bin
 cp #{File.join("bin", "*")} #{File.join(node[:mongodb_node][:path], "bin")}
 EOH
   not_if do

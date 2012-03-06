@@ -64,7 +64,7 @@ if [ "$do_reconfig" == "true" ]; then
   # wait until cloud_controller is indeed available:
   COUNTER=0
   while [  $COUNTER -lt 20 ]; do
-    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv 2>&1 | grep "200 OK"`
+    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv:9022 2>&1 | grep "200 OK"`
     if [ -n "$ready" ]; then
       COUNTER=40
       [ COUNTER != "0" ] && echo "Cloud Controller is available"
@@ -88,7 +88,7 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
   # wait until cloud_controller is indeed available:
   COUNTER=0
   while [  $COUNTER -lt 20 ]; do
-    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv 2>&1 | grep "200 OK"`
+    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv:9022 2>&1 | grep "200 OK"`
     if [ -n "$ready" ]; then
       COUNTER=40
       [ COUNTER != "0" ] && echo "Cloud Controller is available"

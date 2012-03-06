@@ -123,9 +123,9 @@ allow_debug: <%= node[:cloud_controller][:allow_debug] %>
 
 # Supported runtime versions and debug modes.
 # Used for /info/runtimes endpoint (served unfiltered as JSON)
-runtimes:
+runtimes:<% if @ruby18_enabled %>
   ruby18:
-    version: 1.8.7
+    version: 1.8.7<% end %>
   ruby19:
     version: 1.9.2
   node:

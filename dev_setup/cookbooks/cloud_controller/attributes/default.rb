@@ -2,7 +2,7 @@ include_recipe "deployment"
 default[:deployment][:welcome] = "VMware's Cloud Application Platform"
 
 default[:cloud_controller][:config_file] = "cloud_controller.yml"
-default[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}"
+##default[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}"
 default[:cloud_controller][:local_route] = nil
 default[:cloud_controller][:admins] = ["dev@cloudfoundry.org"]
 default[:cloud_controller][:description] = "VMware's Cloud Application Platform"
@@ -35,8 +35,8 @@ default[:cloud_controller][:stager][:max_staging_runtime] = 120 #seconds
 default[:cloud_controller][:stager][:secure] = false
 default[:cloud_controller][:stager][:new_stager_percent] = 0
 default[:cloud_controller][:stager][:new_stager_email_regexp] = '@@' #won't match any email.
-#default[:cloud_controller][:stager][:auth][:user] = vcap
-#default[:cloud_controller][:stager][:auth][:password] = vcap
+default[:cloud_controller][:stager][:auth][:user] = "vcap"
+default[:cloud_controller][:stager][:auth][:password] = "vcap"
 
 # Enable/disable starting apps in debug modes.
 default[:cloud_controller][:allow_debug] = true

@@ -13,6 +13,7 @@ template node[:health_manager][:config_file] do
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "health_manager")))
+add_to_vcap_components("health_manager")
 
 service "vcap_health_manager" do
   provider CloudFoundry::VCapChefService

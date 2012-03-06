@@ -29,7 +29,7 @@ module RubyInstall
       recursive true
       action :create
     end
-
+    
     bash "Install Ruby #{ruby_path}" do
       cwd File.join("", "tmp")
       user node[:deployment][:user] #does not work: CHEF-2288
@@ -85,17 +85,30 @@ EOH
       end
     end
     
+    ruby_block "compute_gemdir" do
+      block do
+        if Process.uid == 0
+          gemdir=`sudo -u #{node[:deployment][:user]} #{node[:ruby][:path]}/bin/gem env gemdir`.strip
+        else
+          gemdir=`#{node[:ruby][:path]}/bin/gem env gemdir`.strip
+        end
+        raise "Unexpected gemdir #{gemdir}" unless gemdir && (/^home\#{node[:deployment][:user]}/ =~ gemdir)
+        node[:ruby][:gemdir]=gemdir
+      end
+      action :create
+    end
+
     gem_package "bundler" do
       options "--config-file #{ruby_path}/lib/chef.gemrc"
       retries 4
       version bundler_version
-      gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
+      gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")} --install-dir #{node[:ruby][:gemdir]}"
     end
 
     gem_package "rake" do
       retries 4
       version rake_version
-      gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
+      gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")} --install-dir #{node[:ruby][:gemdir]}"
     end
 
     # The default chef installed with Ubuntu 10.04 does not support the "retries" option
@@ -109,7 +122,7 @@ EOH
     %w[ rack eventmachine thin sinatra mysql pg ].each do |gem|
       gem_package gem do
         retries 4
-        gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
+        gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")} --install-dir #{node[:ruby][:gemdir]}"
       end
     end
   end

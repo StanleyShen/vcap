@@ -29,6 +29,8 @@ EOH
   action :nothing
 end
 
+cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "common")))
+cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "staging")))
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "cloud_controller")))
 add_to_vcap_components("cloud_controller")
 
@@ -51,7 +53,8 @@ template node[:cloud_controller][:config_file] do
     exit 1
   end
   variables({
-    :builtin_services => builtin_services
+    :builtin_services => builtin_services,
+    :ruby18_enabled => node[:dea] && node[:dea][:runtimes].include?('ruby18') ? true : false
   })
   # see http://wiki.opscode.com/display/chef/Resources#Resources-Execute
   notifies :run, resources(:bash => "rake_migrate_ccdb")
@@ -64,6 +67,9 @@ node[:cloud_controller][:staging].each_pair do |framework, config|
     source "#{config}.erb"
     owner node[:deployment][:user]
     mode 0644
+    variables({
+      :ruby18_enabled => node[:dea] && node[:dea][:runtimes].include?('ruby18') ? true : false
+    })
   end
 end
 
