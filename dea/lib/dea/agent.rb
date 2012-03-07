@@ -1699,7 +1699,7 @@ module DEA
           runtime['enabled'] = true
           @logger.info("  #{pname} OK")
         else
-          @logger.info("  #{pname} FAILED, version mismatch (#{version_check})")
+          @logger.info("  #{pname} FAILED, version mismatch. Expected Regexp(#{version_regexp}); found: (#{version_check})")
         end
       end
     end
