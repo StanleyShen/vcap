@@ -12,6 +12,7 @@ node[:cloud_controller][:bundle_exec_cmd]=CloudFoundry::cf_invoke_bundler_cmd(no
                              File.join(node[:cloudfoundry][:path], "cloud_controller"),
                              "exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{node[:cloud_controller][:cloud_controller_yml_path]}")
 Chef::Log.warn("bundle_exec_cmd #{node[:cloud_controller][:bundle_exec_cmd]}")
+raise "DEBUGGING Expecting node[:cloud_controller][:stager][:auth][:user] to be 'vcap'" unless node[:cloud_controller][:stager][:auth][:user]
 
 bash "rake_migrate_ccdb" do
   user node[:deployment][:user] #does not work: CHEF-2288
