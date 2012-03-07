@@ -94,7 +94,7 @@ class StagingPlugin
         hash.each do |name, properties|
           exe, ver = properties['executable']
           ver = properties['version_regexp'] || Regexp.quote(properties['version'])
-          ver_pattern = Regexp.new(Regexp.quote(ver))
+          ver_pattern = Regexp.new(ver)
           output = get_ruby_version(exe)
           if $? == 0
             unless output.strip =~ ver_pattern
