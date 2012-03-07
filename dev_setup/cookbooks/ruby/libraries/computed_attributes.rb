@@ -31,7 +31,6 @@ module CloudFoundryAttributes
 
     node[:ruby][:version_regexp] = Regexp.quote(node[:ruby][:version]).gsub(/-/, '.?')
     node[:ruby][:version_regexp_yaml] = node[:ruby][:version_regexp].gsub( Regexp.new("\\\\"), '\\\\\\' )
-    Chef::Log.warn("Before node[:ruby][:version_regexp_yaml]: #{node[:ruby][:version_regexp_yaml]}")
     if node[:ruby18]
       node[:ruby18][:version_regexp] = Regexp.quote(node[:ruby18][:version])
       node[:ruby18][:version_regexp_yaml] = node[:ruby18][:version_regexp].gsub( Regexp.new("\\\\"), '\\\\\\' )

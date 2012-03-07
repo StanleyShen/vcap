@@ -89,14 +89,14 @@ staging:
   max_concurrent_stagers: 10
   # Max duration for staging process
   max_staging_runtime:    <%= node[:cloud_controller][:stager][:max_staging_runtime] %> # secs
-  # Create a secure environment for staging
+<%if node[:cloud_controller][:stager] %>  # Create a secure environment for staging
   secure: <%= node[:cloud_controller][:stager][:secure] %>
   new_stager_percent: <%= node[:cloud_controller][:stager][:new_stager_percent] %>
   new_stager_email_regexp: <%= node[:cloud_controller][:stager][:new_stager_email_regexp] %>
-  auth:
-    user: <%= node[:cloud_controller][:stager][:user] %>
-    password: <%= node[:cloud_controller][:stager][:password] %>
-
+<%if node[:cloud_controller][:stager][:auth] %>  auth:
+    user: <%= node[:cloud_controller][:stager][:auth][:user] %>
+    password: <%= node[:cloud_controller][:stager][:auth][:password] %>
+<% end %><% end %>
 # admin support
 admins: [ <%= node[:cloud_controller][:admins].join(", ") %> ]
 https_required: false
