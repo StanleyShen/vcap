@@ -6,11 +6,11 @@ module VCAP
         attr_reader   :log
         
         def config(conf)
+          @log = VCAP::DNS_PUBLISHER::DnsPublisher.log
           hostnames_filter=conf['hostnames_filter']
-          hostnames_filter=hostnames_filter[1,-1] if hostnames_filter.start_with?('/') && hostnames_filter.end_with?('/')
+          hostnames_filter=hostnames_filter[1,-1] if hostnames_filter && hostnames_filter.start_with?('/') && hostnames_filter.end_with?('/')
           @dns_url_filter=(Regexp.new(hostnames_filter) if hostnames_filter) || /\.local$/
           @published_urls = {}
-          @log = VCAP::DNS_PUBLISHER::DnsPublisher.log
           log.info "avahi-mdsn publisher in place for #{@dns_url_filter.inspect}"
           self
         end
