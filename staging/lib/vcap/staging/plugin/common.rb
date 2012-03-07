@@ -147,6 +147,7 @@ class StagingPlugin
   end
 
   def self.load_all_manifests
+    puts "Loading all staging manifests frome #{File.expand_path(manifest_root)}"
     pattern = File.join(manifest_root, '*.yml')
     Dir[pattern].each do |yaml_file|
       next if File.basename(yaml_file) == 'platform.yml'

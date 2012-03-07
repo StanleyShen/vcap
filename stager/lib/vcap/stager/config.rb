@@ -39,9 +39,16 @@ class VCAP::Stager::Config < VCAP::Config
 
   def self.from_file(*args)
     config = super(*args)
-
+    filename = args[0]
     config[:dirs] ||= {}
-    config[:dirs][:manifests] ||= StagingPlugin::DEFAULT_MANIFEST_ROOT
+    unless config[:dirs][:manifests]
+      # try the staging directory first to support a chef installation.
+      possible_manifests_dir=File.join(File.basename(filename),"staging")
+      config[:dirs][:manifests] = File.expand_path(possible_manifests_dir) if File.exists?(possible_manifests_dir)
+      # default to the staging directory in the code of the staging plugin.
+      config[:dirs][:manifests] ||= StagingPlugin::DEFAULT_MANIFEST_ROOT
+    end
+    puts "Starting the stager with the manifests found in #{config[:dirs][:manifests]}"
     config[:run_plugin_path]  ||= File.expand_path('../../../../bin/run_plugin', __FILE__)
     config[:ruby_path]        ||= `which ruby`.chomp
 
