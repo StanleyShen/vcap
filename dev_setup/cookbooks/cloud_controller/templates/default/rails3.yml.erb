@@ -3,8 +3,8 @@ name: "rails3"
 runtimes:<% if @ruby18_enabled %>
   - "ruby18":
       version: "1.8.7" # FIXME change to 1.8.7-p334
-      version_regexp: "<%= node[:ruby18][:version_regexp] %>"
-      description: "Ruby 1.8.7"
+      version_regexp: <%= node[:ruby18][:version_regexp_yaml] %>"
+      description: "Ruby <%= node[:ruby18][:version] %>"
       executable: "<%= File.join(node[:ruby18][:path], "bin", "ruby") %>"
       default: true
       environment:
@@ -13,7 +13,7 @@ runtimes:<% if @ruby18_enabled %>
        rack_env: "production"<% end %>
   - "ruby19":
       version: "<%= node[:ruby][:version] %>"
-      version_regexp: "<%= node[:ruby][:version_regexp] %>"
+      version_regexp: "<%= node[:ruby][:version_regexp_yaml] %>"
       description: "Ruby <%= node[:ruby][:version] %>"
       executable: "<%= File.join(node[:ruby][:path], "bin", "ruby") %>"
       environment:

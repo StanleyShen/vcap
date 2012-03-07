@@ -92,12 +92,13 @@ class StagingPlugin
     %w[sinatra rails3].each do |framework|
       manifests[framework]['runtimes'].each do |hash|
         hash.each do |name, properties|
-          exe, ver = properties['executable'], properties['version']
+          exe, ver = properties['executable']
+          ver = properties['version_regexp'] || Regexp.quote(properties['version'])
           ver_pattern = Regexp.new(Regexp.quote(ver))
           output = get_ruby_version(exe)
           if $? == 0
             unless output.strip =~ ver_pattern
-              raise "#{framework} runtime #{name} version was #{output.strip}, expected to match #{ver}*"
+              raise "#{framework} runtime #{name} version was #{output.strip}, expected to match #{ver}*; runtime properties: #{properties.inspect}"
             end
           else
             raise "#{framework} staging manifest has a bad runtime: #{name} (#{output.strip})"

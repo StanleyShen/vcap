@@ -30,20 +30,25 @@ module CloudFoundryAttributes
     node[:ruby18][:path]    = File.join(node[:deployment][:home], "deploy", "rubies", "ruby-#{node[:ruby18][:version]}") unless node[:ruby18][:path]
 
     node[:ruby][:version_regexp] = Regexp.quote(node[:ruby][:version]).gsub(/-/, '.?')
-    node[:ruby18][:version_regexp] = Regexp.quote(node[:ruby18][:version]).gsub(/-/, '.?') if node[:ruby18]
-
+    node[:ruby][:version_regexp_yaml] = node[:ruby][:version_regexp].gsub( Regexp.new("\\\\"), '\\\\\\' )
+    Chef::Log.warn("Before node[:ruby][:version_regexp_yaml]: #{node[:ruby][:version_regexp_yaml]}")
+    if node[:ruby18]
+      node[:ruby18][:version_regexp] = Regexp.quote(node[:ruby18][:version])
+      node[:ruby18][:version_regexp_yaml] = node[:ruby18][:version_regexp].gsub( Regexp.new("\\\\"), '\\\\\\' )
+    end
+    
     ## other recipe's derived attributes:
     if node[:redis]
       node[:redis][:path] = File.join(node[:deployment][:home], "deploy", "redis") unless node[:redis][:path]
     end
-    if node[:erlang]
+    if node[:erlang] || node[:cloud_controller] # used by the cloud_controller templates
+      node[:erlang] = {} unless node[:erlang]
       node[:erlang][:path] = File.join(node[:deployment][:home], "deploy", "erlang") unless node[:erlang][:path]
     end
-    if node[:nodejs]
-      Chef::Log.warn("Before node[:nodejs][:path]: #{node[:nodejs][:path]}")
+    if node[:nodejs] || node[:cloud_controller] # used by the cloud_controller templates
+      node[:nodejs] = {} unless node[:nodejs]
       node[:nodejs][:source] = "http://nodejs.org/dist/node-v#{node[:nodejs][:version]}.tar.gz" unless node[:nodejs][:source]
-      node[:nodejs][:path] = File.join(node[:deployment][:home], "deploy", "nodejs") unless node[:nodejs][:path]
-      Chef::Log.warn("After node[:nodejs][:path]: #{node[:nodejs][:path]}")
+      node[:nodejs][:path] = File.join(node[:deployment][:home], "deploy", "nodejs") #unless node[:nodejs][:path]
     end
     if node[:mongodb_node]
       node[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb") unless node[:mongodb_node][:path]
@@ -53,6 +58,8 @@ module CloudFoundryAttributes
     node[:ccdb][:host] ||= cf_local_ip node[:ccdb]
     node[:postgresql_node][:host] ||= cf_local_ip if node[:postgresql_node]
     if node[:dea]
+      # make the dea runtimes' completly overridable. if we don't do this we get a deep merge instead.
+      # the trick to prevent the deep merge is deprecated
       node[:dea][:runtimes] = node[:dea][:runtimes_default] unless node[:dea][:runtimes]
     end
     node[:cloud_controller] = {} unless node[:cloud_controller]
