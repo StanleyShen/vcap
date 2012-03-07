@@ -76,7 +76,7 @@ set +e
 echo "About to execute select count(*) from pg_roles where rolname='#{user}'"
 already=`psql #{PSQL_RAW_RES_ARGS} -c \"select count(*) from pg_roles where rolname='#{user}'\"`
 if [ -z "$already" ]; then
-  psql -c \"CREATE ROLE #{user} WITH NOSUPERUSER\"
+  psql -c \"CREATE ROLE #{user} WITH LOGIN NOSUPERUSER\"
 fi
 if [ -z "$dont_alter_existing_role"  ]; then
   psql -c \"ALTER ROLE #{user} WITH ENCRYPTED PASSWORD '#{passwd}'\"
