@@ -102,13 +102,13 @@ EOH
       options "--config-file #{ruby_path}/lib/chef.gemrc"
       retries 4
       version bundler_version
-      gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")} --install-dir #{node[:ruby][:gemdir]}"
+      gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
     end
 
     gem_package "rake" do
       retries 4
       version rake_version
-      gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")} --install-dir #{node[:ruby][:gemdir]}"
+      gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
     end
 
     # The default chef installed with Ubuntu 10.04 does not support the "retries" option
@@ -122,7 +122,7 @@ EOH
     %w[ rack eventmachine thin sinatra mysql pg ].each do |gem|
       gem_package gem do
         retries 4
-        gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")} --install-dir #{node[:ruby][:gemdir]}"
+        gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
       end
     end
   end
