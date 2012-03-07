@@ -43,7 +43,7 @@ class VCAP::Stager::Config < VCAP::Config
     config[:dirs] ||= {}
     unless config[:dirs][:manifests]
       # try the staging directory first to support a chef installation.
-      possible_manifests_dir=File.join(File.basename(filename),"staging")
+      possible_manifests_dir=File.join(File.dirname(filename),"staging")
       config[:dirs][:manifests] = File.expand_path(possible_manifests_dir) if File.exists?(possible_manifests_dir)
       # default to the staging directory in the code of the staging plugin.
       config[:dirs][:manifests] ||= StagingPlugin::DEFAULT_MANIFEST_ROOT
