@@ -74,6 +74,10 @@ if [ "$do_reconfig" == "true" ]; then
       sleep 5
     fi
   done
+  if [ -z "$ready" ]; then
+    echo "Cloud controller failed to start"
+    exit 1 
+  fi 
   #vmc_knife login | tee -a $_vcap_log
   vmc_knife configure-applications | tee -a $_vcap_log
   vmc_knife configure-vcap-etc-hosts | tee -a $_vcap_log
@@ -98,5 +102,9 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
       sleep 5
     fi
   done
+  if [ -z "$ready" ]; then
+    echo "Cloud controller failed to start"
+    exit 1 
+  fi 
 fi
 fi
