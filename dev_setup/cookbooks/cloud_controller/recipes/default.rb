@@ -29,9 +29,8 @@ EOH
   action :nothing
 end
 
-cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "common")))
-cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "staging")))
-cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "cloud_controller")))
+cf_bundle_install(File.join(node["cloudfoundry"]["path"], "cloud_controller"))
+cf_gem_build_install(File.join(node["cloudfoundry"]["path"], "staging"))
 add_to_vcap_components("cloud_controller")
 
 template node[:cloud_controller][:config_file] do
