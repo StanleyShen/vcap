@@ -18,8 +18,8 @@ spec = Gem::Specification.new do |s|
   s.add_dependency "nats"
 #  s.add_dependency "route53"
   #s.add_development_dependency "rake"
-  s.add_development_dependency "rspec",   "~> 1.3.0"
-  s.add_development_dependency "webmock", "= 1.5.0"
+#  s.add_development_dependency "rspec",   "~> 1.3.0"
+#  s.add_development_dependency "webmock", "= 1.5.0"
 
   s.bindir  = "bin"
   s.require_path = 'lib'
