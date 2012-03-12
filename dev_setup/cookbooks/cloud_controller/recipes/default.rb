@@ -11,6 +11,20 @@ node[:cloud_controller][:cloud_controller_yml_path]=File.join(node[:deployment][
 node[:cloud_controller][:bundle_exec_cmd]=CloudFoundry::cf_invoke_bundler_cmd(node,
                              File.join(node[:cloudfoundry][:path], "cloud_controller"),
                              "exec rake db:migrate CLOUD_CONTROLLER_CONFIG=#{node[:cloud_controller][:cloud_controller_yml_path]}")
+
+## #max size of the unzipped app (overrides the 512M and makes it 768M): 768 * 1024 * 1024
+## max_droplet_size: 805306368
+max_droplet_size=node[:cloud_controller][:max_droplet_size]
+if max_droplet_size
+  if /M$/ =~ max_droplet_size
+    max_droplet_size=max_droplet_size[0..-1].to_i * 1024 * 1024
+  elsif /G$/ =~ max_droplet_size
+    max_droplet_size=max_droplet_size[0..-1].to_i * 1024 * 1024 * 1024
+  else
+    max_droplet_size=max_droplet_size.to_i
+  end
+end
+
 Chef::Log.info("bundle_exec_cmd #{node[:cloud_controller][:bundle_exec_cmd]}")
 
 bash "rake_migrate_ccdb" do
@@ -53,6 +67,7 @@ template node[:cloud_controller][:config_file] do
   end
   variables({
     :builtin_services => builtin_services,
+    :max_droplet_size => max_droplet_size,
     :ruby18_enabled => node[:dea] && node[:dea][:runtimes].include?('ruby18') ? true : false
   })
   # see http://wiki.opscode.com/display/chef/Resources#Resources-Execute

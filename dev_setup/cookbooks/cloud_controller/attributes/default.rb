@@ -25,6 +25,10 @@ default[:cloud_controller][:staging][:java_web] = "java_web.yml"
 default[:cloud_controller][:staging][:java_start] = "java_start.yml"
 default[:cloud_controller][:staging][:php] = "php.yml"
 
+# max_droplet_size
+default[:cloud_controller][:max_droplet_size] = "768M"
+
+
 # keys
 default[:cloud_controller][:keys][:password] = 'password key goes here'
 default[:cloud_controller][:keys][:token] = 'token key goes here'
