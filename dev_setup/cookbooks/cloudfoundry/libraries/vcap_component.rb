@@ -34,6 +34,13 @@ module CloudFoundry
       user_id = `id -u #{node[:deployment][:user]}`.strip.to_i
       group_id = `id -g #{node[:deployment][:group]}`.strip.to_i
       File.chown user_id, group_id, vcap_components_path
+      cur_dirname=File.dirname(vcap_components_path)
+      if cur_dirname.start_with?("/home/#{node[:deployment][:user]}")
+        while cur_dirname && cur_dirname != "/home/#{node[:deployment][:user]}"
+          File.chown user_id, group_id, cur_dirname
+          cur_dirname = File.dirname(cur_dirname)
+        end
+      end
     end
   end
 

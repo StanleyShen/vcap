@@ -55,7 +55,7 @@ ls #{gem_name}.gemspec
 if [ "$?" != "0" ]; then
   echo "Nothing to build: Can't find a #{gem_name}.gemspec file"
 fi
-rm #{gem_name}*.gem
+[ $(ls | egrep #{gem_name}*.gem$) ] && rm #{gem_name}*.gem
 # #{File.join(node[:ruby][:path], "bin", "gem")} build #{gem_name}.gemspec
 #{gem_install_cmd}
 ls #{gem_name}*.gem

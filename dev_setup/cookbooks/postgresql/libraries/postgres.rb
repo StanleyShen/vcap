@@ -18,6 +18,7 @@ module CloudFoundryPostgres
     postgresql_ctl = File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")
     #In my experience on 10.04 postgres even for 9.0 does not have the version number in its filename
     postgresql_ctl = File.join("", "etc", "init.d", "postgresql") unless File.exists? postgresql_ctl
+    Chef::Log.warn "Issuing #{postgresql_ctl} #{cmd}"
     `#{postgresql_ctl} #{cmd}`
   end
   
@@ -75,7 +76,7 @@ module CloudFoundryPostgres
 set +e
 echo "About to execute select count(*) from pg_roles where rolname='#{user}'"
 already=`psql #{PSQL_RAW_RES_ARGS} -c \"select count(*) from pg_roles where rolname='#{user}'\"`
-if [ -z "$already" ]; then
+if [ -z "$already" -o "0" = "$already" ]; then
   psql -c \"CREATE ROLE #{user} WITH LOGIN NOSUPERUSER\"
 fi
 if [ -z "$dont_alter_existing_role"  ]; then
