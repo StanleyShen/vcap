@@ -8,6 +8,7 @@ compute_derived_attributes
 case node['platform']
 when "ubuntu"
   package "git-core"
+  pacakge "secure-delete"
 else
   Chef::Log.error("Installation of cloudfoundr not supported on this platform.")
 end
@@ -216,6 +217,12 @@ file node[:deployment][:local_run_profile] do
   owner node[:deployment][:user]
   group node[:deployment][:group]
   content <<-EOH
+if [ -n "$GEM_HOME" -a $(echo "$GEM_HOME" | grep "/root") ]; then
+  echo "WARN: WRONG ENV. GEM_HOME is $GEM_HOME trying a sudo -i -u gem env gemdir to fix things"
+  gemdir=`sudo -i -u #{node[:deployment][:user]} #{node[:ruby][:path]}/bin/gem env gemdir`
+  export GEM_HOME=$gemdir
+  export GEM_PATH=$gemdir
+fi
 [ -z $(echo $PATH | grep #{node[:ruby][:path]}/bin ) ] && export PATH=#{node[:ruby][:path]}/bin:`#{node[:ruby][:path]}/bin/gem env gemhome`/bin:$PATH
 export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
 export VMC_KNIFE_DEFAULT_RECIPE=#{node[:deployment][:vmc_knife_default_recipe]}

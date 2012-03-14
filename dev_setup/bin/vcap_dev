@@ -53,7 +53,8 @@ unless File.exists?(File.join(deployment_info["cloudfoundry_path"], "bin", "vcap
 end
 
 ruby_bin_dir = deployment_info["ruby_bin_dir"]
-gemdir = `#{File.join(ruby_bin_dir, "gem")} environment gemdir`.split("\n")[0]
+gemdir = `#{File.join(ruby_bin_dir, "gem")} environment gemdir`.strip
+raise "Unable to find the gemdir #{gemdir} with #{File.join(ruby_bin_dir, "gem")} environment gemdir" unless gemdir && File.exists?(gemdir)
 ENV["PATH"] = "#{ruby_bin_dir}:#{File.join(gemdir, "bin")}:#{ENV["PATH"]}"
 
 if vcap_components["components"].include?("cloud_controller")

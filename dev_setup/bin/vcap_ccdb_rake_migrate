@@ -7,7 +7,17 @@ while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR/../../cloud_controller
 echo "Now in directory "`pwd`
-[ -n "$CLOUD_FOUNDRY_CONFIG_PATH" ] && CLOUD_CONTROLLER_CONFIG="$CLOUD_FOUNDRY_CONFIG_PATH/cloud_controller.yml" || CLOUD_CONTROLLER_CONFIG=`pwd`/config/cloud_controller.y$
+
+which bundle
+if [ "$?" != "0" ]; then
+  source ~/.cloudfoundry_deployment_profile
+  which bundle
+  if [ "$?" != "0" ]; then
+    echo "Could not find the bundle executable: is ruby and bundler installed?"
+  fi
+fi
+
+[ -n "$CLOUD_FOUNDRY_CONFIG_PATH" ] && CLOUD_CONTROLLER_CONFIG="$CLOUD_FOUNDRY_CONFIG_PATH/cloud_controller.yml" || CLOUD_CONTROLLER_CONFIG=`pwd`/config/cloud_controller.yml
 if [ ! -f "$CLOUD_CONTROLLER_CONFIG" ]; then
   echo "Could not find the config $CLOUD_CONTROLLER_CONFIG"
   exit 2

@@ -43,7 +43,7 @@ if [ -d /home/ubuntu/intalio/registration_app/start_register_app.rb ]; then
     /home/ubuntu/intalio/registration_app/start_register_app.rb reset_manifest
   fi
 fi
-echo "Drop mongo's collections io_change_log lucene's indexes ? (default yes)"
+echo "Drop mongo's collections io_change_log Client and AccessToken ? (default yes)"
 read response
 if [ -z "$response" ]; then
   # drop the collections that we don't need to make some room
@@ -109,18 +109,22 @@ done
 
 set +e
 vmc_knife data-apply-privileges pg_intalio
+[ -e "/var/lib/postgresql/9.0" ] && pg_version="9.0" || pg_version="9.1"
 echo "Size of the postgresql DB files:"
-sudo du -ch /var/lib/postgresql/9.0 | grep total
+sudo du -ch /var/lib/postgresql/$pg_version | grep total
 echo "Shrink postgresql files ? (default yes)"
 read response
 if [ -z "$response" ]; then
   # shrink postgresql
-  [ -e "/var/lib/postgresql/9.0" ] && pg_version="9.0" || pg_version="9.1"
   postgres_folder=/var/lib/postgresql/$pg_version
   touch pg_backup
   chmod o+rw pg_backup
   sudo -u postgres pg_dumpall > pg_backup
-  [ -e "/etc/init.d/postgresql" ] && sudo /etc/init.d/postgresql stop || sudo initctl stop postgresql
+  if [ -e "/etc/init.d/postgresql" ]; then
+    sudo /etc/init.d/postgresql stop
+  else
+    sudo initctl stop postgresql
+  fi
   sudo mv $postgres_folder/main $postgres_folder/main.old
   sudo -u postgres mkdir $postgres_folder/main
   sudo -u postgres /usr/lib/postgresql/$pg_version/bin/initdb --encoding=UTF8 --local=en_US.UTF-8 -D $postgres_folder/main
@@ -131,8 +135,12 @@ if [ -z "$response" ]; then
 ## this does not work yet?
   # start postgresql without emitting the upstart daemon starting/started events which would make vcap start again.
   #sudo /usr/lib/postgresql/$pg_version/bin/postgres -D /var/lib/postgresql/$pg_version/main
-[ -e "/etc/init.d/postgresql" ] && sudo /etc/init.d/postgresql start || sudo initctl start postgresql
-
+if [ -e "/etc/init.d/postgresql" ]; then
+  sudo /etc/init.d/postgresql start
+else
+  sudo initctl start postgresql
+fi
+echo "Let's make sure we can connect to postgres"
   set +e
   PSQL_RAW_RES_ARGS="-P format=unaligned -P footer=off -P tuples_only=on"
   COUNTER=0
@@ -173,7 +181,11 @@ if [ -z "$response" ]; then
 fi
 
 # the rest is fast and innocent let it happen without further questioning
-[ -e "/etc/init.d/postgresql" ] && sudo /etc/init.d/postgresql stop || sudo initctl stop postgresql
+if [ -e "/etc/init.d/postgresql" ]; then
+  sudo /etc/init.d/postgresql stop
+else
+  sudo initctl stop postgresql
+fi
 sudo /etc/init.d/nats_server stop
 sudo /etc/init.d/redis-server stop
 
@@ -188,7 +200,6 @@ rm -rf ~/cloudfoundry/vcap/java/.git
 rm -rf ~/cloudfoundry/vcap/services/.git
 rm -rf ~/cloudfoundry/vcap/tests
 rm ~/cloudfoundry/log/*
-[ -d "$cf_deployment_folder/log_older" ] && rm -rf $cf_deployment_folder/log_older
 rm -rf ~/.cache
 rm -rf ~/.bash_history
 rm -rf ~/.nano_history
@@ -210,7 +221,7 @@ sudo rm -rf /var/www/cloud/archives
 
 sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
 df -h
-echo "Secure delete (required before we can export the VM's image) default yes?"
+echo "Secure delete (required before we can export the VM image) default yes?"
 read response
 if [ -z "$response" ]; then
 sudo sfill -v -f -z -l  /

@@ -16,8 +16,9 @@ module CloudFoundry
       # so far this has been the best formula to prevent bundler from using the root's user's gem install directory.
       # I suspect that rvm (used by root) is really setting its directories everywhere.
       ## env GEM_HOME=#{gemdir} GEM_PATH=#{gemdir} RUBYOPT=rubygems
-      "sudo -i -u #{node[:deployment][:user]} env gemdir=$gemdir\
- bash -c \"source $HOME/.bashrc; source $HOME/.cloudfoundry_deployment_profile; cd #{path};\
+      "sudo -i -u #{node[:deployment][:user]} gemdir=\"$gemdir\"\
+ bash -c \"source /home/#{node[:deployment][:user]}/.bashrc; source /home/#{node[:deployment][:user]}/.cloudfoundry_deployment_profile;\
+ cd #{path};\
  #{File.join(node[:ruby][:path], "bin", bundle_or_gem)} #{cmd}\""
     else
       "#{File.join(node[:ruby][:path], "bin", bundle_or_gem)} #{cmd}"
