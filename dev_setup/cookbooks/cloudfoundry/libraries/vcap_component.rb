@@ -24,6 +24,7 @@ module CloudFoundry
     components_list ||= Array.new
     components_list << component_name unless components_list.include?(component_name)
     vcap_components["components"] = components_list
+    FileUtils.mkdir_p File.dirname(vcap_components_path)
     File.open(vcap_components_path, 'w') do |f|
       f.write(JSON.pretty_generate(vcap_components))
     end
