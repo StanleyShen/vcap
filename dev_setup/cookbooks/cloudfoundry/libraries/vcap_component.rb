@@ -63,11 +63,11 @@ module CloudFoundry
       else
         @exec_vcap_cmd=@run_context.node[:deployment][:vcap_exec]
       end
-      @new_resource.status_command "#{@exec_vcap_cmd} status #{@component_name}" unless @new_resource.status_command
+      @new_resource.status_command "echo 'about to vcap status';#{@exec_vcap_cmd} status #{@component_name}" unless @new_resource.status_command
       # be nice with start; just fork and go ahead for now.
-      @new_resource.restart_command "#{@exec_vcap_cmd} restart #{@component_name} &" unless @new_resource.restart_command
-      @new_resource.start_command "#{@exec_vcap_cmd} start #{@component_name} &" unless @new_resource.start_command
-      @new_resource.stop_command "#{@exec_vcap_cmd} stop #{@component_name}" unless @new_resource.stop_command
+      @new_resource.restart_command "echo 'about to vcap restart';#{@exec_vcap_cmd} restart #{@component_name}" unless @new_resource.restart_command
+      @new_resource.start_command "echo 'about to vcap start';#{@exec_vcap_cmd} start #{@component_name}" unless @new_resource.start_command
+      @new_resource.stop_command "echo 'about to vcap stop';#{@exec_vcap_cmd} stop #{@component_name}" unless @new_resource.stop_command
       super
     end
     def reload_service

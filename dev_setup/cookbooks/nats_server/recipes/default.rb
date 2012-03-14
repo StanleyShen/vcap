@@ -6,8 +6,15 @@
 #
 compute_derived_attributes
 
+# this will nicely try to start nats_server and not complain if it is not there or something
+execute "start-nats" do
+  command "sudo /etc/init.d/nats_server start; exit 0"
+  action :nothing
+end
+
 gem_package "nats" do
   gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(node[:ruby][:path], "bin", "gem")}"
+  notifies :run, "execute[start-nats]"
 end
 
 nats_config_dir = File.join(node[:deployment][:config_path], "nats_server")
@@ -18,7 +25,8 @@ directory nats_config_dir do
   mode "0755"
   recursive true
   action :create
-  notifies :restart, "service[nats_server]"
+  notifies :run, "execute[start-nats]"
+  #notifies :restart, "service[nats_server]"
 end
 
 case node['platform']
@@ -28,7 +36,8 @@ when "ubuntu"
     source "nats_server.erb"
     owner node[:deployment][:user]
     mode 0755
-    notifies :restart, "service[nats_server]"
+    notifies :run, "execute[start-nats]"
+    #notifies :restart, "service[nats_server]"
   end
   
   template "vcap_reconfig" do
@@ -39,10 +48,10 @@ when "ubuntu"
   end
 
   # runs /etc/init.d/nats_server (start|stop|restart), etc.
-  service "nats_server" do
-    supports :status => true, :restart => true, :reload => true, :start => true, :stop => true
-    action [ :enable, :start ]
-  end
+  #service "nats_server" do
+  #  supports :status => true, :restart => true, :reload => true, :start => true, :stop => true
+  #  action [ :enable, :start ]
+  #end
 else
   Chef::Log.error("Installation of nats_server not supported on this platform.")
 end
@@ -52,7 +61,8 @@ template "nats_server.yml" do
   source "nats_server.yml.erb"
   owner node[:deployment][:user]
   mode 0644
-  notifies :restart, "service[nats_server]"
+  notifies :run, "execute[start-nats]"
+  #notifies :restart, "service[nats_server]"
 end
 
 

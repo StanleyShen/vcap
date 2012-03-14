@@ -27,6 +27,13 @@ end
 
 Chef::Log.info("bundle_exec_cmd #{node[:cloud_controller][:bundle_exec_cmd]}")
 
+# this will nicely try to start nats_server and not complain if it is not there or something
+execute "start-cloud-controller" do
+  command "sudo -i -u #{node[:deployment][:user]} #{node[:deployment][:vcap_exec]} start cloud_controller; exit 0"
+  action :nothing
+end
+
+
 bash "rake_migrate_ccdb" do
   user node[:deployment][:user] #does not work: CHEF-2288
   environment ({'HOME' => "/home/#{node[:deployment][:user]}",
@@ -39,6 +46,7 @@ bash "rake_migrate_ccdb" do
 #{node[:cloud_controller][:bundle_exec_cmd]}
 EOH
   Chef::Log.warn("rake_migrate_ccdb: #{code}")
+  notifies :run, "execute[start-cloud-controller]"
   #notifies :restart, "service[vcap_cloud_controller]"
   action :nothing
 end
@@ -52,6 +60,7 @@ template node[:cloud_controller][:config_file] do
   source "cloud_controller.yml.erb"
   owner node[:deployment][:user]
   mode 0644
+  action :create
   builtin_services = []
   case node[:cloud_controller][:builtin_services]
   when Array
@@ -81,9 +90,11 @@ node[:cloud_controller][:staging].each_pair do |framework, config|
     source "#{config}.erb"
     owner node[:deployment][:user]
     mode 0644
+    action :create
     variables({
       :ruby18_enabled => node[:dea] && node[:dea][:runtimes].include?('ruby18') ? true : false
     })
+    notifies :run, resources(:bash => "rake_migrate_ccdb")
   end
 end
 

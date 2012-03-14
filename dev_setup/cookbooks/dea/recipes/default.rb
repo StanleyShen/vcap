@@ -51,9 +51,10 @@ end
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "dea")))
 add_to_vcap_components("dea")
 
-service "vcap_dea" do
-  provider CloudFoundry::VCapChefService
-  supports :status => true, :restart => true, :start => true, :stop => true
+# this really does not work yet.
+#service "vcap_dea" do
+#  provider CloudFoundry::VCapChefService
+#  supports :status => true, :restart => true, :start => true, :stop => true
   #action [ :start ]
-end
+#end
 

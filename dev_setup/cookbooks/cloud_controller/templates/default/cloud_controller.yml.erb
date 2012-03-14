@@ -99,7 +99,7 @@ staging:
 <% end %><% end %>
 <% if node[:cloud_controller][:max_droplet_size] %>
 #max size of the unzipped app (overrides the 512M and makes it <%= node[:cloud_controller][:max_droplet_size] %>) in bytes:
-max_droplet_size: @max_droplet_size
+max_droplet_size: <%= @max_droplet_size %>
 <% end %>
 
 # admin support
