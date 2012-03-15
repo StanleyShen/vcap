@@ -249,7 +249,7 @@ class StagingPlugin
         found.push(relative_path)
       end
     end
-    found
+    found.sort
   end
 
   def self.scan_files_for_regexp(base_dir, glob, pattern)
