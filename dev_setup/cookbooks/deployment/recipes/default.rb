@@ -102,6 +102,13 @@ template node[:deployment][:info_file] do
   })
 end
 
+# generates a file that contains the openstack_public_ip or empty if not running on openstack.
+template "openstack_public_ip" do
+  path File.join("", "etc", "init", "openstack_public_ip.conf")
+  source "openstack_public_ip.conf.erb"
+  mode 0644
+end
+
 template "hostname_uniq_if_up" do
   path File.join("", "etc", "network", "if-up.d", "hostname_uniq")
   source "hostname_uniq_if_up.erb"

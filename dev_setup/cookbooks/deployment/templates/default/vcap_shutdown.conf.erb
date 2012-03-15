@@ -10,7 +10,7 @@ script
  set +e
  LOG_FILE=/var/log/vcap_reconfig.log
  touch $LOG_FILE
- chmod o+r $LOG_FILE
+ chmod go+wr $LOG_FILE
  monit quit
  sudo -i -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> stop
 

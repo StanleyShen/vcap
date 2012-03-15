@@ -194,10 +194,15 @@ sudo apt-get clean
 sudo apt-get autoclean
 
 rm -rf /home/ubuntu/cloudfoundry/backup
-rm -rf /var/www/nginx/logs
-rm -rf ~/cloudfoundry/vcap/.git
-rm -rf ~/cloudfoundry/vcap/java/.git
-rm -rf ~/cloudfoundry/vcap/services/.git
+sudo rm -rf /var/www/nginx/logs
+echo "Keep the .git folders of vcap sources (default yes) ?"
+read response
+if [ -n "$response" ]; then
+  echo "Deleting the .git folders of vcap and its sub-modules"
+  rm -rf ~/cloudfoundry/vcap/.git
+  rm -rf ~/cloudfoundry/vcap/java/.git
+  rm -rf ~/cloudfoundry/vcap/services/.git
+fi
 rm -rf ~/cloudfoundry/vcap/tests
 rm ~/cloudfoundry/log/*
 rm -rf ~/.cache
@@ -215,9 +220,6 @@ sudo rm /var/cache/apt/srcpkgcache.bin
 sudo rm /var/cache/apt/pkgcache.bin
 sudo rm -rf /var/chef/cache/*
 sudo rm -rf /var/log/apache2/*
-sudo rm -rf /var/log/cloud-jetty/*
-sudo rm -rf /var/www/cloud/jetty/wk*
-sudo rm -rf /var/www/cloud/archives
 
 sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
 df -h

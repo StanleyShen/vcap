@@ -6,8 +6,7 @@
 
 description "etc issues volatile messages"
 
-#same than the events for tty1.conf
-start on stopped rc RUNLEVEL=[2345]
+start on filesystem or runlevel [2345]
 stop on runlevel [!2345]
 
 expect fork
@@ -16,7 +15,9 @@ pre-start script
     # put the folder that will contain the messages in place
     [ -d /etc/issue.d/volatile.d ] && rm -rf /etc/issue.d/volatile.d
     mkdir -p /etc/issue.d/volatile.d
-    chmod -R o+rw /etc/issue.d/volatile.d
+    touch /etc/issue.d/volatile.d/K00_vcap_welcome
+    echo "<%= node[:deployment][:etc_issue_msg] %>" > /etc/issue.d/volatile.d/K00_vcap_welcome
+    chmod -R go+rw /etc/issue.d/volatile.d
 end script
 
 post-stop script

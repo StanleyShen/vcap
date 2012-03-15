@@ -18,10 +18,17 @@ CLOUD_FOUNDRY_CONFIG_PATH=<%= node[:deployment][:config_path] %>
 
 LOG_FILE=<%= node[:deployment][:log_path] %>/vcap_reconfig.log
 touch $LOG_FILE
-chmod o+r $LOG_FILE
+chmod go+rw $LOG_FILE
 date=$( date +"%Y-%m-%d_%H:%M:%S" )
 
 echo "$date Checking vcap config now that the network and postgresql are up $IFACE" >> $LOG_FILE
+
+IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
+if [ -n "$IP" -a -d /etc/issue.d/volatile.d ]; then
+    touch /etc/issue.d/volatile.d/K01_vcap_on_ip
+    echo "Installed on $IP" > /etc/issue.d/volatile.d/K01_vcap_on_ip
+    chmod -R go+rw /etc/issue.d/volatile.d/K01_vcap_on_ip
+fi
 
 # Update the host on which the nats-server is running.
 # At the moment we only look after one particular interface which
@@ -30,29 +37,23 @@ echo "$date Checking vcap config now that the network and postgresql are up $IFA
 # DAEMON_ARGS="-d -c /home/ubuntu/cloudfoundry/.deployments/intalio_micro_cf/config/nats_server/nats_server.yml"
 NATS_CONF=`grep DAEMON_ARGS=  /etc/init.d/nats_server | egrep -o ' -c [^\"]*' | cut -d' ' -f3`
 if [ ! -e "$NATS_CONF" ]; then
-  # Attempt to read the path of the config file directly from the /etc/init.d/nats_server: it look like this:
-  # DAEMON_ARGS="-d -c /home/ubuntu/cloudfoundry/.deployments/intalio_micro_cf/config/nats_server/nats_server.yml"
-  NATS_CONF=`grep DAEMON_ARGS=  /etc/init.d/nats_server | egrep -o ' -c [^\"]*' | cut -d' ' -f3`
-fi
-if [ ! -e "$NATS_CONF" ]; then
-echo "cant find NATS_CONF" >> $LOG_FILE
-        exit 0
+  echo "cant find NATS_CONF" >> $LOG_FILE
+  exit 0
 fi
 # Now in that file look for the tracked interface:
 # tracked-net-iface: eth0
 NATS_TRACKED_IFACE=`grep tracked_net_iface: $NATS_CONF | cut -d' ' -f2`
 if [ "$IFACE" != "$NATS_TRACKED_IFACE" ]; then
-echo "wrong IFACE? NATS_TRACKED_IFACE=$NATS_TRACKED_IFACE" >> $LOG_FILE
-        exit 0
+  echo "wrong IFACE? NATS_TRACKED_IFACE=$NATS_TRACKED_IFACE" >> $LOG_FILE
+  exit 0
 fi
 
 # Read the IP for this IFACE and then make sure that nats_server config file has that IP
-IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
 echo "Found IP $IP for nats_conf $NATS_CONF" >> $LOG_FILE
 if [ -z "$IP" ]; then
-echo "Could not find the IP! IFACE=$IFACE" >> $LOG_FILE
+  echo "Could not find the IP! IFACE=$IFACE" >> $LOG_FILE
 #Unexpected to say the least but we don't want to replace a good IP by a blank string.
-        exit 0;
+  exit 0;
 fi
 
 
@@ -130,7 +131,9 @@ fi
 /etc/init.d/nats_server start || true
 # head start for nats
 sleep 5
+echo "Calling vcap start" >> $LOG_FILE
 sudo -i -u <%= node[:deployment][:user] %> <%= node[:deployment][:vcap_exec] %> start
+echo "Returned from vcap start" >> $LOG_FILE
 
 if [ -n "$monit_was_started" ]; then
    sleep 60

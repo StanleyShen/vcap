@@ -16,8 +16,9 @@ echo `date +%Y-%m-%d-%H%M%S`" vcap called with $@" | tee -a $_vcap_log
 ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
 if [ -z "$ip" ]; then
   if [ -d "/etc/issue.d/volatile.d" ]; then
-    touch /etc/issue.d/volatile.d/K50_applications_status
-    echo "Cloudfoundry cannot start: No network is available." > /etc/issue.d/volatile.d/K50_applications_status
+    [ -f /etc/issue.d/volatile.d/K75_registration_app ] && app_status_file=/etc/issue.d/volatile.d/K50_applications_status.disabled || app_status_file=/etc/issue.d/volatile.d/K50_applications_status
+    touch $app_status_file
+    echo "Cloudfoundry cannot start: No network is available." > $app_status_file
   fi
   echo "Cloudfoundry cannot start: No network is available." >> $_vcap_log
   exit 1
@@ -42,13 +43,6 @@ elif [ -z "$2" ]; then
 fi
 if [ "$do_reconfig" == "true" ]; then
 
-  if [ -d "/etc/issue.d/volatile.d" ]; then
-     echo "Starting Cloud Foundry" > /etc/issue.d/volatile.d/K50_applications_status
-  fi
-
-  # this is called before the apps are started and after the cloud_controller is started
-  # let's make sure that the applications are correctly configured with their url
-
   # plug your own apps here:
   # call the registration app if there is such a thing it will take care of the dns gateway bind
   if [ -f "/home/ubuntu/intalio/registration_app/start_register_app.rb" ]; then
@@ -57,6 +51,14 @@ if [ "$do_reconfig" == "true" ]; then
      ruby start_register_app.rb >> $_vcap_log 2>&1 # | tee -a $_vcap_log # can't redirect
   fi
 
+  if [ -d "/etc/issue.d/volatile.d" ]; then
+     # Don't override the Please Register
+     please_register=`grep Please /etc/issue`
+     [ -z "$please_register" ] && echo "Application starting... This may take a few minutes." > /etc/issue.d/volatile.d/K50_applications_status
+  fi
+
+  # this is called before the apps are started and after the cloud_controller is started
+  # let's make sure that the applications are correctly configured with their url
   cd /home/ubuntu
   echo "calling vmc_knife to make sure the urls are up to date." | tee -a $_vcap_log
   $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start cloud_controller | tee -a $_vcap_log

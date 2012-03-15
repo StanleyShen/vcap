@@ -44,7 +44,7 @@ when "ubuntu"
     path "/etc/init/vcap_reconfig.conf"
     source "vcap_reconfig.conf.erb"
     owner node[:deployment][:user]
-    mode 0755
+    mode 0644
   end
 
   # runs /etc/init.d/nats_server (start|stop|restart), etc.

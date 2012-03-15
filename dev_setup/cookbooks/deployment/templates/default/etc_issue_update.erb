@@ -1,21 +1,27 @@
-#!/bin/sh
+#!/bin/bash
 # etc issues volatile messages
 # script that periodically checks for changes in the /etc/issue.d/volatile.d folder
 # and displays the content of those files in the console's issue.
 # This job is typically run as an upstart service
+set +e
+shopt -s extglob
+LOG_FILE=/var/log/etc_issue_update.log
+touch $LOG_FILE
+chmod o+wr $LOG_FILE
 dir="/etc/issue.d/volatile.d"
 for="3"
 ts_prev=0
 while [ true ] ; do
 
   file=`ls $dir -ct1 | head -1`
+#  echo "file $file" >> $LOG_FILE
   [ -n "$file" ] && ts=`stat -c %Y $dir/$file` || ts=0
-
+#  echo "timestamp $ts; prev_time=$ts_prev" >> $LOG_FILE
   if [ $ts_prev -eq $ts ]; then
       sleep $for
   else
       ts_prev=$ts
-      cat $dir/* > /etc/issue
+      cat $dir/!(*.disabled) > /etc/issue
       echo "" >> /etc/issue
       sudo env TERM=xterm sh -c 'clear >/dev/console'
       sudo pkill getty
