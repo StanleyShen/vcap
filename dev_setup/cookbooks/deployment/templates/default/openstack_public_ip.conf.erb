@@ -1,0 +1,27 @@
+# computes the "public IP" of the VM.
+# Tries to read it on http://169.254.169.254/latest/meta-data/public-ipv4 in case we are on EC2/OpenStack
+description "Lookup the public IP on EC2/OpenStack and store it in a well known file /var/run/openstack_public_ip4"
+
+start on net-device-up IFACE=eth0
+
+task
+
+script
+file=/var/run/openstack_public_ip4
+[ -f $file ] && rm $file
+timeout=4 #seconds
+tries=1
+if [ -e "/proc/xen" ]; then # we are on xen: quite likely to be on ec2 bigger timeout.
+  timeout=10
+  tries=2
+fi
+set +e
+openstack_public_ip=`wget --tries=$tries --timeout=$timeout -qO- http://169.254.169.254/latest/meta-data/public-ipv4`
+touch $file
+chmod og+r $file
+if [ -n "$openstack_public_ip" ]; then
+  echo $openstack_public_ip > $file
+else
+  echo "" > $file
+fi
+end script
