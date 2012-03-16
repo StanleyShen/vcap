@@ -8,7 +8,7 @@ compute_derived_attributes
 case node['platform']
 when "ubuntu"
   package "git-core"
-  pacakge "secure-delete"
+  package "secure-delete"
 else
   Chef::Log.error("Installation of cloudfoundr not supported on this platform.")
 end

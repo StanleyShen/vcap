@@ -33,7 +33,6 @@ if [ -z "$CLOUD_FOUNDRY_CONFIG_PATH" ]; then
   source $HOME/.cloudfoundry_deployment_local
 fi
 
-
 # reconfigure the urls eventually
 if [ "$2" == "dea" -a "$1" != "stop" ]; then
   do_reconfig="true"

@@ -49,8 +49,10 @@ for hname in "ubuntu" "vcap" "cloudfoundry" "intalio"; do
     hostname "$hostname_new"
     #also update /etc/hosts unfortunately keep the old one and put the new one too
     sed -i 's/^127\.0\.1\.1[[:space:]]*.*$/127.0.1.1    '$hname' '$hostname_new'/g' /etc/hosts
-    avahi-daemon --check
-    [ "$?" = "0" ] && avahi-daemon --kill #reload is not enough; avahi-daemon will be respawned
+    do_restart_avahi=yes
   fi
 done
+if [ -n "$do_restart_avahi" ]; then
+  initctl start avahi-daemon || initctl restart avahi-daemon
+fi
 # end of hostname unique on the subnet
