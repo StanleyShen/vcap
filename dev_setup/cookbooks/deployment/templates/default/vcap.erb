@@ -99,6 +99,11 @@ if [ "$1" == "start" -o "$1" == "restart" ]; then
       [ COUNTER != "0" ] && echo "Cloud Controller is available"
     else
       echo "[ $COUNTER ] Cloud controller is not available yet."
+      still_running=`$CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME status cloud_controller | grep RUNNING`
+      if [ -z "$still_running" ]; then
+        echo `$CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME status cloud_controller | grep STOPPED`
+        exit 4
+      fi
       let COUNTER=COUNTER+1
       sleep 5
     fi

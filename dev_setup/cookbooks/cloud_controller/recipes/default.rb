@@ -25,6 +25,12 @@ if max_droplet_size
   end
 end
 
+# this will guarantee that nats_server is started.
+execute "start-nats" do
+  command "sudo /etc/init.d/nats_server start; sudo /etc/init.d/nats_server status"
+  action :run
+end
+
 Chef::Log.info("bundle_exec_cmd #{node[:cloud_controller][:bundle_exec_cmd]}")
 
 # this will nicely try to start nats_server and not complain if it is not there or something

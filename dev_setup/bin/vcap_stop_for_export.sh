@@ -230,7 +230,7 @@ sudo sfill -v -f -z -l  /
   echo "All ready to export from the hypervisor. Shutdown now?"
   read response
   if [ -z "$response" ]; then
-    sudo halt
+    sudo poweroff
   fi
 fi
 

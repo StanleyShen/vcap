@@ -6,9 +6,9 @@
 #
 compute_derived_attributes
 
-# this will nicely try to start nats_server and not complain if it is not there or something
+# this will nicely try to start or restart nats_server and not complain if it is not there or something
 execute "start-nats" do
-  command "sudo /etc/init.d/nats_server start; exit 0"
+  command "sudo /etc/init.d/nats_server start || sudo /etc/init.d/nats_server restart; exit 0"
   action :nothing
 end
 
