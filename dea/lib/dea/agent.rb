@@ -1148,6 +1148,7 @@ module DEA
       env << "VCAP_APP_PORT='#{instance[:port]}'"
       env << "VCAP_DEBUG_IP='#{instance[:debug_ip]}'"
       env << "VCAP_DEBUG_PORT='#{instance[:debug_port]}'"
+      env << "VCAP_MEMORY='#{instance[:mem_quota]}'"
 
       if vars = debug_env(instance)
         @logger.info("Debugger environment variables: #{vars.inspect}")

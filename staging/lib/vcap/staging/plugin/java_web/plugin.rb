@@ -61,18 +61,27 @@ class JavaWebPlugin < StagingPlugin
     "./bin/catalina.sh run"
   end
 
-  def configure_catalina_opts
-    # We want to set this to what the user requests, *not* set a minum bar
-    "-Xms#{application_memory}m -Xmx#{application_memory}m"
-  end
-
   private
 
   def startup_script
     vars = environment_hash
-    vars['CATALINA_OPTS'] = configure_catalina_opts
+    #vars['CATALINA_OPTS'] = configure_catalina_opts
+    
+    #perm_gen=`echo "$has_perm" | sed 's/-XX:MaxPermSize=/&\n/;s/.*\n//;s/m/\n&/;s/\n.*//'`
+    
     generate_startup_script(vars) do
       <<-JAVA
+# computes the java heap: it is the memory allocated minus the permgen and minus the extras 'fudge'
+perm_gen=96 # default on 64bit jdk5
+fudge=64 # the fudge factor: gc, native libs
+if [ -n "$JAVA_OPTS" ]; then
+  has_perm=`echo "$JAVA_OPTS" | grep -F 'XX:MaxPermSize='`
+  if [ -n "$has_perm" ]; then
+    perm_gen=`echo "$has_perm" | sed 's/-XX:MaxPermSize=/&\\n/;s/.*\\n//;s/m/\\n&/;s/\\n.*//'`
+  fi
+fi
+export JVM_HEAP=`expr $[$VCAP_MEMORY/(1024*1024) - $perm_gen -$fudge]`
+export CATALINA_OPTS="-Xms${JVM_HEAP}m -Xmx${JVM_HEAP}m"      
 export CATALINA_OPTS="$CATALINA_OPTS `ruby resources/set_environment`"
 env > env.log
 PORT=-1
@@ -88,7 +97,7 @@ if [ $PORT -lt 0 ] ; then
   exit 1
 fi
 ruby resources/generate_server_xml $PORT
-      JAVA
+JAVA
     end
   end
 
