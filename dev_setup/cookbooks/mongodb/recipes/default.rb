@@ -5,6 +5,14 @@
 # Copyright 2011, VMware
 #
 #
+case node['platform']
+when "ubuntu"
+  package "cgroup-bin"
+  package "libcgroup1" 
+else
+  Chef::Log.error("Installation of cgroup to limit the memory used by mongod is not supported on this platform.")
+end
+  
 compute_derived_attributes
 
 mongod_bin_path=File.join(node[:mongodb_node][:path], 'bin','mongod')

@@ -61,6 +61,21 @@ cf_bundle_install(File.join(node["cloudfoundry"]["path"], "cloud_controller"))
 cf_gem_build_install(File.join(node["cloudfoundry"]["path"], "staging"))
 add_to_vcap_components("cloud_controller")
 
+staging_dir = File.join(node[:deployment][:config_path], "staging")
+node[:cloud_controller][:staging].each_pair do |framework, config|
+  template config do
+    path File.join(staging_dir, config)
+    source "#{config}.erb"
+    owner node[:deployment][:user]
+    mode 0644
+    action :create
+    variables({
+      :ruby18_enabled => node[:dea] && node[:dea][:runtimes].include?('ruby18') ? true : false
+    })
+    notifies :run, resources(:bash => "rake_migrate_ccdb")
+  end
+end
+
 template node[:cloud_controller][:config_file] do
   path node[:cloud_controller][:cloud_controller_yml_path]
   source "cloud_controller.yml.erb"
@@ -86,22 +101,7 @@ template node[:cloud_controller][:config_file] do
     :ruby18_enabled => node[:dea] && node[:dea][:runtimes].include?('ruby18') ? true : false
   })
   # see http://wiki.opscode.com/display/chef/Resources#Resources-Execute
-  notifies :run, resources(:bash => "rake_migrate_ccdb")
-end
-
-staging_dir = File.join(node[:deployment][:config_path], "staging")
-node[:cloud_controller][:staging].each_pair do |framework, config|
-  template config do
-    path File.join(staging_dir, config)
-    source "#{config}.erb"
-    owner node[:deployment][:user]
-    mode 0644
-    action :create
-    variables({
-      :ruby18_enabled => node[:dea] && node[:dea][:runtimes].include?('ruby18') ? true : false
-    })
-    notifies :run, resources(:bash => "rake_migrate_ccdb")
-  end
+  notifies :run, resources(:bash => "rake_migrate_ccdb"), :immediately
 end
 
 service "vcap_cloud_controller" do
