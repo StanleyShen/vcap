@@ -30,18 +30,18 @@ fi
 
 case "$1" in
     stop)
-        /sbin/initctl emit stopping-postgresql
+        /sbin/initctl emit --no-wait stopping-postgresql
         for v in $versions; do
             $1 $v
         done
-        /sbin/initctl emit stopped-postgresql
+        /sbin/initctl emit --no-wait stopped-postgresql
         ;;
     start|restart|reload)
-        /sbin/initctl emit starting-postgresql
+        /sbin/initctl emit --no-wait starting-postgresql
 	for v in $versions; do
 	    $1 $v
 	done
-        /sbin/initctl emit started-postgresql
+        /sbin/initctl emit --no-wait started-postgresql
         ;;
     status)
 	set +e
