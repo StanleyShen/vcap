@@ -121,7 +121,7 @@ if [ -z "$response" ]; then
   chmod o+rw pg_backup
   sudo -u postgres pg_dumpall > pg_backup
   if [ -e "/etc/init.d/postgresql" ]; then
-    sudo /etc/init.d/postgresql stop
+    sudo env DISABLE_POSTGRES_UPSTART=true /etc/init.d/postgresql stop
   else
     sudo initctl stop postgresql
   fi
@@ -136,7 +136,7 @@ if [ -z "$response" ]; then
   # start postgresql without emitting the upstart daemon starting/started events which would make vcap start again.
   #sudo /usr/lib/postgresql/$pg_version/bin/postgres -D /var/lib/postgresql/$pg_version/main
 if [ -e "/etc/init.d/postgresql" ]; then
-  sudo /etc/init.d/postgresql start
+  sudo env DISABLE_POSTGRES_UPSTART=true /etc/init.d/postgresql start
 else
   sudo initctl start postgresql
 fi
@@ -182,7 +182,7 @@ fi
 
 # the rest is fast and innocent let it happen without further questioning
 if [ -e "/etc/init.d/postgresql" ]; then
-  sudo /etc/init.d/postgresql stop
+  sudo env DISABLE_POSTGRES_UPSTART=true /etc/init.d/postgresql stop
 else
   sudo initctl stop postgresql
 fi

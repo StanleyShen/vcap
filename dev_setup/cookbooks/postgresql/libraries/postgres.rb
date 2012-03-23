@@ -18,8 +18,8 @@ module CloudFoundryPostgres
     postgresql_ctl = File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")
     #In my experience on 10.04 postgres even for 9.0 does not have the version number in its filename
     postgresql_ctl = File.join("", "etc", "init.d", "postgresql") unless File.exists? postgresql_ctl
-    Chef::Log.warn "Issuing #{postgresql_ctl} #{cmd}"
-    Chef::Log.warn `#{postgresql_ctl} #{cmd}`
+    Chef::Log.warn "Issuing export DISABLE_POSTGRES_UPSTART=true; #{postgresql_ctl} #{cmd}"
+    Chef::Log.warn `export DISABLE_POSTGRES_UPSTART=true; #{postgresql_ctl} #{cmd}`
     Chef::Log.warn "Returned from #{postgresql_ctl} #{cmd}"
   end
   
