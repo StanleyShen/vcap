@@ -39,7 +39,8 @@ case "$1" in
     start|restart|reload)
         [ -z "$DISABLE_POSTGRES_UPSTART" ] && /sbin/initctl emit --no-wait starting-postgresql
 	for v in $versions; do
-	    $1 $v
+            # redirecting the output seems to be necessary. mystery?
+            $1 $v >> /dev/null 2>&1
 	done
         [ -z "$DISABLE_POSTGRES_UPSTART" ] && /sbin/initctl emit --no-wait started-postgresql
         ;;
