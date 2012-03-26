@@ -1,5 +1,5 @@
 class JobManager
-  [NATS, CF, CCDB, STAGER, MONIT].each do |job|
+  [NATS, CF, CCDB, STAGER, MONIT, ACMDB, UAADB ].each do |job|
     task job.to_sym do
       install(job)
     end
@@ -11,7 +11,7 @@ class JobManager
     end
   end
 
-  [ROUTER, DEA].each do |job|
+  [ROUTER, DEA, UAA, ACM].each do |job|
     task job.to_sym => [CF.to_sym, NATS.to_sym] do
       install(job)
     end

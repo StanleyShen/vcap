@@ -17,6 +17,8 @@ end
 _enable_submodules = false
 _enable_submodules = true if node[:cloudfoundry][:git][:vcap][:enable_submodules] && node[:cloudfoundry][:git][:vcap][:enable_submodules].to_s == "true"
 git node[:cloudfoundry][:path] do
+node[:acmdb][:host] ||= cf_local_ip
+node[:uaadb][:host] ||= cf_local_ip
   repository node[:cloudfoundry][:git][:vcap][:repo]
   revision node[:cloudfoundry][:git][:vcap][:branch]
   depth 1
@@ -73,7 +75,7 @@ end
 var_vcap = File.join("", "var", "vcap")
 [var_vcap, File.join(var_vcap, "sys"), File.join(var_vcap, "db"), File.join(var_vcap, "services"),
  File.join(var_vcap, "data"), File.join(var_vcap, "data", "cloud_controller"),
- File.join(var_vcap, "sys", "log"), File.join(var_vcap, "data", "cloud_controller", "tmp"),
+ File.join(var_vcap, "sys", "log"), File.join(var_vcap, "sys", "run"), File.join(var_vcap, "data", "cloud_controller", "tmp"),
  File.join(var_vcap, "data", "cloud_controller", "staging"),
  File.join(var_vcap, "data", "db"), File.join("", "var", "vcap.local"),
  File.join("", "var", "vcap.local", "staging"),

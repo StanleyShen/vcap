@@ -18,6 +18,10 @@ class JobManager
   DEA = "dea"
   MONIT = "monit"
   DNS_PUBLISHER = "dns_publisher"
+  UAA = "uaa"
+  UAADB = "uaadb"
+  ACM = "acm"
+  ACMDB = "acmdb"
 
   SERVICES = ["redis", "mysql", "mongodb", "postgresql", "neo4j"]
   SERVICES_NODE = SERVICES.map do |service|
@@ -32,7 +36,7 @@ class JobManager
   end
 
   # All supported jobs
-  JOBS = [ALL, NATS, STAGER, ROUTER, CF, CC, HM, DEA, CCDB, DNS_PUBLISHER, MONIT] + SERVICES_NODE + SERVICES_GATEWAY
+  JOBS = [ALL, NATS, STAGER, ROUTER, CF, CC, HM, DEA, CCDB, UAA, UAADB, ACM, ACMD, BDNS_PUBLISHER, MONIT] + SERVICES_NODE + SERVICES_GATEWAY
   SYSTEM_JOB = [CF]
 
   # List of the required properties for jobs
@@ -53,8 +57,7 @@ class JobManager
   end
 
   RUN_COMPONENTS = {ROUTER => ROUTER, CC => CC, HM => HM, DEA => DEA, STAGER => STAGER, DNS_PUBLISHER => DNS_PUBLISHER
-                   #,    MONIT => MONIT # monit should not be here.
-                   }.update(SERVICE_NODE_RUN_COMPONENTS).update(SERVICE_GATEWAY_RUN_COMPONENTS)
+  RUN_COMPONENTS = {ROUTER => ROUTER, CC => CC, HM => HM, DEA => DEA, STAGER => STAGER, DNS_PUBLISHER => DNS_PUBLISHER, UAA => UAA, ACM => ACM}.update(SERVICE_NODE_RUN_COMPONENTS).update(SERVICE_GATEWAY_RUN_COMPONENTS)
 
   class << self
     if defined?(Rake::DSL)
@@ -189,7 +192,7 @@ class JobManager
     def process_jobs
       # Default to all jobs
       if @config["jobs"].nil?
-        # Install all jobs
+_        # Install all jobs
         @all_install = true
         Rake.application[ALL].invoke
         return
