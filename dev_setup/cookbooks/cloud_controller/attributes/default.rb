@@ -28,6 +28,8 @@ default[:cloud_controller][:staging][:php] = "php.yml"
 # max_droplet_size
 default[:cloud_controller][:max_droplet_size] = "768M"
 
+# nginx offloading of file uploads/downloads
+default[:cloud_controller][:nginx][:use_nginx] = false
 
 # keys
 default[:cloud_controller][:keys][:password] = 'password key goes here'
