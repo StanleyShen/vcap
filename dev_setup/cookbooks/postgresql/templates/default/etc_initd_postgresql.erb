@@ -37,12 +37,17 @@ case "$1" in
         [ -z "$DISABLE_POSTGRES_UPSTART" ] && /sbin/initctl emit --no-wait stopped-postgresql
         ;;
     start|restart|reload)
-        [ -z "$DISABLE_POSTGRES_UPSTART" ] && /sbin/initctl emit --no-wait starting-postgresql
-	for v in $versions; do
-            # redirecting the output seems to be necessary. mystery?
-            $1 $v >> /dev/null 2>&1
-	done
-        [ -z "$DISABLE_POSTGRES_UPSTART" ] && /sbin/initctl emit --no-wait started-postgresql
+        touch /tmp/postgresql_init
+        if [ -z "$DISABLE_POSTGRES_UPSTART" ]; then
+          /sbin/initctl emit --no-wait starting-postgresql
+        fi
+        for v in $versions; do
+            ($1 $v 2>&1 | tee /tmp/postgresql_init) || true
+        done
+        if [ -z "$DISABLE_POSTGRES_UPSTART" ]; then
+          echo "echo emitting started-postgresql --no-wait" >> /tmp/postgresql_init
+          /sbin/initctl emit --no-wait started-postgresql
+        fi
         ;;
     status)
 	set +e
