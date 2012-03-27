@@ -19,16 +19,17 @@ when "ubuntu"
     notifies :reload, "service[nginx]"
   end
 
+  bash "dont-echo-nginx-start" do
+		# mysterious failure to start nginx with the latest beta build of 12.04 if something is echoed out.
+    code <<-CMD
+sed -i 's/[[:space:]]*echo -n "Starting/#this line prevents the startup at boot time on 12.04           echo -n "Starting/' /etc/init.d/nginx
+		CMD
+	end
+
   service "nginx" do
     supports :status => true, :restart => true, :reload => true
     action [ :enable, :start ]
   end
-  execute "dont-echo-nginx-start" do
-		# mysterious failure to start nginx with the latest beta build of 12.04 if something is echoed out.
-   command = "sed -i 's/[[:space:]]*echo -n \"Starting/#this line prevents the startup at boot time on 12.04           echo -n \"Starting/' /etc/init.d/nginx"
-    action :run
-  end
-
 
 else
   Chef::Log.error("Installation of nginx packages not supported on this platform.")
