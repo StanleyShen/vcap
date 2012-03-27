@@ -15,7 +15,7 @@ CLOUD_FOUNDRY_HOME=<%= node[:cloudfoundry][:home] %>
 CLOUD_FOUNDRY_VCAP_PATH=<%= node[:cloudfoundry][:path] %>
 CLOUD_FOUNDRY_DEPLOYMENT_NAME=<%= node[:deployment][:name] %>
 CLOUD_FOUNDRY_CONFIG_PATH=<%= node[:deployment][:config_path] %>
-
+[ -z "$IFACE" ] && IFACE=eth0 # helps when called from the command-line
 LOG_FILE=<%= node[:deployment][:log_path] %>/vcap_reconfig.log
 touch $LOG_FILE
 chmod go+rw $LOG_FILE
