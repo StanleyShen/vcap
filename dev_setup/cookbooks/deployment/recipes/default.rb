@@ -154,7 +154,13 @@ end
 
 case node['platform']
 when "ubuntu"
-    bash "Create some symlinks and customize .bashrc" do
+  bash "invoke_hostname_unique" do
+		code <<-EOH
+/etc/network/if-up.d/hostname_uniq
+EOH
+  end 
+
+	bash "Create some symlinks and customize .bashrc" do
     user node[:deployment][:user] #does not work: CHEF-2288
     group node[:deployment][:group] #does not work: CHEF-2288
     environment ({'HOME' => "/home/#{node[:deployment][:user]}",
