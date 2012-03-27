@@ -36,6 +36,7 @@ fi
 # For a given prefix, prefix-seed is guaranteed to be unique on the corresponding subnet.
 etc_hostname=`cat /etc/hostname | head -1`
 hostname_now=`hostname`
+[ $(echo $hostname_now | grep localdomain) ] && hostname_now=ubuntu # force to update the name if the hostname ends with localdomain
 for hname in "ubuntu" "vcap" "cloudfoundry" "intalio"; do
   if [ $etc_hostname = "$hname" -a "$hostname_now" = "$hname" ]; then
     mask=`ifconfig "$IFACE" | sed -rn '2s/ .*:(.*)$/\1/p'`
