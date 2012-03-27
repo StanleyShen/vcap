@@ -32,6 +32,8 @@ default[:cloud_controller][:staging][:wsgi] = "wsgi.yml"
 # max_droplet_size
 default[:cloud_controller][:max_droplet_size] = "768M"
 
+# nginx offloading of file uploads/downloads
+default[:cloud_controller][:nginx][:use_nginx] = false
 
 # keys
 default[:cloud_controller][:keys][:password] = 'password key goes here'
@@ -45,6 +47,9 @@ default[:cloud_controller][:stager][:new_stager_percent] = 0
 default[:cloud_controller][:stager][:new_stager_email_regexp] = '@@' #won't match any email.
 default[:cloud_controller][:stager][:auth][:user] = "vcap"
 default[:cloud_controller][:stager][:auth][:password] = "vcap"
+
+# Enable/disable uaa
+default[:cloud_controller][:enable_uaa] = false
 
 # Enable/disable starting apps in debug modes.
 default[:cloud_controller][:allow_debug] = true

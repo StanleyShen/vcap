@@ -20,3 +20,6 @@ postgresql:
   database: <%= node[:postgresql_node][:database] %>
   local_acl: <%= node[:postgresql_node][:local_acl] %>
 node_timeout: <%= node[:postgresql_node][:node_timeout] %>
+restore_bin: pg_restore
+dump_bin: pg_dump
+

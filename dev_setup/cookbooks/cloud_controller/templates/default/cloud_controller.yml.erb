@@ -30,9 +30,9 @@ app_uris:
 
 external_port: 9022 #public CC port
 
-# nginx proxy provide multiple functions including offloading of file uploads/downloads.
+# nginx provide multiple functions including offloading of file uploads/downloads.
 nginx:
-  use_nginx: false   #nginx proxy in front of CC?
+  use_nginx: <%= node[:cloud_controller][:nginx][:use_nginx] %> #nginx proxy in front of CC?
   # instance_socket: /tmp/cloud_controller.sock
   insecure_instance_port: 9025 #debug only!!!! -- not for production use.
 
@@ -85,9 +85,9 @@ database_environment: # replaces database.yml
     timeout: 2000
     template: template0 # Required for utf8 encoding
 
-# Enable the use of the uaa
+# Enable/Disable the use of the uaa
 uaa:
-  enabled: true
+  enabled: <%= node[:cloud_controller][:enable_uaa] %>
   url: http://uaa.<%= node[:deployment][:domain] %>
   resource_id: cloud_controller
   token_secret: <%= node[:uaa][:jwt_secret] %>
