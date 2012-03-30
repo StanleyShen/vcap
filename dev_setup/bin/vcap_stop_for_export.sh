@@ -195,9 +195,9 @@ sudo apt-get autoclean
 
 rm -rf /home/ubuntu/cloudfoundry/backup
 sudo rm -rf /var/www/nginx/logs
-echo "Keep the .git folders of vcap sources (default yes) ?"
+echo "delete the  .git folders of vcap sources (default yes) ?"
 read response
-if [ -n "$response" ]; then
+if [ -z "$response" ]; then
   echo "Deleting the .git folders of vcap and its sub-modules"
   rm -rf ~/cloudfoundry/vcap/.git
   rm -rf ~/cloudfoundry/vcap/java/.git
@@ -223,7 +223,7 @@ sudo rm -rf /var/log/apache2/*
 swp_file=/tmp/simple_swap.swap
 if [ -e $swp_file ]; then
 	sudo swapoff $swp_file
-  sudo rm -rf $swp_file
+  sudo rm $swp_file
 fi
 sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
 df -h
