@@ -14,6 +14,10 @@
   end
 end
 
+# optional tools:
+package 'nethogs'
+package 'iftop'
+
 if node[:deployment][:profile]
   file node[:deployment][:profile] do
     owner node[:deployment][:user]

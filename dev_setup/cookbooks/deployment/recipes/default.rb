@@ -13,6 +13,12 @@ else
   Chef::Log.error("Installation of cloudfoundr not supported on this platform.")
 end
 
+# when we package a VM for download we delete the .git folders as they use a lot of space 400M+
+# let's detect that and redo a checkout when that is the case:
+if File.exist?("#{node[:cloudfoundry][:path]}") && !File.exist?("#{node[:cloudfoundry][:path]}/.git")
+  Chef::Log.warn("Could not find the .git folders, preparing a brand new checkout.")
+	FileUtils.rm_rf("node[:cloudfoundry][:path]}")
+end
 # main repo
 _enable_submodules = false
 _enable_submodules = true if node[:cloudfoundry][:git][:vcap][:enable_submodules] && node[:cloudfoundry][:git][:vcap][:enable_submodules].to_s == "true"

@@ -220,7 +220,11 @@ sudo rm /var/cache/apt/srcpkgcache.bin
 sudo rm /var/cache/apt/pkgcache.bin
 sudo rm -rf /var/chef/cache/*
 sudo rm -rf /var/log/apache2/*
-
+swp_file=/tmp/simple_swap.swap
+if [ -e $swp_file ]; then
+	sudo swapoff $swp_file
+  sudo rm -rf $swp_file
+fi
 sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
 df -h
 echo "Secure delete (required before we can export the VM image) default yes?"
