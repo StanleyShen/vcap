@@ -54,7 +54,7 @@ module CloudFoundryAttributes
       node[:mongodb_node][:source] = "http://fastdl.mongodb.org/linux/mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz"# unless node[:mongodb_node][:source]
     end
     node[:nats_server][:host] ||= cf_local_ip if node[:nats_server]
-    node[:ccdb][:host] ||= cf_local_ip node[:ccdb]
+    node[:ccdb][:host] ||= cf_local_ip node[:ccdb] if node[:ccdb]
     node[:postgresql_node][:host] ||= cf_local_ip if node[:postgresql_node]
     if node[:dea]
       # make the dea runtimes' completly overridable. if we don't do this we get a deep merge instead.

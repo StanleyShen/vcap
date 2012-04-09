@@ -50,10 +50,6 @@ unless _enable_submodules
   end
 end
 bash "Chown vcap sources to the user in case git was executed from root" do
-  #user node[:deployment][:user] #does not work: CHEF-2288
-  #group node[:deployment][:group] #does not work: CHEF-2288
-  #environment ({'HOME' => "/home/#{node[:deployment][:user]}",
-  #              'USER' => "#{node[:deployment][:user]}"})
   code <<-EOH
     chown -R #{node[:deployment][:user]}:#{node[:deployment][:group]} #{node[:cloudfoundry][:path]}
 EOH
@@ -119,6 +115,28 @@ template "hostname_uniq_if_up" do
   path File.join("", "etc", "network", "if-up.d", "hostname_uniq")
   source "hostname_uniq_if_up.erb"
   mode 0755
+end
+
+# Optional: generate an entry for the current IP of the bound interface
+# this is a workaround when the reverse DNS is not supported
+# it is harmless otherwise.
+unless node[:deployment][:tracked_inet_hosts_entry] == false
+  bash "insert tracked inet entry in /etc/hosts" do
+	  code <<-EOH
+IFACE=#{node[:deployment][:tracked_inet]}
+IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
+[ -z "$IP" ] && IP='127.0.0.1'
+already=`grep __#{node[:deployment][:tracked_inet]}_ip__ /etc/hosts`
+echo "already here $already look for $IFACE and $IP"
+if [ -z "$already" ]; then
+  # insert a new line
+  sed -i '/127\.0\.0\.1/{G;s/$/'$IP' __'$IFACE'_ip__/;}' /etc/hosts
+else
+  # update the existing line
+  sed -i 's/[^#].*[[:space:]]*__'$IFACE'_ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
+fi
+EOH
+	end
 end
 
 template "etc_issue_with_ip" do

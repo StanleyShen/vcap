@@ -5,7 +5,13 @@
 # listening on new addresses.
 # This is only enabled if the config file of the nats_server has a tracked-net-iface line
 # That defines what interface its IP must be.
-
+#
+# In some setup, reverse DNS on the VM of its own IP does not work
+# In that case, an entry in /etc/hosts for the name __current_eth0_ip__ 
+# is defined and mapped to the current IP.
+# This startup script takes care of updating that line.
+# If the named entry is not found nothing happens.
+#
 set -e
 
 # Only act on the 'tracked' network interface
@@ -58,6 +64,10 @@ for hname in "ubuntu" "vcap" "cloudfoundry" "intalio"; do
     do_restart_avahi=yes
   fi
 done
+
+# update the entry to prevent reverse DNS lookup timeouts if there is such a thing
+sed -i 's/[^#].*[[:space:]]*__'$IFACE'_ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
+
 if [ -n "$do_restart_avahi" ]; then
   initctl start avahi-daemon || initctl restart avahi-daemon
 fi
