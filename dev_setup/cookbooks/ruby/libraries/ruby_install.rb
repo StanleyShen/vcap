@@ -92,7 +92,8 @@ EOH
         else
           gemdir=`#{node[:ruby][:path]}/bin/gem env gemdir`.strip
         end
-        raise "Unexpected gemdir #{gemdir}" unless gemdir && (/^#{Regexp.quote("/home/"+node[:deployment][:user])}"/ =~ gemdir)
+        gemdir_test_reg=Regexp.new('^\/home\/'+node[:deployment][:user])
+        raise "Unexpected gemdir #{gemdir}" if gemdir.nil? || (gemdir_test_reg =~ gemdir).nil?
         node[:ruby][:gemdir]=gemdir
       end
       action :create
