@@ -38,21 +38,6 @@ if [ ! -d monit-5.3 ]; then
   which monit > /dev/null
   [ $? != 0 ] && sudo monit quit
   
-  # Configure as daemon with a 4 minutes start delay
-  sudo sed -i 's/^#[[:space:]]*set daemon  120/set daemon  120/g' /etc/monit/monitrc
-  sudo sed -i 's/^#[[:space:]]*     with start delay 240/     with start delay 240/g' /etc/monit/monitrc
-
-  #Make sure that at least the localhost can connect to monit.
-  # Otherwise sudo monit status will return 'errror connecting to monit daemon':
-  # http://www.mail-archive.com/monit-general@nongnu.org/msg02887.html
-  #Need to find the 3 lines here and uncomment them if that is not the case already:
-  # set httpd port 2812 and
-  #     use address localhost  # only accept connection from localhost
-  #     allow localhost        # allow localhost to connect to the server and
-  # this is set by default in 12.04
-  sudo sed -i 's/^#[[:space:]]*set httpd port 2812 and/set httpd port 2812 and/g' /etc/monit/monitrc
-  sudo sed -i 's/^#[[:space:]]*use address localhost/    use address localhost/g' /etc/monit/monitrc
-  sudo sed -i 's/^#[[:space:]]*allow localhost/    allow localhost/g' /etc/monit/monitrc
 fi
 EOH
       notifies :run, "execute[test-monit-config]", :immediately
@@ -61,7 +46,40 @@ EOH
         node[:platform_version].to_f >= 11.10
       end
     end
-    
+
+
+    bash "Configure monit" do
+      user "root"
+      code <<-EOH
+
+# Configure as daemon with a 4 minutes start delay
+sudo sed -i 's/^#[[:space:]]*set daemon[[:space:]]*120/set daemon  120/g' /etc/monit/monitrc
+sudo sed -i 's/^#[[:space:]]*with start delay 240/     with start delay 240/g' /etc/monit/monitrc
+
+#Make sure that at least the localhost can connect to monit.
+# Otherwise sudo monit status will return 'errror connecting to monit daemon':
+# http://www.mail-archive.com/monit-general@nongnu.org/msg02887.html
+#Need to find the 3 lines here and uncomment them if that is not the case already:
+# set httpd port 2812 and
+#     use address localhost  # only accept connection from localhost
+#     allow localhost        # allow localhost to connect to the server and
+# this is set by default in 12.04
+sudo sed -i 's/^#[[:space:]]*set httpd port 2812 and/set httpd port 2812 and/g' /etc/monit/monitrc
+sudo sed -i 's/^#[[:space:]]*use address localhost/    use address localhost/g' /etc/monit/monitrc
+sudo sed -i 's/^#[[:space:]]*allow localhost/    allow localhost/g' /etc/monit/monitrc
+
+EOH
+      notifies :run, "execute[test-monit-config]", :immediately
+      only_if do
+        return true unless ::File.exists?('/etc/monit/monitrc')
+        monitrc_lines = File.readlines('/etc/monit/monitrc')
+        matches = monitrc_lines.select { |line| line[/^#[\s]*set httpd port 2812/] ||
+                                line[/^#[\s]*set daemon[\s]*120/] ||
+                                line[/^#[\s]*with start delay 240/] }
+        !matches.empty? 
+      end
+    end
+
     #Startup mode
     template "/etc/network/if-up.d/monit_dameon" do
       path "/etc/network/if-up.d/monit_dameon"
