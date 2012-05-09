@@ -44,6 +44,14 @@ http {
     }
 
     server {
+        # use chunkin-http
+        chunkin on;
+        error_page 411 = @my_411_error;
+        location @my_411_error {
+            chunkin_resume;
+        }
+        # end of http-chunkin
+
         listen       *:80;
         server_name  _;
 
