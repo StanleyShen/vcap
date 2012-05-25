@@ -18,6 +18,7 @@ module RubyInstall
     remote_file File.join("", "tmp", "ruby-#{ruby_version}.tar.gz") do
       retries 4
       owner node[:deployment][:user]
+      group node[:deployment][:group]
       source ruby_source
       not_if { ::File.exists?(File.join("", "tmp", "ruby-#{ruby_version}.tar.gz")) }
     end
@@ -29,7 +30,7 @@ module RubyInstall
       recursive true
       action :create
     end
-    
+
     bash "Install Ruby #{ruby_path}" do
       cwd File.join("", "tmp")
       user node[:deployment][:user] #does not work: CHEF-2288
@@ -42,9 +43,20 @@ module RubyInstall
       if [ -d "ruby-#{ruby_version}/.ext" ]; then
         rm -rf ruby-#{ruby_version}/.ext
       fi
+      du -h ruby*
       if [ ! -d "ruby-#{ruby_version}" ]; then
         echo "Unzipping the ruby-#{ruby_version}"
         tar xzf ruby-#{ruby_version}.tar.gz
+        if [ "$?" != "0" ]; then
+          # http://tickets.opscode.com/browse/CHEF-3140
+          # let's attempt a simple untar as the file is probably uncompressed
+          # already
+          tar xf ruby-#{ruby_version}.tar.gz
+          if [ "$?" != "0" ]; then
+            echo "Failed to unzip "`pwd`"/ruby-#{ruby_version}.tar.gz"
+            exit 1
+          fi
+        fi
       fi
       cd ruby-#{ruby_version}
       # disable SSLv2: it is not present in modern linux distrib as it is insecure.
@@ -84,7 +96,7 @@ EOH
             system("#{File.join(ruby_path, "bin", "gem")} -v | grep -q '#{rubygems_version}$'")
       end
     end
-    
+
     ruby_block "compute_gemdir" do
       block do
         if Process.uid == 0
@@ -119,7 +131,7 @@ EOH
     # ruby install will install the myql gem so we need its dependnecy:
     package "mysql-client"
     package "libmysqlclient-dev"
-    
+
     %w[ rack eventmachine thin sinatra mysql pg ].each do |gem|
       gem_package gem do
         retries 4

@@ -11,7 +11,7 @@ Chef::Log.debug("#{deployment_name} is the current deployment_name")
 raise "Not the expected deployment_name deployment_name: #{deployment_name}" if deployment_name != "intalio_devbox"
 
 Chef::Log.debug("#{ruby_path} is the current ruby_path")
-raise "deployment_name: #{deployment_name}; deployment_home: #{node[:deployment][:home]} Not the expected deployment_name ruby_path: #{ruby_path}" if ruby_path != "/home/ubuntu/cloudfoundry/.deployments/intalio_devbox/deploy/rubies/ruby-1.9.2-p290"
+raise "deployment_name: #{deployment_name}; deployment_home: #{node[:deployment][:home]} Not the expected deployment_name ruby_path: #{ruby_path}" if ruby_path != "/home/ubuntu/cloudfoundry/.deployments/intalio_devbox/deploy/rubies/ruby-#{node[:ruby][:version]}"
 
 do_install = true
 if File.exists?("#{ruby_path}/bin/ruby") &&
@@ -26,7 +26,7 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
     Chef::Log.debug("#{ruby_path} exists, but the version #{ruby_version} is different: from the one expected: #{ruby_version_regexp}")
     FileUtils.rm_rf ruby_path
   end
-  
+
   unless do_install
     version = node[:rubygems][:rake][:version]
     the_version=`#{ruby_path}/bin/rake --version`
@@ -35,7 +35,7 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
       Chef::Log.debug("#{ruby_path}/bin/rake exists, but the version #{the_version} is different: from the one expected: #{version}")
     end
   end
-  
+
   unless do_install
     version = node[:rubygems][:version]
     the_version=`#{ruby_path}/bin/gem --version`
@@ -44,7 +44,7 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
       Chef::Log.debug("#{node[:ruby][:path]}/bin/gem exists, but the gem #{the_version} is different from the one expected: #{version}")
     end
   end
-  
+
   unless do_install
     version = node[:rubygems][:bundler][:version]
     the_version=`#{ruby_path}/bin/bundle --version`
@@ -53,7 +53,7 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
       Chef::Log.debug("#{ruby_path}/bin/bundle exists, but the bundler #{the_version} is different: from the one expected: #{version}")
     end
   end
-  
+
 end
 
 cf_ruby_install(ruby_version, ruby_source, ruby_path) if do_install
