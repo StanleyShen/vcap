@@ -126,14 +126,14 @@ unless node[:deployment][:tracked_inet_hosts_entry] == false
 IFACE=#{node[:deployment][:tracked_inet]}
 IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
 [ -z "$IP" ] && IP='127.0.0.1'
-already=`grep __#{node[:deployment][:tracked_inet]}_ip__ /etc/hosts`
+already=`grep __#{node[:deployment][:tracked_inet]}__ip__ /etc/hosts`
 echo "already here $already look for $IFACE and $IP"
 if [ -z "$already" ]; then
   # insert a new line
-  sed -i '/127\.0\.0\.1/{G;s/$/'$IP' __'$IFACE'_ip__/;}' /etc/hosts
+  sed -i '/127\.0\.0\.1/{G;s/$/'$IP' __'$IFACE'__ip__/;}' /etc/hosts
 else
   # update the existing line
-  sed -i 's/[^#].*[[:space:]]*__'$IFACE'_ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
+  sed -i 's/[^#].*[[:space:]]*__'$IFACE'__ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
 fi
 EOH
 	end
@@ -182,7 +182,7 @@ when "ubuntu"
 		code <<-EOH
 /etc/network/if-up.d/hostname_uniq
 EOH
-  end 
+  end
 
 	bash "Create some symlinks and customize .bashrc" do
     user node[:deployment][:user] #does not work: CHEF-2288
@@ -217,7 +217,7 @@ exit 0
 EOH
 Chef::Log.warn("Code to exec for customizing the deployment #{code}")
   end
-  
+
   node[:deployment][:etc_hosts][:api_dot_domain].each do |ip|
     bash "Bind #{ip} to api.#{node[:deployment][:domain]} in /etc/hosts" do
     user "root"
@@ -241,13 +241,13 @@ if [ -z "$binding_exists" ]; then
     fi
   fi
 else
-  echo "#{ip} was already bound to api.#{node[:deployment][:domain]} in /etc/hosts"  
+  echo "#{ip} was already bound to api.#{node[:deployment][:domain]} in /etc/hosts"
 fi
 EOH
 Chef::Log.error(code)
     end
   end
-  
+
 end
 
 file node[:deployment][:local_run_profile] do
