@@ -66,7 +66,7 @@ for hname in "ubuntu" "vcap" "cloudfoundry" "intalio"; do
 done
 
 # update the entry to prevent reverse DNS lookup timeouts if there is such a thing
-sed -i 's/[^#].*[[:space:]]*__'$IFACE'_ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
+sed -i 's/[^#].*[[:space:]]*__'$IFACE'__ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
 
 if [ -n "$do_restart_avahi" ]; then
   initctl start avahi-daemon || initctl restart avahi-daemon
