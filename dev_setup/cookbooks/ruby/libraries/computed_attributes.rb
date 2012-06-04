@@ -1,5 +1,5 @@
 module CloudFoundryAttributes
-  
+
   @@already=false
   # this is a workaround for the fact that we must not compute
   # default attributes values derived from other attributes.
@@ -9,7 +9,7 @@ module CloudFoundryAttributes
     return if @@already
     @@already = true
     Chef::Log.info("Compute the derived attributes from the ruby recipe library")
-    
+
     node[:cloudfoundry][:user_home] = ENV["HOME"]=='/root' ? "/home/#{node[:deployment][:user]}" : ENV["HOME"] unless node[:cloudfoundry][:user_home] # messy
     node[:cloudfoundry][:home] = File.join(node[:cloudfoundry][:user_home], "cloudfoundry") unless node[:cloudfoundry][:home]
     node[:cloudfoundry][:path] = File.join(node[:cloudfoundry][:home], "vcap") unless node[:cloudfoundry][:path]
@@ -35,7 +35,7 @@ module CloudFoundryAttributes
       node[:ruby18][:version_regexp] = Regexp.quote(node[:ruby18][:version])
       node[:ruby18][:version_regexp_yaml] = node[:ruby18][:version_regexp].gsub( Regexp.new("\\\\"), '\\\\\\' )
     end
-    
+
     ## other recipe's derived attributes:
     if node[:redis]
       node[:redis][:path] = File.join(node[:deployment][:home], "deploy", "redis") unless node[:redis][:path]
@@ -53,9 +53,17 @@ module CloudFoundryAttributes
       node[:mongodb_node][:path] = File.join(node[:deployment][:home], "deploy", "mongodb") unless node[:mongodb_node][:path]
       node[:mongodb_node][:source] = "http://fastdl.mongodb.org/linux/mongodb-linux-#{node[:kernel][:machine]}-#{node[:mongodb_node][:version]}.tgz"# unless node[:mongodb_node][:source]
     end
-    node[:nats_server][:host] ||= cf_local_ip if node[:nats_server]
-    node[:ccdb][:host] ||= cf_local_ip node[:ccdb] if node[:ccdb]
-    node[:postgresql_node][:host] ||= cf_local_ip if node[:postgresql_node]
+    # if we are setting up a micro-cloud then we want to make sure that we are
+    # using the local-ip in all cases.
+    if node[:deployment][:is_micro]
+      node[:nats_server][:host] = cf_local_ip if node[:nats_server]
+      node[:ccdb][:host] = cf_local_ip node[:ccdb] if node[:ccdb]
+      node[:postgresql_node][:host] = cf_local_ip if node[:postgresql_node]
+    else
+      node[:nats_server][:host] ||= cf_local_ip if node[:nats_server]
+      node[:ccdb][:host] ||= cf_local_ip node[:ccdb] if node[:ccdb]
+      node[:postgresql_node][:host] ||= cf_local_ip if node[:postgresql_node]
+    end
     if node[:dea]
       # make the dea runtimes' completly overridable. if we don't do this we get a deep merge instead.
       # the trick to prevent the deep merge is deprecated
