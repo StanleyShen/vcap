@@ -33,7 +33,13 @@ if [ -d "/etc/chef/validation.pem" ]; then
     sudo rm -rf /etc/chef
   fi
 fi
-
+if [ -f "/etc/ssh/ssh_host_rsa_key" ]; then
+  echo "Delete the /etc/ssh/ssh_host_* keys ? (default yes)"
+  read response
+  if [ -z "$response" ]; then
+    sudo rm /etc/ssh/ssh_host_*
+  fi
+fi
 
 # Make sure the recipe is clean:
 if [ -d /home/ubuntu/intalio/registration_app/start_register_app.rb ]; then
