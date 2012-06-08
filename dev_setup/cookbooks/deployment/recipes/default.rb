@@ -111,6 +111,14 @@ template "openstack_public_ip" do
   mode 0644
 end
 
+# generates the sshd keys if not present when the OS starts
+template "ssh_gen_keys" do
+  path File.join("", "etc", "init", "ssh_gen_keys.conf")
+  source "ssh_gen_keys.conf.erb"
+  mode 0644
+end
+
+
 template "hostname_uniq_if_up" do
   path File.join("", "etc", "network", "if-up.d", "hostname_uniq")
   source "hostname_uniq_if_up.erb"
