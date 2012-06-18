@@ -224,6 +224,7 @@ sudo rm /var/log/*.[0-9].gz
 sudo rm /var/log/*.[0-9]
 sudo rm /var/cache/apt/srcpkgcache.bin
 sudo rm /var/cache/apt/pkgcache.bin
+sudo rm -rf /var/lib/apt/lists/*
 sudo rm -rf /var/chef/cache/*
 sudo rm -rf /var/log/apache2/*
 swp_file=/tmp/simple_swap.swap
