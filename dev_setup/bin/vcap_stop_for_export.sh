@@ -200,7 +200,7 @@ sudo apt-get clean
 sudo apt-get autoclean
 
 rm -rf /home/ubuntu/cloudfoundry/backup
-sudo rm -rf /var/www/nginx/logs
+sudo rm -rf /var/www/nginx/logs/*
 echo "delete the  .git folders of vcap sources (default yes) ?"
 read response
 if [ -z "$response" ]; then
