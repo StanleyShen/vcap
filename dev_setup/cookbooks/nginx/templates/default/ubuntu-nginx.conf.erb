@@ -46,8 +46,12 @@ http {
     client_max_body_size <%= node[:nginx][:client_max_body_size] %>;
     types_hash_max_size 8192;
 
-    upstream vcap_router {
-      server  unix:/tmp/router.sock;
+    upstream router {
+        server  unix:/tmp/router.sock;
+    }
+
+    upstream router_status {
+        server 127.0.0.1:8080;
     }
 
     server {
@@ -74,16 +78,79 @@ http {
         error_page  404  /nginx/404/404.html;
 
         location / {
-                proxy_buffering                 off;
-                proxy_set_header                Host $host;
-                proxy_set_header                X-Real_IP $remote_addr;
-                proxy_set_header                X-Forwarded_For $proxy_add_x_forwarded_for;
-                proxy_set_header                X-Forwarded_Proto http;
-                proxy_redirect                  off;
-                proxy_connect_timeout           <%= node[:nginx][:proxy_connect_timeout] %>;
-                proxy_send_timeout              <%= node[:nginx][:proxy_send_timeout] %>;
-                proxy_read_timeout              <%= node[:nginx][:proxy_read_timeout] %>;
-                proxy_pass                      <%= node[:nginx][:proxy_pass] %>;
+            proxy_buffering                 off;
+            proxy_set_header                Host $host;
+            proxy_set_header                X-Real_IP $remote_addr;
+            proxy_set_header                X-Forwarded_For $proxy_add_x_forwarded_for;
+            proxy_set_header                X-Forwarded_Proto http;
+            proxy_redirect                  off;
+            proxy_connect_timeout           <%= node[:nginx][:proxy_connect_timeout] %>;
+            proxy_send_timeout              <%= node[:nginx][:proxy_send_timeout] %>;
+            proxy_read_timeout              <%= node[:nginx][:proxy_read_timeout] %>;
+            if ($http_user_agent = "HTTP-Monitor/1.1") {
+                set $health_monitor T;
+            }
+            if ($http_host = "") {
+                set $health_monitor "${health_monitor}T";
+            }
+            if ($health_monitor = TT) {
+                more_set_input_headers "Authorization: Basic NjgxMzdlZmVhMWJmNjgwMDpjMDk4MjBkYjdlOWQ4NzU3";
+                rewrite ^.*$ /healthz break;
+                proxy_pass                    http://router_status;
+            }
+            proxy_pass                      http://router;
         }
     }
+
+    server {
+        # use chunkin-http
+        chunkin on;
+        error_page 411 = @my_411_error;
+        location @my_411_error {
+          chunkin_resume;
+        }
+        # end of http-chunkin
+
+        listen      443;
+        ssl         on;
+        ssl_certificate <%= node[:nginx][:ssl][:config_dir] %>/<%= node[:nginx][:ssl][:basename] %>.crt;
+        ssl_certificate_key <%= node[:nginx][:ssl][:config_dir] %>/<%= node[:nginx][:ssl][:basename] %>.key;
+        server_name _
+        server_name_in_redirect off;
+
+        location /nginx {
+            autoindex    on;
+            root   /var/www;
+            expires     max;
+        }
+        # Make sure there is a /var/www/nginx/404/404.html page
+        error_page  404  /nginx/404/404.html;
+
+        location / {
+            proxy_buffering             off;
+            proxy_set_header            Host $host;
+            proxy_set_header            X-Real_IP $remote_addr;
+            proxy_set_header            X-Forwarded_For $proxy_add_x_forwarded_for;
+            proxy_redirect              off;
+            proxy_connect_timeout           <%= node[:nginx][:proxy_connect_timeout] %>;
+            proxy_send_timeout              <%= node[:nginx][:proxy_send_timeout] %>;
+            proxy_read_timeout              <%= node[:nginx][:proxy_read_timeout] %>;
+
+            if ($http_user_agent = "HTTP-Monitor/1.1") {
+                set $health_monitor T;
+            }
+            if ($http_host = "") {
+                set $health_monitor "${health_monitor}T";
+            }
+            if ($health_monitor = TT) {
+                more_set_input_headers "Authorization: Basic NjgxMzdlZmVhMWJmNjgwMDpjMDk4MjBkYjdlOWQ4NzU3";
+                rewrite ^.*$ /healthz break;
+                proxy_pass                 http://router_status;
+            }
+
+            proxy_pass                   http://router;
+        }
+    }
+
+
 }

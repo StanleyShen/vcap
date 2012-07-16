@@ -8,3 +8,7 @@ default[:nginx][:proxy_connect_timeout] = 10
 default[:nginx][:proxy_send_timeout] = 30
 default[:nginx][:proxy_read_timeout] = 30
 default[:nginx][:proxy_pass] = "http://vcap_router"
+
+default[:nginx][:ssl][:config_dir] = "/etc/nginx/ssl"
+default[:nginx][:ssl][:basename] = "autocf"
+
