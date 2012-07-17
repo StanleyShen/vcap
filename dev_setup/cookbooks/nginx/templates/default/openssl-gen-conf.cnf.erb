@@ -3,7 +3,7 @@
 # this file is managed by chef if the VM is plugged into a chef-server.
 # Pass the following information to the routine to generate the certificate:
 # see http://www.runscripts.com/support/guides/building-software-application-stacks/ssl-certificates/creating-a-ca
-#
+# and http://support.cloudfoundry.com/entries/20153602-is-it-possible-to-visit-my-application-via-ssl-https
 
 [ req ]
 prompt = no
@@ -27,7 +27,12 @@ O =  <%= node[:nginx][:ssl][:gen][:organization_name] %>
 # $6 = Common Name (eg, your name or your server's hostname) []:.
 #CN="<%= node[:nginx][:ssl][:gen][:common_name] %>
 # $7 = IP address
-#IP="<%= node[:nginx][:ssl][:gen][:ip_address] %>"
+#IP = <%= node[:nginx][:ssl][:gen][:ip_address] %>
 # $8 = Email Address []:.
-#export email_address=""
+#emailAddress = <%= node[:nginx][:ssl][:gen][:email_address] %>
 
+[ v3_ca ]
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer:always
+#basicConstraints = critical,CA:true
+basicConstraints = CA:TRUE

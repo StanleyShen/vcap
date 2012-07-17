@@ -6,6 +6,27 @@
 #
 #
 compute_derived_attributes
+
+template "openssl-gen-conf.cnf" do
+  path File.join(node[:deployment][:config_path], "openssl-gen-conf.cnf")
+  source "openssl-gen-conf.cnf.erb"
+  owner node[:deployment][:user]
+  group node[:deployment][:group]
+  mode 0755
+end
+
+bash "dont-echo-nginx-start" do
+    # mysterious failure to start nginx with the latest beta build of 12.04 if something is echoed out.
+    code <<-CMD
+#{node[:cloudfoundry][:path]}/dev_setup/bin/vcap_generate_ssl_cert_self_signed
+CMD
+  notifies :reload, "service[nginx]"
+  not_if do
+    ::File.exists?(node[:nginx][:ssl][:config_dir])
+  end
+end
+
+
 case node['platform']
 when "ubuntu"
   package "nginx-extras"

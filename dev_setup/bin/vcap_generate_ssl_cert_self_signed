@@ -1,0 +1,18 @@
+#!/bin/bash
+# non-interactive generation of openssl self-signed certificates.
+# see 
+ssl_gen_parameters=$CLOUD_FOUNDRY_CONFIG_PATH/open_ssl_gen_conf.cnf
+if [ ! -f $ssl_gen_parameters ]; then
+  echo "Unable to locate the parameters to generate the self-signed ssl cert"
+  exit 1
+fi
+[ -z "$ssl_cert_basename" ] && ssl_cert_basename=autocf
+[ -z "$ssl_cert_dir" ] && ssl_cert_dir=/etc/nginx/ssl
+sudo mkdir -p $ssl_cert_dir
+sudo openssl genrsa -out $ssl_cert_dir/$ssl_cert_basename.key 1024
+sudo openssl req -new -key $ssl_cert_dir/$ssl_cert_basename.key -out $ssl_cert_dir/$ssl_cert_basename.csr -config $ssl_gen_parameters
+if [ ! -f "$ssl_cert_dir/$ssl_cert_basename.csr" ]; then
+  echo "Unable to generate the csr"
+  exit 1
+fi
+sudo openssl x509 -req -days 36500 -in $ssl_cert_dir/$ssl_cert_basename.csr -signkey $ssl_cert_dir/$ssl_cert_basename.key -out $ssl_cert_dir/$ssl_cert_basename.crt
