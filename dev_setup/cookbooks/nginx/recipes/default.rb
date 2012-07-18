@@ -18,11 +18,13 @@ end
 bash "dont-echo-nginx-start" do
     # mysterious failure to start nginx with the latest beta build of 12.04 if something is echoed out.
     code <<-CMD
-#{node[:cloudfoundry][:path]}/dev_setup/bin/vcap_generate_ssl_cert_self_signed
+export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
+echo "CLOUD_FOUNDRY_CONFIG_PATH $CLOUD_FOUNDRY_CONFIG_PATH"
+bash -x #{node[:cloudfoundry][:path]}/dev_setup/bin/vcap_generate_ssl_cert_self_signed
 CMD
   notifies :reload, "service[nginx]"
   not_if do
-    ::File.exists?(node[:nginx][:ssl][:config_dir])
+    ::File.exists?(File.join(node[:nginx][:ssl][:config_dir],node[:nginx][:ssl][:basename]+".crt"))
   end
 end
 

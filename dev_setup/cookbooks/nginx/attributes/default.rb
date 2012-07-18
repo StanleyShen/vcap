@@ -12,3 +12,10 @@ default[:nginx][:proxy_pass] = "http://vcap_router"
 default[:nginx][:ssl][:config_dir] = "/etc/nginx/ssl"
 default[:nginx][:ssl][:basename] = "autocf"
 
+default[:nginx][:ssl][:gen][:country_name] = "US"
+default[:nginx][:ssl][:gen][:state_name] = "CA"
+default[:nginx][:ssl][:gen][:locality_name] = "Palo Alto"
+default[:nginx][:ssl][:gen][:organization_name] = "Research and Testing Not Incorported"
+default[:nginx][:ssl][:gen][:organizational_unit_name] = "Research and Production Department"
+default[:nginx][:ssl][:gen][:common_name] = nil # the server hostname
+default[:nginx][:ssl][:gen][:ip_address] = nil

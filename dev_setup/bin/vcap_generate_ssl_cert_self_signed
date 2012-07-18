@@ -1,7 +1,8 @@
 #!/bin/bash
 # non-interactive generation of openssl self-signed certificates.
 # see 
-ssl_gen_parameters=$CLOUD_FOUNDRY_CONFIG_PATH/open_ssl_gen_conf.cnf
+ssl_gen_parameters=$1
+[ ! -f "$ssl_gen_parameters" -a -n "$CLOUD_FOUNDRY_CONFIG_PATH" ] && ssl_gen_parameters=$CLOUD_FOUNDRY_CONFIG_PATH/openssl-gen-conf.cnf
 if [ ! -f $ssl_gen_parameters ]; then
   echo "Unable to locate the parameters to generate the self-signed ssl cert"
   exit 1
