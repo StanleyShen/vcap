@@ -1,9 +1,9 @@
 source "http://rubygems.org"
 
-gem 'nats', '>= 0.4.10', :require => 'nats/client'
+gem 'nats', '0.4.24', :require => 'nats/client'
 gem 'eventmachine'
 
-gem 'vcap_common'
+gem 'vcap_common', '1.0.3'
 gem 'vcap_logging', :require => ['vcap/logging']
 
 gemspec

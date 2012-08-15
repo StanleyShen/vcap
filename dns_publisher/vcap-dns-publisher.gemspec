@@ -10,12 +10,12 @@ spec = Gem::Specification.new do |s|
   s.email = "hmalphettes@gmail.com"
   s.homepage = "http://intalio.com"
   s.description = s.summary = "Listens to apps stopping and starting on Cloudfoundry. Publishes the hostnames on multicast-DNS or route53; support for plugins. Must be run next to the vcap router for mDNS"
-  s.executables = %w(vcap-mdns-publisher)
+  s.executables = %w(dns_publisher)
 
   s.platform = Gem::Platform::RUBY
   s.extra_rdoc_files = ["README.md", "LICENSE"]
 
-  s.add_dependency "nats"
+  s.add_dependency "nats", "0.4.24"
 #  s.add_dependency "route53"
   #s.add_development_dependency "rake"
 #  s.add_development_dependency "rspec",   "~> 1.3.0"
