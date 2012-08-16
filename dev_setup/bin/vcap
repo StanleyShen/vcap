@@ -147,20 +147,23 @@ class Component
     end
     if is_router? && $port
       exec_path << " -p #{$port}"
+    elsif exec_path =~ /dns_publisher/
+      # ugly hack.
+      exec_path = "cd ~/cloudfoundry/vcap/dns_publisher && bundle exec #{exec_path}"
     end
     exec_path
   end
 
   def start
     if !running?
-      
+
       # hack: force a synchroneous repair for mongodb_node
       # yes this could take a while
       if @name =~ /mongodb_node/i && File.exists?(File.join(File.dirname(__FILE__),"vcap_repair_mongod"))
         STDOUT.puts "Repairing the mongodb instances if necessary"
         p `#{File.join(File.dirname(__FILE__),"vcap_repair_mongod")}`
       end
-      
+
       pid = fork do
         # Capture STDOUT when no log file is configured
         if !log_file?
@@ -207,7 +210,7 @@ class Component
 
     kill = "kill -TERM #{pid}"
     `#{kill} 2> /dev/null`
-    
+
     if $? != 0
       STDERR.puts "#{'Failed'.red} to stop #{name}, possible permission problem\?"
       return
@@ -385,7 +388,7 @@ end
 
 module Run
   DEFAULT_REDIS_PIDFILE = File.join(TMP, 'redis-server.pid')
-  
+
   def self.start_init
     nats_server = NatsServer.new
     nats_server.start_server
