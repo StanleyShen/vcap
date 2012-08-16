@@ -6,4 +6,5 @@ default[:nats_server][:logtime] = "true"
 default[:nats_server][:debug] = "false"
 default[:nats_server][:trace] = "false"
 default[:nats_server][:is_os_daemon] = true
+default[:nats_server][:version] = "0.4.24"
 #default[:nats_server][:tracked_net_iface] = "eth0"

@@ -13,6 +13,7 @@ execute "start-nats" do
 end
 
 gem_package "nats" do
+  version node[:nats_server][:version]
   gem_binary "sudo -u #{node[:deployment][:user]} #{File.join(node[:ruby][:path], "bin", "gem")}"
   notifies :run, "execute[start-nats]"
 end
@@ -39,7 +40,7 @@ when "ubuntu"
     notifies :run, "execute[start-nats]"
     #notifies :restart, "service[nats_server]"
   end
-  
+
   template "vcap_reconfig" do
     path "/etc/init/vcap_reconfig.conf"
     source "vcap_reconfig.conf.erb"

@@ -3,6 +3,8 @@ module RubyInstall
     rubygems_version = node[:rubygems][:version]
     bundler_version = node[:rubygems][:bundler][:version]
     rake_version = node[:rubygems][:rake][:version]
+    eventmachine_version = node[:rubygems][:eventmachine][:version]
+    thin_version = node[:rubygems][:thin][:version]
     ubuntu_version=`lsb_release -sr`
     if ubuntu_version =~ /^10\./
       package "libreadline5-dev"
@@ -132,7 +134,13 @@ EOH
     package "mysql-client"
     package "libmysqlclient-dev"
 
-    %w[ rack eventmachine thin sinatra mysql pg ].each do |gem|
+    gem_package "thin" do
+      retries 4
+      version thin_version
+      gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
+    end
+
+    %w[ rack eventmachine sinatra mysql pg ].each do |gem|
       gem_package gem do
         retries 4
         gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
