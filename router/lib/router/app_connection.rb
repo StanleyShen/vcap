@@ -33,7 +33,7 @@ module AppConnection
 
   # We have the HTTP Headers complete from the client
   def on_headers_complete(headers)
-    check_sticky_session = STICKY_SESSIONS =~ headers[SET_COOKIE_HEADER]
+    check_sticky_session = headers[SET_COOKIE_HEADER] && STICKY_SESSIONS =~ headers[SET_COOKIE_HEADER].to_s
     sent_session_cookie = false # Only send one in case of multiple hits
 
     header_lines = @headers.split("\r\n")
