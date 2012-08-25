@@ -11,6 +11,7 @@ default[:nginx][:proxy_pass] = "http://vcap_router"
 
 default[:nginx][:ssl][:config_dir] = "/etc/nginx/ssl"
 default[:nginx][:ssl][:basename] = "autocf"
+default[:nginx][:ssl][:only_ssl] = false
 
 default[:nginx][:ssl][:gen][:country_name] = "US"
 default[:nginx][:ssl][:gen][:state_name] = "CA"

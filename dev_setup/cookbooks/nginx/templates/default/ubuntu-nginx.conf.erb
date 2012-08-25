@@ -53,7 +53,12 @@ http {
     upstream router_status {
         server 127.0.0.1:8080;
     }
-
+    <% if node[:nginx][:ssl][:only_ssl] %>
+    server {
+       listen         80;
+       rewrite        ^ https://$host$request_uri? permanent;
+    }
+    <% else %>
     server {
         # use chunkin-http
         chunkin on;
@@ -101,6 +106,7 @@ http {
             proxy_pass                      http://router;
         }
     }
+    <% end %>
 
     server {
         # use chunkin-http
