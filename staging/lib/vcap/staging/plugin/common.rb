@@ -379,7 +379,7 @@ while [ true ]; do
       kill -9 $APP_PID
       # recalc when it should stop waiting
       ((limit_secs=$(date +%s) + $STOP_TIMEOUT_FORCEFUL))
-    else 
+    else
       echo "App failed to stop [pid $APP_PID]"
       break
     fi
@@ -497,18 +497,27 @@ SCRIPT
 
   def generate_startup_script(env_vars = {})
     after_env_before_script = block_given? ? yield : "\n"
-    
+
     template = <<-SCRIPT
 #!/bin/bash
 # Generated during staging at #{Time.now}
 #TS=#{Time.now.to_i}
 #APP_ID=#{ENV['STAGED_APP_ID']}
+initial_pwd=`pwd`
+rm $initial_pwd/run.pid
 <%= environment_statements_for(env_vars) %>
 <%= after_env_before_script %>
 <%= change_directory_for_start %>
-<%= start_command %> > ../logs/stdout.log 2> ../logs/stderr.log &
+<%= start_command %> > $initial_pwd/logs/stdout.log 2> $initial_pwd/logs/stderr.log &
 <%= get_launched_process_pid %>
-echo "$STARTED" >> ../run.pid
+if [ -z "$STARTED" ]; then
+  if [ -f "$initial_pwd/run.pid" ]; then
+    STARTED=`cat $initial_pwd/run.pid`
+  else
+    exit 14
+  fi
+fi
+[ ! -f $initial_pwd/run.pid ] && echo "$STARTED" > $initial_pwd/run.pid || STARTED=`cat $initial_pwd/run.pid`
 <%= wait_for_launched_process %>
 SCRIPT
     # TODO - ERB is pretty irritating when it comes to blank lines, such as when 'after_env_before_script' is nil.

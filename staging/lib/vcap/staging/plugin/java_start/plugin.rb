@@ -3,7 +3,7 @@ class JavaStartPlugin < StagingPlugin
   def framework
     'java_start'
   end
-  
+
   def stage_application
     Dir.chdir(destination_directory) do
       create_app_directories
@@ -12,7 +12,7 @@ class JavaStartPlugin < StagingPlugin
       create_startup_script
     end
   end
-  
+
   def start_command
     if File.exists?("app/start_cmd.sh") || File.exists?("app/before_start.sh")
       "chmod +x start_cmd.sh; cmd=$(./start_cmd.sh -Xms#{application_memory}m -Xmx#{application_memory}m -Djetty.port=$VCAP_APP_PORT); $cmd"
@@ -65,10 +65,10 @@ class JavaStartPlugin < StagingPlugin
       system "cp -a #{File.join(source_directory, src_folder, "*")} #{dest}"
     end
   end
-  
+
   def execute_custom_staging
     if File.exists?("app/stage.sh")
-      
+
       `chmod +x app/stage.sh;`
       `cd app; ./stage.sh >> ../logs/staging.log 2>&1`
       #stream the std ios to us so we can keep watching the process:
