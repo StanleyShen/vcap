@@ -10,7 +10,13 @@ class JavaStartPlugin < StagingPlugin
       copy_source_files
       execute_custom_staging
       create_startup_script
+      create_stop_script
     end
+  end
+
+  def stop_script
+    vars = environment_hash
+    generate_stop_script(vars)
   end
 
   def start_command
@@ -94,4 +100,5 @@ class JavaStartPlugin < StagingPlugin
     vars = environment_hash
     generate_startup_script(vars)
   end
+
 end
