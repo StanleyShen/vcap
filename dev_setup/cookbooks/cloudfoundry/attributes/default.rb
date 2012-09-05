@@ -15,3 +15,7 @@ default[:cloudfoundry][:git][:vcap_java][:repo] = "https://github.com/cloudfound
 default[:cloudfoundry][:git][:vcap_java][:branch] = "master"
 default[:cloudfoundry][:git][:vcap_services][:repo] = "https://github.com/cloudfoundry/vcap-services.git"
 default[:cloudfoundry][:git][:vcap_services][:branch] = "master"
+
+default[:cloudfoundry][:git][:router][:repo] = "https://github.com/cloudfoundry/router.git"
+default[:cloudfoundry][:git][:router][:branch] = "master"
+
