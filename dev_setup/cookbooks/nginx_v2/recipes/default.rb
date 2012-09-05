@@ -32,7 +32,7 @@ when "ubuntu"
   end
 
 # don't make and reinstall nginx+lua if it was already done.
-unless File.exists?(nginx_path) && File.exists?(lua_module_path) &&  File.exists?(lua_path)
+unless !File.exists?(nginx_path) && File.exists?(lua_module_path) &&  File.exists?(lua_path)
 
   # Lua related packages
   ::FileUtils.mkdir_p node[:deployment][:setup_cache]
@@ -165,6 +165,7 @@ unless File.exists?(nginx_path) && File.exists?(lua_module_path) &&  File.exists
         --prefix=#{nginx_path} \
         --with-pcre=../pcre-8.12 \
         --with-cc-opt=-Wno-unused-but-set-variable \
+        --with-http_ssl_module \
         --add-module=../nginx_upload_module-2.2.0 \
         --add-module=../headers-more-v0.15rc1 \
         --add-module=../simpl-ngx_devel_kit-bc97eea \
