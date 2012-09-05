@@ -71,6 +71,13 @@ module CloudFoundryAttributes
     end
     node[:cloud_controller] = {} unless node[:cloud_controller]
     node[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}" unless node[:cloud_controller][:service_api_uri]
+
+    node[:serialization_data_server] = {} unless node[:serialization_data_server]
+    node[:serialization_data_server][:host] ||= cf_local_ip
+    node[:serialization_data_server][:upstream_port] ||= 2000
+    node[:snapshot] ||= {}
+    node[:snapshot][:dir] ||= "/var/vcap/snapshot"
+
   end
 end
 

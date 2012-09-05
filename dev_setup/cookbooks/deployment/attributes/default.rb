@@ -22,3 +22,5 @@ default[:deployment][:is_micro] = false
 default[:deployment][:tracked_inet] = "eth0" # name of the network interface used
 #Force the local IP to something else.
 #default[:cloudfoundry][:local_ip] = 127.0.0.1
+
+default[:deployment][:setup_cache] = File.join("", "var", "cache", "dev_setup")
