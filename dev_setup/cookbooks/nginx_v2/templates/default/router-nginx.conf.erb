@@ -55,6 +55,14 @@ http {
 <% else %>
 
   server {
+    # use chunkin-http
+    chunkin on;
+    error_page 411 = @my_411_error;
+    location @my_411_error {
+      chunkin_resume;
+    }
+    # end of http-chunkin
+
     listen       80;
     server_name  _;
     server_name_in_redirect off;
@@ -162,6 +170,14 @@ http {
 <% end %>
 
   server {
+    # use chunkin-http
+    chunkin on;
+    error_page 411 = @my_411_error;
+    location @my_411_error {
+      chunkin_resume;
+    }
+    # end of http-chunkin
+
     listen      443;
     ssl         on;
     ssl_certificate <%= node[:nginx][:ssl][:config_dir] %>/<%= node[:nginx][:ssl][:basename] %>.crt;
