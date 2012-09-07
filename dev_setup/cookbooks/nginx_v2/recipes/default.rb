@@ -279,6 +279,8 @@ end # don't make and reinstall nginx+lua if it was already done.
     EOH
   end
 
+  cf_bundle_install(File.expand_path(router_path))
+
   service "nginx_router" do
     supports :status => true, :restart => true, :reload => true
     action [ :enable, :restart ]
