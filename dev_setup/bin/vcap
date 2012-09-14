@@ -150,6 +150,9 @@ class Component
     elsif exec_path =~ /dns_publisher/
       # ugly hack.
       exec_path = "cd ~/cloudfoundry/vcap/dns_publisher && bundle exec #{exec_path}"
+    elsif exec_path =~ /router/
+      # ugly hack.
+      exec_path = "cd ~/cloudfoundry/vcap/router && bundle exec #{exec_path}"
     end
     exec_path
   end

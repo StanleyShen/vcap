@@ -10,6 +10,14 @@ compute_derived_attributes
 
 include_recipe 'deployment'
 
+template node[:router][:config_file] do
+  path File.join(node[:deployment][:config_path], node[:router][:config_file])
+  source "router.yml.erb"
+  owner node[:deployment][:user]
+  mode 0644
+  notifies :restart, "service[vcap_router]"
+end
+
 node[:nginx_v2][:path]    = File.join(node[:deployment][:home], "deploy", "nginx", "nginx-#{node[:nginx_v2][:version]}")
 node[:nginx_v2][:log_home] = File.join(node[:deployment][:home], "log", "nginx")
 node[:nginx_v2][:vcap_log] = File.join(node[:deployment][:home], "sys", "log", "vcap.access.log")
@@ -26,6 +34,26 @@ router_path = File.join(node[:cloudfoundry][:home], "router")
 
 case node['platform']
 when "ubuntu"
+
+  template "openssl-gen-conf.cnf" do
+    path File.join(node[:deployment][:config_path], "openssl-gen-conf.cnf")
+    source "openssl-gen-conf.cnf.erb"
+    owner node[:deployment][:user]
+    group node[:deployment][:group]
+    mode 0755
+  end
+  bash "generate the ssl self signed cert" do
+    # mysterious failure to start nginx with the latest beta build of 12.04 if something is echoed out.
+    code <<-CMD
+export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
+echo "CLOUD_FOUNDRY_CONFIG_PATH $CLOUD_FOUNDRY_CONFIG_PATH"
+bash -x #{node[:cloudfoundry][:path]}/dev_setup/bin/vcap_generate_ssl_cert_self_signed
+CMD
+  notifies :reload, "service[nginx_router]"
+  not_if do
+    ::File.exists?(File.join(node[:nginx][:ssl][:config_dir],node[:nginx][:ssl][:basename]+".crt"))
+  end
+end
 
   %w[ build-essential].each do |pkg|
     package pkg
@@ -191,6 +219,7 @@ end # don't make and reinstall nginx+lua if it was already done.
     group node[:deployment][:group]
   end
 
+
   template "uls.lua" do
     path File.join(lua_module_path, "uls.lua")
     source File.join(node[:lua][:plugin_source_path], "uls.lua")
@@ -279,12 +308,17 @@ end # don't make and reinstall nginx+lua if it was already done.
     EOH
   end
 
-  cf_bundle_install(File.expand_path(router_path))
-
   service "nginx_router" do
-    supports :status => true, :restart => true, :reload => true
+    supports :status => true, :restart => true, :reload => false, :start => true, :stop => true
     action [ :enable, :restart ]
   end
+
+  service "vcap_router" do
+    provider CloudFoundry::VCapChefService
+    supports :status => true, :restart => true, :start => true, :stop => true
+    action [ :start ]
+  end
+
 
 # For now we don't do nginx_cc and nginx_sds
 =begin

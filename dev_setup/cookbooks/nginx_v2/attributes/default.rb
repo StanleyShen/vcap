@@ -1,5 +1,9 @@
 include_attribute "deployment"
 
+default[:router][:config_file] = "router.yml"
+default[:router][:enable_mdns_avahi_aliases] = true
+#default[:router][:client_inactivity_timeout] = 60
+
 default[:nginx_v2][:version] = "0.8.54"
 default[:nginx_v2][:id]  = "eyJzaWciOiJYaGxvTGFpVktXR3B6MExZVDBBdFNod3RDdzg9Iiwib2lkIjoi%0ANGU0ZTc4YmNhMjFlMTIyMjA0ZTRlOTg2MzkyNmIxMDUwMThmMmNiNGFiNjki%0AfQ==%0A"
 default[:nginx_v2][:patch_id] = "eyJzaWciOiJkVGp2bjEyMXZYT0VWUHFUQjhrdjZ3Zk56WHc9Iiwib2lkIjoi%0ANGU0ZTc4YmNhNjFlMTIyMDA0ZTRlOGVjNmI0NGI2MDUwMThmM2JmMGMzOTQi%0AfQ==%0A"
