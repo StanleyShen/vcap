@@ -210,6 +210,9 @@ unless File.exists?(nginx_path) && File.exists?(lua_module_path) &&  File.exists
 
 end # don't make and reinstall nginx+lua if it was already done.
 
+  # for now delete the repo first.
+  ::FileUtils.rm_rf router_path if ::File.exists?(router_path)
+
   git router_path do
     repository node[:cloudfoundry][:git][:router][:repo]
     revision node[:cloudfoundry][:git][:router][:branch]

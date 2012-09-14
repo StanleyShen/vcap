@@ -7,7 +7,7 @@ module CloudFoundry
   def self.cf_invoke_bundler_cmd(node, path, cmd='install --local --verbose')
     CloudFoundry::cf_invoke_ruby_cmd(node, path, 'bundle', cmd)
   end
-  
+
   # returns the appropriate bundle command
   # call this before the bash/ruby block. not inside it.
   def self.cf_invoke_ruby_cmd(node, path, bundle_or_gem, cmd)
@@ -75,7 +75,7 @@ EOH
     end
 
   end
-  
+
   def cf_bundle_install(path)
     path=File.expand_path(path)
     bundle_install_cmd=CloudFoundry::cf_invoke_bundler_cmd(node, path, 'install --local --verbose')
@@ -97,11 +97,12 @@ if [ $? != 0 ]; then
   echo "Retry 2"
   #{bundle_install_cmd}
 fi
-set -e 
+set -e
 if [ $? != 0 ]; then
   echo "Retry 3"
   #{bundle_install_cmd}
 fi
+#{Process.uid == 0 ? "sudo -i -u #{node[:deployment][:user]} gemdir=\"$gemdir\" && sudo chown -R "+node[:deployment][:user]+":"+node[:deployment][:user]+" $gemdir" : ""}
 EOH
       only_if { ::File.exist?(File.join(path, 'Gemfile')) }
     end
@@ -126,7 +127,7 @@ EOH
       Socket.do_not_reverse_lookup = orig
     end
   end
-    
+
 end
 
 class Chef::Recipe
