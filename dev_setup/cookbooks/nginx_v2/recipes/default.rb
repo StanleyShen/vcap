@@ -222,7 +222,7 @@ end # don't make and reinstall nginx+lua if it was already done.
     group node[:deployment][:group]
   end
 
-  cf_bundle_install(router_path,"package --verbose")
+  cf_bundle_install(router_path,"package --verbose", false)
   add_to_vcap_components("router")
 
 

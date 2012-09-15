@@ -76,7 +76,7 @@ EOH
 
   end
 
-  def cf_bundle_install(path, cmd='install --local --verbose')
+  def cf_bundle_install(path, cmd='install --local --verbose', install_vcap_common=true)
     path=File.expand_path(path)
     bundle_install_cmd=CloudFoundry::cf_invoke_bundler_cmd(node, path, cmd)
     bash "Bundle install for #{path}" do
@@ -107,7 +107,7 @@ EOH
       only_if { ::File.exist?(File.join(path, 'Gemfile')) }
     end
     # (re-)install vcap_common as mostlikely this bundle install overrode us.
-    cf_gem_build_install(File.join(node["cloudfoundry"]["path"], "common"))
+    cf_gem_build_install(File.join(node["cloudfoundry"]["path"], "common")) if install_vcap_common
   end
 
   A_ROOT_SERVER = '198.41.0.4'
