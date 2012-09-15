@@ -41,11 +41,13 @@ elif [ -z "$2" ]; then
   [ "$1" == "start" ] && do_reconfig="true"
 fi
 if [ "$do_reconfig" == "true" ]; then
-  sudo /etc/init.d/nginx status
-  if [ "$?" != "0" ]; then
-    echo "Fixing nginx script and starting nginx"
-    sudo sed -i 's/[[:space:]]*echo -n "Starting/#this line prevents the startup at boot time on 12.04           echo -n "Starting/' /etc/init.d/nginx
-    sudo /etc/init.d/nginx start
+  if [ -f /etc/init.d/nginx ]; then
+    sudo /etc/init.d/nginx status
+    if [ "$?" != "0" ]; then
+      echo "Fixing nginx script and starting nginx"
+      sudo sed -i 's/[[:space:]]*echo -n "Starting/#this line prevents the startup at boot time on 12.04           echo -n "Starting/' /etc/init.d/nginx
+      sudo /etc/init.d/nginx start
+    fi
   fi
   # plug your own apps here:
   # call the registration app if there is such a thing it will take care of the dns gateway bind
