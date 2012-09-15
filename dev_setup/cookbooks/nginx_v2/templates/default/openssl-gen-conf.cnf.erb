@@ -1,0 +1,39 @@
+# read when generating the openssl certificates.
+# feel free to edit and change the values.
+# this file is managed by chef if the VM is plugged into a chef-server.
+# Pass the following information to the routine to generate the certificate:
+# see http://www.runscripts.com/support/guides/building-software-application-stacks/ssl-certificates/creating-a-ca
+# and http://support.cloudfoundry.com/entries/20153602-is-it-possible-to-visit-my-application-via-ssl-https
+
+[ req ]
+prompt = no
+distinguished_name = req_distinguished_name
+x509_extensions = v3_ca
+
+# directory where the files are output
+#export ssl_cert_dir="<%= node[:nginx][:ssl][:config_dir] %>"
+#export ssl_cert_basename="<%= node[:nginx][:ssl][:basename] %>"
+
+[ req_distinguished_name ]
+# $1 = Country Name (2 letter code) [GB]:.
+C = <%= node[:nginx][:ssl][:gen][:country_name] %>
+# $2 = State or Province Name (full name) [Berkshire]:.
+ST = <%= node[:nginx][:ssl][:gen][:state_name] %>
+# $3 = Locality Name (eg, city) [Newbury]:.
+L = <%= node[:nginx][:ssl][:gen][:locality_name] %>
+# $4 = Organization Name (eg, company) [My Company Ltd]:.
+O =  <%= node[:nginx][:ssl][:gen][:organization_name] %>
+# $5 = Organizational Unit Name (eg, section) []:.
+<%= "#" unless node[:nginx][:ssl][:gen][:organizational_unit_name] %>OU = <%= node[:nginx][:ssl][:gen][:organizational_unit_name] %>
+# $6 = Common Name (eg, your name or your server's hostname) []:.
+<%= "#" unless node[:nginx][:ssl][:gen][:common_name] %>CN = <%= node[:nginx][:ssl][:gen][:common_name] %>
+# $7 = IP address
+<%= "#" unless node[:nginx][:ssl][:gen][:ip_address] %>IP = <%= node[:nginx][:ssl][:gen][:ip_address] %>
+# $8 = Email Address []:.
+<%= "#" unless node[:nginx][:ssl][:gen][:email_address] %>emailAddress = <%= node[:nginx][:ssl][:gen][:email_address] %>
+
+[ v3_ca ]
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer:always
+#basicConstraints = critical,CA:true
+basicConstraints = CA:TRUE

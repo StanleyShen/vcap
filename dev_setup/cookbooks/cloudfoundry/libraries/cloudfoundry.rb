@@ -76,9 +76,9 @@ EOH
 
   end
 
-  def cf_bundle_install(path)
+  def cf_bundle_install(path, cmd='install --local --verbose')
     path=File.expand_path(path)
-    bundle_install_cmd=CloudFoundry::cf_invoke_bundler_cmd(node, path, 'install --local --verbose')
+    bundle_install_cmd=CloudFoundry::cf_invoke_bundler_cmd(node, path, cmd)
     bash "Bundle install for #{path}" do
       cwd path
       environment ({'HOME' => "/home/#{node[:deployment][:user]}",
