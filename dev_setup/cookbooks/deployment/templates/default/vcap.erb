@@ -41,12 +41,13 @@ elif [ -z "$2" ]; then
   [ "$1" == "start" ] && do_reconfig="true"
 fi
 if [ "$do_reconfig" == "true" ]; then
-  if [ -f /etc/init.d/nginx ]; then
-    sudo /etc/init.d/nginx status
+  [ -f /etc/init.d/nginx_router ] && nginx_path=/etc/init.d/nginx_router || nginx_path=/etc/init.d/nginx
+  if [ -f "$nginx_path" ]; then
+    sudo $nginx_path status
     if [ "$?" != "0" ]; then
       echo "Fixing nginx script and starting nginx"
-      sudo sed -i 's/[[:space:]]*echo -n "Starting/#this line prevents the startup at boot time on 12.04           echo -n "Starting/' /etc/init.d/nginx
-      sudo /etc/init.d/nginx start
+      sudo sed -i 's/[[:space:]]*echo -n "Starting/#this line prevents the startup at boot time on 12.04           echo -n "Starting/' $nginx_path
+      sudo $nginx_path start
     fi
   fi
   # plug your own apps here:
