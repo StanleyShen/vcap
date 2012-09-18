@@ -47,6 +47,7 @@ if [ "$do_reconfig" == "true" ]; then
     if [ "$?" != "0" ]; then
       echo "Fixing nginx script and starting nginx"
       sudo sed -i 's/[[:space:]]*echo -n "Starting/#this line prevents the startup at boot time on 12.04           echo -n "Starting/' $nginx_path
+       sudo sed -i 's/[[:space:]]*log_action_begin_msg "Starting/#this line prevents the startup at boot time on 12.04           log_action_begin_msg "Starting/' $nginx_path
       sudo $nginx_path start
     fi
   fi
