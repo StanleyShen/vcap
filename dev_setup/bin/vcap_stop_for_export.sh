@@ -49,6 +49,11 @@ if [ -d /home/ubuntu/intalio/registration_app/start_register_app.rb ]; then
     /home/ubuntu/intalio/registration_app/start_register_app.rb reset_manifest
   fi
 fi
+# Make more room:
+if [ -d /home/ubuntu/intalio/boot_data ]; then
+  rm -rf /home/ubuntu/intalio/boot_data
+  mkdir /home/ubuntu/intalio/boot_data
+fi
 echo "Drop mongo's collections io_change_log Client and AccessToken ? (default yes)"
 read response
 if [ -z "$response" ]; then
