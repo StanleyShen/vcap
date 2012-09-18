@@ -49,7 +49,7 @@ export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
 echo "CLOUD_FOUNDRY_CONFIG_PATH $CLOUD_FOUNDRY_CONFIG_PATH"
 bash -x #{node[:cloudfoundry][:path]}/dev_setup/bin/vcap_generate_ssl_cert_self_signed
 CMD
-  notifies :reload, "service[nginx_router]"
+  notifies :restart, "service[nginx_router]"
   not_if do
     ::File.exists?(File.join(node[:nginx][:ssl][:config_dir],node[:nginx][:ssl][:basename]+".crt"))
   end
