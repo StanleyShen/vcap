@@ -2,8 +2,8 @@
 name: "otp_rebar"
 runtimes:
   - erlangR14B02:
-      version: '#{node[:erlang][:version]}'
-      description: 'Erlang #{node[:erlang][:version]}'
+      version: <%= "#{node[:erlang][:version]}" %>
+      description: <%= "Erlang #{node[:erlang][:version]}" %>
       executable: <%= File.join(node[:erlang][:path], "bin", "erl") %>
       default: true
 app_servers:
