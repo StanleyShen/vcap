@@ -15,7 +15,7 @@ UBUNTU_MIRROR=sg
 if [ ! -f "$runtime_profile" ]; then
   echo "The deployment profile file $runtime_profile must exist"
 fi
-[ -z "$repo" ] && repo=https://github.com/hmalphettes/vcap
+[ -z "$repo" ] && repo=https://github.com/intalio/vcap
 [ -z "$branch" ] && branch=java_start
 [ -z "$services_branch" ] && services_branch=mongodb_more_params
 

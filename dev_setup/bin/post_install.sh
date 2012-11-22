@@ -27,7 +27,7 @@ cd $cdir
 vcap/dev_setup/bin/vcap_ccdb_rake_migrate
 
 # vmc-knife:
-git clone https://github.com/hmalphettes/vmc-knife.git
+git clone https://github.com/intalio/vmc-knife.git
 cd vmc-knife
 gem build vmc_knife.gemspec
 gem install vmc_knife
