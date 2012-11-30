@@ -219,7 +219,7 @@ grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
 grep_it=`grep alias\\ #{node[:deployment][:vcap_exec_alias]}= .bashrc`
 [ -z "$grep_it" ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc
 grep_it=`grep alias\\ _psql= .bashrc`
-[ -z "$grep_it" ] && echo "alias _psql='sudo -u postgres psql'" >> .bashrc
+[ -z "$grep_it" ] && echo "alias _pgsql='sudo -u postgres psql'" >> .bashrc
 grep_it=`grep alias\\ _mongo= .bashrc`
 [ -z "$grep_it" ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc
 exit 0
