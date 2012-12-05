@@ -200,6 +200,11 @@ fi
 sudo /etc/init.d/nats_server stop
 sudo /etc/init.d/redis-server stop
 
+# let go to remove some unused packages
+echo "start to remvoe some unused packages"
+sudo apt-get remove mysql-common -y
+sudo apt-get remove subversion -y
+
 sudo apt-get autoremove -y --force-yes
 sudo apt-get clean
 sudo apt-get autoclean
@@ -223,6 +228,7 @@ if [ $? -eq 0 ]; then
    sudo -i rvm remove default
    echo "yes" | sudo -i rvm implode
    sudo rm /etc/rvmrc /root/.rvmrc
+   sudo rm -rf /root/.gem
  fi 
 fi
 
