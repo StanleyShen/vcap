@@ -214,6 +214,18 @@ if [ -z "$response" ]; then
   rm -rf ~/cloudfoundry/vcap/java/.git
   rm -rf ~/cloudfoundry/vcap/services/.git
 fi
+
+sudo -i which rvm > /dev/null
+if [ $? -eq 0 ]; then
+ echo "delete the rvm and ruby for root user (default yes) ?"
+ read response
+ if [ -z "$response" ]; then
+   sudo -i rvm remove default
+   echo "yes" | sudo -i rvm implode
+   sudo rm /etc/rvmrc /root/.rvmrc
+ fi 
+fi
+
 rm -rf ~/cloudfoundry/vcap/tests
 rm ~/cloudfoundry/log/*
 rm -rf ~/.cache
