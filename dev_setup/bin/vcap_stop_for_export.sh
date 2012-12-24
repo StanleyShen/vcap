@@ -206,7 +206,7 @@ sudo apt-get remove mysql-common -y
 sudo apt-get remove subversion -y
 
 # disable grub menu
-sudo sed -i  -e 's/#\(GRUB_HIDDEN_TIMEOUT=\)/\1/' -e 's/#\(GRUB_HIDDEN_TIMEOUT_QUIET=\)/\1/' grub
+sudo sed -i  -e 's/#\(GRUB_HIDDEN_TIMEOUT=\)/\1/' -e 's/#\(GRUB_HIDDEN_TIMEOUT_QUIET=\)/\1/' /etc/default/grub
 sudo update-grub2
 # remove previous linux image
 dpkg -l 'linux-*' | sed '/^ii/!d;/'"$(uname -r | sed "s/\(.*\)-\([^0-9]\+\)/\1/")"'/d;s/^[^ ]* [^ ]* \([^ ]*\).*/\1/;/[0-9]/!d' | xargs sudo apt-get -y purge
