@@ -215,7 +215,7 @@ if [ -z "$response" ]; then
   rm -rf ~/cloudfoundry/vcap/services/.git
 fi
 rm -rf ~/cloudfoundry/vcap/tests
-rm ~/cloudfoundry/log/*
+sudo rm -rf  ~/cloudfoundry/log/*
 rm -rf ~/.cache
 rm -rf ~/.bash_history
 rm -rf ~/.nano_history
