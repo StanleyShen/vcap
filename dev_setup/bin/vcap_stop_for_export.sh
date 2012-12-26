@@ -262,6 +262,7 @@ if [ -e $swp_file ]; then
   sudo rm $swp_file
 fi
 sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
+sudo -i echo "intalio-create" > /etc/hostname
 df -h
 echo "Secure delete (required before we can export the VM image) default yes?"
 read response
