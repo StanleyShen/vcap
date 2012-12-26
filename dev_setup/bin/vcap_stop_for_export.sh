@@ -239,7 +239,7 @@ if [ $? -eq 0 ]; then
 fi
 
 rm -rf ~/cloudfoundry/vcap/tests
-rm ~/cloudfoundry/log/*
+sudo rm -rf  ~/cloudfoundry/log/*
 rm -rf ~/.cache
 rm -rf ~/.bash_history
 rm -rf ~/.nano_history
