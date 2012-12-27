@@ -262,7 +262,15 @@ if [ -e $swp_file ]; then
   sudo rm $swp_file
 fi
 sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
+
+# change vm hostname to intalio-create
 sudo -i echo "intalio-create" > /etc/hostname
+
+# delete some history file to make it clean
+rm .bashrc.swp
+rm .*_history
+uniq .bashrc > .bashrc
+
 df -h
 echo "Secure delete (required before we can export the VM image) default yes?"
 read response
@@ -271,6 +279,7 @@ sudo sfill -v -f -z -l  /
   echo "All ready to export from the hypervisor. Shutdown now?"
   read response
   if [ -z "$response" ]; then
+    history -c
     sudo poweroff
   fi
 fi
