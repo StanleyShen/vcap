@@ -239,7 +239,7 @@ if [ $? -eq 0 ]; then
 fi
 
 rm -rf ~/cloudfoundry/vcap/tests
-sudo rm -rf  ~/cloudfoundry/log/*
+rm ~/cloudfoundry/log/*
 rm -rf ~/.cache
 rm -rf ~/.bash_history
 rm -rf ~/.nano_history
@@ -265,6 +265,7 @@ sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
 
 # change vm hostname to intalio-create
 sudo -i echo "intalio-create" > /etc/hostname
+sudo sed  -i  '/intalio-create/!s/^127.0.1.1 .*/& intalio-create/' /etc/hosts
 
 # delete some history file to make it clean
 rm .bashrc.swp
