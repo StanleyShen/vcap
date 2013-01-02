@@ -270,7 +270,6 @@ sudo sed  -i  '/intalio-create/!s/^127.0.1.1 .*/& intalio-create/' /etc/hosts
 # delete some history file to make it clean
 rm .bashrc.swp
 rm .*_history
-uniq .bashrc > .bashrc
 
 df -h
 echo "Secure delete (required before we can export the VM image) default yes?"
