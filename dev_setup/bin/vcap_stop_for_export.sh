@@ -1,4 +1,11 @@
 #!/bin/bash
+
+echo "update aptitude and install chinese font"
+sudo aptitude update
+sudo apt-get install fonts-arphic-uming -y
+
+
+
 # reset the password of the ubuntu user to ubuntu:
 echo "Reset the ubuntu's user's password to 'ubuntu' ? (default yes)"
 read response
@@ -267,9 +274,25 @@ sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
 sudo -i echo "intalio-create" > /etc/hostname
 sudo sed  -i  '/intalio-create/!s/^127.0.1.1 .*/& intalio-create/' /etc/hosts
 
+# turn off vmc
+sed -i 's/allow_registration: true/allow_registration: false/g' cloud_controller.yml
+
 # delete some history file to make it clean
 rm .bashrc.swp
 rm .*_history
+
+echo "delete all soft-deleted record and update object count"
+# delete all soft-delete records and update object count
+vmc_knife data-shell pg_intalio -c "select io_function_find_deleted_records(TRUE);"
+vmc_knife data-shell pg_intalio -c "select io_function_update_object_record();"
+
+echo "update last access application to null"
+# set last access application to null 
+vmc_knife data-shell pg_intalio -c "update io_user_parameter set io_last_accessed_application = null;"
+
+echo "update VM time"
+sudo ntpdate pool.ntp.org
+
 
 df -h
 echo "Secure delete (required before we can export the VM image) default yes?"
