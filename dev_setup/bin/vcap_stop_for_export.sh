@@ -5,7 +5,6 @@ sudo aptitude update
 sudo apt-get install fonts-arphic-uming -y
 
 
-
 # reset the password of the ubuntu user to ubuntu:
 echo "Reset the ubuntu's user's password to 'ubuntu' ? (default yes)"
 read response
@@ -25,6 +24,16 @@ if [ "0" != "$not_started_count" ]; then
   echo "All apps must be 'STARTED' before the VM is exported"
   exit 1
 fi
+
+echo "delete all soft-deleted record and update object count"
+# delete all soft-delete records and update object count
+vmc_knife data-shell pg_intalio -c "select io_function_find_deleted_records(TRUE);"
+vmc_knife data-shell pg_intalio -c "select io_function_update_object_record();"
+
+echo "update last access application to null"
+# set last access application to null 
+vmc_knife data-shell pg_intalio -c "update io_user_parameter set io_last_accessed_application = null;"
+
 
 if [ -f "/etc/chef/client.pem" ]; then
   echo "Delete the chef permission client.pem; required if the IP will change? (default yes)"
@@ -280,15 +289,6 @@ sed -i 's/allow_registration: true/allow_registration: false/g' cloud_controller
 # delete some history file to make it clean
 rm .bashrc.swp
 rm .*_history
-
-echo "delete all soft-deleted record and update object count"
-# delete all soft-delete records and update object count
-vmc_knife data-shell pg_intalio -c "select io_function_find_deleted_records(TRUE);"
-vmc_knife data-shell pg_intalio -c "select io_function_update_object_record();"
-
-echo "update last access application to null"
-# set last access application to null 
-vmc_knife data-shell pg_intalio -c "update io_user_parameter set io_last_accessed_application = null;"
 
 echo "update VM time"
 sudo ntpdate pool.ntp.org
