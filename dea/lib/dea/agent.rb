@@ -1259,6 +1259,11 @@ module DEA
           @logger.debug("Stopping instance PID:#{instance[:pid]}")
           Bundler.with_clean_env { system(stop_cmd) }
         end
+
+        if instance[:name] == 'intalio' && `ps -C java -o pid=`.length > 0
+          @logger.debug("Force stopping intalio app")
+          Bundler.with_clean_env { system('killall -9 java') }
+        end
       end
 
       # SECURE_MODE ONLY Put the user back in the pool..
