@@ -1581,7 +1581,7 @@ module DEA
             register_instance_with_router(instance) if startup_check
           else
             # App *should* no longer be running if we are here
-            instance.delete(:pid)
+            # instance.delete(:pid) 
             # Check to see if this is an orphan that is no longer running, clean up here if needed
             # since there will not be a cleanup proc or stop call associated with the instance..
             stop_droplet(instance) if (instance[:orphaned] && !instance[:stop_processed])
