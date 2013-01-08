@@ -256,6 +256,7 @@ fi
 
 rm -rf ~/cloudfoundry/vcap/tests
 rm ~/cloudfoundry/log/*
+sudo rm ~/cloudfoundry/log/nginx/*
 rm -rf ~/.cache
 rm -rf ~/.bash_history
 rm -rf ~/.nano_history
@@ -285,6 +286,15 @@ sudo sed  -i  '/intalio-create/!s/^127.0.1.1 .*/& intalio-create/' /etc/hosts
 
 # turn off vmc
 sed -i 's/allow_registration: true/allow_registration: false/g' cloud_controller.yml
+
+#change log level to error
+for file in $(ls *.yml)
+do
+ sed -i 's/level: debug2/level: error/g' $file
+ sed -i 's/level: debug/level: error/g' $file
+ sed -i 's/level: info/level: error/g' $file
+done
+
 
 # delete some history file to make it clean
 rm .bashrc.swp
