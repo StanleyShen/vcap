@@ -288,12 +288,14 @@ sudo sed  -i  '/intalio-create/!s/^127.0.1.1 .*/& intalio-create/' /etc/hosts
 sed -i 's/allow_registration: true/allow_registration: false/g' cloud_controller.yml
 
 #change log level to error
-for file in $(ls *.yml)
+configdir=~/cloudfoundry/config
+for file in $(ls $configdir/*.yml)
 do
- sed -i 's/level: debug2/level: error/g' $file
- sed -i 's/level: debug/level: error/g' $file
- sed -i 's/level: info/level: error/g' $file
+ sed -i 's/level: debug/level: info/g' $file
+ sed -i 's/level: debug2/level: info/g' $file
 done
+
+cat $configdir/*.yml | grep level
 
 
 # delete some history file to make it clean
