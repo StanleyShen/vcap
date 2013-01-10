@@ -291,8 +291,9 @@ sed -i 's/allow_registration: true/allow_registration: false/g' cloud_controller
 configdir=~/cloudfoundry/config
 for file in $(ls $configdir/*.yml)
 do
- sed -i 's/level: debug/level: info/g' $file
- sed -i 's/level: debug2/level: info/g' $file
+ sed -i 's/level: debug2/level: warn/g' $file
+ sed -i 's/level: debug/level: warn/g' $file
+ sed -i 's/level: info/level: warn/g' $file
 done
 
 cat $configdir/*.yml | grep level
