@@ -304,7 +304,8 @@ echo "We need update postgresql for below changes"
 echo "1. update shared_buffers to 64MB"
 echo "2. update checkpoint_segments to 5"
 echo "3. update log_min_duration_statement to 2000"
-echo "4. update listen_address to "
+echo "4. update listen_address to *"
+echo "5. update kernel.shmmax = 572121088"
 echo "After script, the result are:"
 # update shared buffer to 64MB
 sudo sed -i '/shared_buffers/d' ${postgres_conf}
@@ -323,9 +324,13 @@ cat ${postgres_conf} | grep "log_min_duration_statement"
 
 #update listen address to *
 sudo sed -i '/listen_address/d' ${postgres_conf}
-sudo sh -c "echo 'listen_address='*'' >> ${postgres_conf}"
+sudo sh -c "echo listen_addresses=\'*\' >> ${postgres_conf}"
 cat ${postgres_conf} | grep "listen_address"
 
+# update /etc/sysctl.conf to add  kernel.shmmax=572121088
+sudo sed -i '/kernel.shmmax/d' /etc/sysctl.conf
+sudo sh -c "echo 'kernel.shmmax=572121088' >> /etc/sysctl.conf"
+cat /etc/sysctl.conf | grep "kernel.shmmax"
 
 
 # delete some history file to make it clean
