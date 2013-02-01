@@ -304,33 +304,38 @@ echo "We need update postgresql for below changes"
 echo "1. update shared_buffers to 64MB"
 echo "2. update checkpoint_segments to 5"
 echo "3. update log_min_duration_statement to 2000"
-echo "4. update listen_address to "
+echo "4. update listen_address to *"
+echo "5. update kernel.shmmax = 572121088"
 echo "After script, the result are:"
 # update shared buffer to 64MB
-sed -i '/shared_buffers/d' ${postgres_conf}
-echo "shared_buffers = 64MB     # min 128kB" >> ${postgres_conf}
+sudo sed -i '/shared_buffers/d' ${postgres_conf}
+sudo sh -c "echo 'shared_buffers = 64MB     # min 128kB' >> ${postgres_conf}"
 cat ${postgres_conf} | grep "shared_buffers"
 
 # update checkpoint_segments to 5
-sed -i '/checkpoint_segments/d' ${postgres_conf}
-echo "checkpoint_segments = 5    # in logfile segments, min 1, 16MB each" >> ${postgres_conf}
+sudo sed -i '/checkpoint_segments/d' ${postgres_conf}
+sudo sh -c "echo 'checkpoint_segments = 5    # in logfile segments, min 1, 16MB each' >> ${postgres_conf}"
 cat ${postgres_conf} | grep "checkpoint_segments"
 
 # update log_min_duration_statement to 2000
-sed -i '/log_min_duration_statement/d' ${postgres_conf}
-echo "log_min_duration_statement = 2000    # -1 is disabled, 0 logs all statements " >> ${postgres_conf}
+sudo sed -i '/log_min_duration_statement/d' ${postgres_conf}
+sudo sh -c "echo 'log_min_duration_statement = 2000    # -1 is disabled, 0 logs all statements ' >> ${postgres_conf}"
 cat ${postgres_conf} | grep "log_min_duration_statement"
 
 #update listen address to *
-sed -i '/listen_address/d' ${postgres_conf}
-echo "listen_address='*'" >> ${postgres_conf}
+sudo sed -i '/listen_address/d' ${postgres_conf}
+sudo sh -c "echo listen_addresses=\'*\' >> ${postgres_conf}"
 cat ${postgres_conf} | grep "listen_address"
 
+# update /etc/sysctl.conf to add  kernel.shmmax=572121088
+sudo sed -i '/kernel.shmmax/d' /etc/sysctl.conf
+sudo sh -c "echo 'kernel.shmmax=572121088' >> /etc/sysctl.conf"
+cat /etc/sysctl.conf | grep "kernel.shmmax"
 
 
 # delete some history file to make it clean
-rm .bashrc.swp
-rm .*_history
+rm ~/.bashrc.swp
+rm ~/.*_history
 
 echo "update VM time"
 sudo ntpdate pool.ntp.org
