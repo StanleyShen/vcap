@@ -220,6 +220,8 @@ sudo /etc/init.d/redis-server stop
 echo "start to remvoe some unused packages"
 sudo apt-get remove mysql-common -y
 sudo apt-get remove subversion -y
+sudo apt-get remove apt-xapian-index -y
+sudo apt-get remove python-xapian -y
 
 # disable grub menu
 sudo sed -i  -e 's/#\(GRUB_HIDDEN_TIMEOUT=\)/\1/' -e 's/#\(GRUB_HIDDEN_TIMEOUT_QUIET=\)/\1/' /etc/default/grub
@@ -270,6 +272,7 @@ sudo rm /var/log/*.[0-9].gz
 sudo rm /var/log/*.[0-9]
 sudo rm /var/cache/apt/srcpkgcache.bin
 sudo rm /var/cache/apt/pkgcache.bin
+sudo rm -rf /var/cache/apt-xapian-index
 sudo rm -rf /var/lib/apt/lists/*
 sudo rm -rf /var/chef/cache/*
 sudo rm -rf /var/log/apache2/*
