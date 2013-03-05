@@ -296,8 +296,9 @@ fi
 sudo rm -f /etc/udev/rules.d/70-persistent-net.rules
 
 # change vm hostname to intalio-create
-sudo -i echo "intalio-create" > /etc/hostname
-sudo sed  -i  '/intalio-create/!s/^127.0.1.1 .*/& intalio-create/' /etc/hosts
+sudo sh -c 'echo "intalio-create" > /etc/hostname'
+sudo sed -i  's/__eth0__ip__$/& intalio-create/' /etc/hosts
+
 
 #change log level to error
 configdir=~/cloudfoundry/config
