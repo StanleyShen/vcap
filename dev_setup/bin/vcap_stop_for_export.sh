@@ -4,6 +4,9 @@ echo "update aptitude and install chinese font"
 sudo aptitude update
 sudo apt-get install fonts-arphic-uming -y
 
+echo "delete encrypted keys"
+rm ~/cloudfoundry/io_encryption_key
+
 echo "update intalio version for welcome screen"
 intalio_version=`vmc_knife info-apps intalio | grep "Version installed:" | awk -F '[;:,]' '{print $2}'`;
 intalio_version=`echo ${intalio_version}`
