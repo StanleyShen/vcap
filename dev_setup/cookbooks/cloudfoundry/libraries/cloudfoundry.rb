@@ -79,31 +79,33 @@ EOH
   def cf_bundle_install(path, cmd='install --local --verbose', install_vcap_common=true)
     path=File.expand_path(path)
     bundle_install_cmd=CloudFoundry::cf_invoke_bundler_cmd(node, path, cmd)
+    gem_dir_cmd=CloudFoundry::cf_invoke_ruby_cmd(node, path, 'gem', "env gemdir")
     bash "Bundle install for #{path}" do
       cwd path
       environment ({'HOME' => "/home/#{node[:deployment][:user]}",
                     'USER' => "#{node[:deployment][:user]}"})
       code <<-EOH
-source $HOME/.bashrc
-source $HOME/.cloudfoundry_deployment_profile
-cd #{path}
-set +e
-#{bundle_install_cmd}
-if [ $? != 0 ]; then
-  echo "Retry 1"
-  #{bundle_install_cmd}
-fi
-if [ $? != 0 ]; then
-  echo "Retry 2"
-  #{bundle_install_cmd}
-fi
-set -e
-if [ $? != 0 ]; then
-  echo "Retry 3"
-  #{bundle_install_cmd}
-fi
-#{Process.uid == 0 ? "sudo -i -u #{node[:deployment][:user]} gemdir=\"$gemdir\" && sudo chown -R "+node[:deployment][:user]+":"+node[:deployment][:user]+" $gemdir" : ""}
-EOH
+        source $HOME/.bashrc
+        source $HOME/.cloudfoundry_deployment_profile
+        cd #{path}
+        set +e
+        #{bundle_install_cmd}
+        if [ $? != 0 ]; then
+          echo "Retry 1"
+          #{bundle_install_cmd}
+        fi
+        if [ $? != 0 ]; then
+          echo "Retry 2"
+          #{bundle_install_cmd}
+        fi
+        set -e
+        if [ $? != 0 ]; then
+          echo "Retry 3"
+          #{bundle_install_cmd}
+        fi
+        gemdir=`#{gem_dir_cmd}`
+        #{Process.uid == 0 ? "sudo -i -u #{node[:deployment][:user]} gemdir=\"$gemdir\" && sudo chown -R "+node[:deployment][:user]+":"+node[:deployment][:user]+" $gemdir" : ""}
+      EOH
       only_if { ::File.exist?(File.join(path, 'Gemfile')) }
     end
     # (re-)install vcap_common as mostlikely this bundle install overrode us.
