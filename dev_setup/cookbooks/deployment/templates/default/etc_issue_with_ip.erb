@@ -6,6 +6,22 @@ echo "<%= node[:deployment][:etc_issue_msg] %>" > $message_file
 ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
 if [ -n "$ip" ]; then
   echo "Running on $ip" >> $message_file
+else
+    no_network_msg="\nThe Virtual Machine cannot obtain an IP address. 
+Please make sure your VM's network setting is consistent with your machine's 
+(i.e. both should be using ethernet or wifi connection).
+
+Otherwise your network might have DHCP restriction. 
+Please contact your network administrator.
+
+Alternatively, you can start your VM in host-only mode 
+and specify the following in your hosts file:
+
+[VM's IP address as displayed in Linux console] intalio.local admin.intalio.local oauth.intalio.local cdn.intalio.local
+
+and you can access Intalio|Create from browser by going to http://intalio.local"
+
+    echo "$no_network_msg" > /etc/issue.d/volatile.d/K01_vcap_on_ip  
 fi
 if [ -n "$VCAP_STATUS" ]; then
   echo "$VCAP_STATUS" >> $message_file
@@ -14,7 +30,7 @@ if [ -d /etc/issue.d/volatile.d ]; then
   # retouch the message files so their timestamp are not messed up by the timezone change on 1st boot
   touch /etc/issue.d/volatile.d/K00_vcap_welcome
   touch /etc/issue.d/volatile.d/K01_vcap_on_ip
-  if [ ! -f /etc/issue.d/volatile.d/K50_applications_status ]; then
+  if [ ! -f /etc/issue.d/volatile.d/K50_applications_status && -n "$ip" ]; then
     echo "Starting Virtual Machine" > /etc/issue.d/volatile.d/K50_applications_status
     chmod o+rw /etc/issue.d/volatile.d/K50_applications_status
   fi
