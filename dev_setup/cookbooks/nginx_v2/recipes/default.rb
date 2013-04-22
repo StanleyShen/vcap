@@ -313,6 +313,17 @@ end # don't make and reinstall nginx+lua if it was already done.
       fi
     EOH
   end
+  
+  bash "Add *.intalio.local hostnames to /etc/host" do
+    # This is needed for nginx config for port routing to resolve correctly 
+    code <<-EOH
+      intalio_host=`grep "intalio.local" /etc/hosts`
+      if [ -z "$intalio_host" ]; then
+        sudo sed -i '$a #Do NOT remove!! This is needed for nginx config for port routing to resolve correctly' /etc/hosts
+        sudo sed -i '$a 127.0.0.1 intalio.local oauth.intalio.local admin.intalio.local cdn.intalio.local' /etc/hosts
+      fi
+    EOH
+  end
 
   service "nginx_router" do
     supports :status => true, :restart => true, :reload => false, :start => true, :stop => true

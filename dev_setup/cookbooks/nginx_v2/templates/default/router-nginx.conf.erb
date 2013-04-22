@@ -47,6 +47,59 @@ http {
     server <%= node[:nginx_v2][:uls_ip] %>:<%= node[:nginx_v2][:uls_port] %>;
   }
 
+  server {
+      listen       8002;
+    
+      location / {
+        access_log   /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/log/nginx/nginx_router_admin_app_access.log;
+        proxy_set_header            X-Use-Port 8002;
+        proxy_set_header            X-Auth-Port 8001;
+        proxy_set_header            X-CDN-Port 8003;
+  
+        set $app_id 3;
+        proxy_pass http://admin.intalio.local;
+        
+      }
+  }
+  
+  server {
+      listen       8000;
+    
+      location / {
+        access_log   /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/log/nginx/nginx_router_intalio_app_access.log;
+        proxy_set_header            X-Local-Port 8000;
+        proxy_set_header            X-Auth-Port 8001;
+          
+        set $app_id 1;
+        proxy_pass http://intalio.local;
+        
+      }
+  }  
+
+  server {
+      listen       8001;
+
+      location / {
+          access_log   /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/log/nginx/nginx_router_oauth_app_access.log;
+          proxy_set_header            X-CDN-Port 8003;
+        
+          set $app_id 2;
+          proxy_pass http://oauth.intalio.local;
+      }
+
+  }
+  
+  server {
+      listen       8003;
+
+      location / {
+          access_log   /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/log/nginx/nginx_router_cdn_app_access.log;
+          set $app_id 4;
+          proxy_pass http://cdn.intalio.local;
+      }
+
+  }
+
 <% if node[:nginx][:ssl][:only_ssl] %>
     server {
        listen         80;
