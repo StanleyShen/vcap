@@ -122,7 +122,7 @@ if [ ! -f /var/run/monit.pid ] || \
 else
   monit_was_started="true"
   echo "  The monit daemon was running: stop it." >> $LOG_FILE
-  monit quit
+  sudo service monit stop
 fi
 
 # restart nats
@@ -137,7 +137,7 @@ echo "Returned from vcap start" >> $LOG_FILE
 
 if [ -n "$monit_was_started" ]; then
    sleep 60
-   monit start
+   sudo service monit start
 fi
 
 exit 0
