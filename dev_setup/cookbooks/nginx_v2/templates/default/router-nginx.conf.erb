@@ -128,7 +128,11 @@ http {
       # Given there are some exceptions to clear some headers,
       # we just leave them as is.
 
-      proxy_pass http://unix:/tmp/router.sock:/;
+      keepalive_requests 200;
+      proxy_pass http://127.0.0.1:8081/;
+      # Don't use unix sockets.
+      # See https://groups.google.com/a/cloudfoundry.org/forum/?fromgroups=#!topic/vcap-dev/UbcRVnmN4jw
+      #proxy_pass http://unix:/tmp/router.sock:/;
     }
     location /nginx {
         autoindex    on;
