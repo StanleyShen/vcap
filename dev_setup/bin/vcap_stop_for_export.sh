@@ -248,6 +248,9 @@ sudo update-grub2
 # remove previous linux image
 dpkg -l 'linux-*' | sed '/^ii/!d;/'"$(uname -r | sed "s/\(.*\)-\([^0-9]\+\)/\1/")"'/d;s/^[^ ]* [^ ]* \([^ ]*\).*/\1/;/[0-9]/!d' | xargs sudo apt-get -y purge
 
+#to make upgrading, we need these packages, to make it easy, we just installing them again
+sudo apt-get install g++ make ruby1.8-dev libxslt-dev libxml2-dev libpq-dev
+
 sudo apt-get autoremove -y --force-yes
 sudo apt-get clean
 sudo apt-get autoclean
