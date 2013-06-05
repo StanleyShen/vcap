@@ -298,6 +298,8 @@ sudo rm -rf /var/cache/apt-xapian-index
 sudo rm -rf /var/lib/apt/lists/*
 sudo rm -rf /var/chef/cache/*
 sudo rm -rf /var/log/apache2/*
+sudo rm -rf /etc/issue
+sudo rm -rf /etc/issue.d/volatile.d/*
 swp_file=/tmp/simple_swap.swap
 if [ -e $swp_file ]; then
 	sudo swapoff $swp_file
