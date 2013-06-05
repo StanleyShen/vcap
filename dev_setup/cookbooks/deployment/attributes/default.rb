@@ -13,7 +13,7 @@ default[:deployment][:domain] = "vcap.me"
 ##default[:deployment][:log_path] = File.join(node[:deployment][:home], "log")
 ##default[:deployment][:profile] = File.expand_path(File.join(node[:cloudfoundry][:user_home], ".cloudfoundry_deployment_profile"))
 ##default[:deployment][:local_run_profile] = File.expand_path(node[:cloudfoundry][:user_home], ".cloudfoundry_deployment_local")
-##default[:deployment][:vcap_exec] = File.join(node[:deployment][:home], "vcap")
+default[:deployment][:vcap_exec] = File.join(node[:deployment][:home], "vcap")
 default[:deployment][:vcap_exec_alias] = "vcap"
 
 default[:deployment][:etc_issue_msg] = "Welcome to CloudFoundry #{default[:deployment][:name]}"
