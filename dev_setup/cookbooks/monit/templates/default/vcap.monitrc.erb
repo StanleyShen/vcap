@@ -12,5 +12,5 @@ check process <%= name %> with pidfile /var/vcap/sys/run/<%= name %>.pid
        stop program = "<%= node[:monit][:vcap_exec] %> stop <%= name %> ; sleep 10"
              as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
        <%= "depends on #{node[:monit][:depends_on][name].join(', ')}" unless node[:monit][:depends_on][name].nil? %>
-
+       if memory is greater than 200 MB then restart
 <% end %>
