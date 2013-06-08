@@ -11,7 +11,7 @@ runtimes:
        bundle_gemfile:
        rack_env: "production"
   - "ruby19":
-      version: "1.9.2p320"
+      version: "1.9.2-p320"
       description: "Ruby 1.9.2"
       executable: "ruby"
       environment:

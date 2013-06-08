@@ -67,7 +67,7 @@ class StagingPlugin
   end
 
   def self.get_ruby_version(exe)
-    get_ver  = %{-e "print RUBY_VERSION,'p',RUBY_PATCHLEVEL"}
+    get_ver  = %{-e "print RUBY_VERSION,'-p',RUBY_PATCHLEVEL"}
     `env -i PATH=#{ENV['PATH']} #{exe} #{get_ver}`
   end
 
