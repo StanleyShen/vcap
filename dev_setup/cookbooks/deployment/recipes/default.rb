@@ -4,7 +4,11 @@
 #
 # Copyright 2011, VMware
 #
-compute_derived_attributes
+node[:nats_server][:host] ||= cf_local_ip
+node[:ccdb][:host] ||= cf_local_ip
+node[:postgresql_node][:host] ||= cf_local_ip
+node[:serialization_data_server][:host] ||= cf_local_ip
+
 case node['platform']
 when "ubuntu"
   package "git-core"
@@ -63,7 +67,7 @@ end
  File.join(node[:deployment][:home], "sys", "log"), node[:deployment][:config_path],
  File.join(node[:deployment][:config_path], "staging"),
  File.join("/var/vcap", "shared"),
- File.join("/var/vcap/shared", "staged")].each do |dir|
+ File.join("/var/vcap/shared", "staged"), node[:deployment][:setup_cache]].each do |dir|
   directory dir do
     owner node[:deployment][:user]
     group node[:deployment][:group]

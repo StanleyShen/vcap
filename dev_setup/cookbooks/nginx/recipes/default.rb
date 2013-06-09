@@ -5,8 +5,6 @@
 # Copyright 2011, VMware
 #
 #
-compute_derived_attributes
-
 template "openssl-gen-conf.cnf" do
   path File.join(node[:deployment][:config_path], "openssl-gen-conf.cnf")
   source "openssl-gen-conf.cnf.erb"

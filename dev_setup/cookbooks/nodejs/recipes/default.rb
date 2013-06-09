@@ -5,11 +5,6 @@
 # Copyright 2011, VMware
 #
 #
-compute_derived_attributes
-
-node_bin_path=File.join(node[:nodejs][:path], "bin", "node")
-expected_version=node[:nodejs][:version]
-expected_version_found=`echo $(#{node_bin_path} --version 2>&1) | grep #{expected_version}` if File.exists?(node_bin_path)
 
 %w[ build-essential ].each do |pkg|
   package pkg
@@ -19,8 +14,7 @@ remote_file File.join("", "tmp", "node-v#{node[:nodejs][:version]}.tar.gz") do
   owner node[:deployment][:user]
   source node[:nodejs][:source]
   not_if do
-    ::File.exists?(File.join("", "tmp", "node-v#{node[:nodejs][:version]}.tar.gz")) ||
-        expected_version_found
+    ::File.exists?(File.join("", "tmp", "node-v#{node[:nodejs][:version]}.tar.gz"))
   end
 end
 
@@ -49,6 +43,6 @@ bash "Install Nodejs" do
   make install
 EOH
   not_if do
-    expected_version_found
+    ::File.exists?(File.join(node[:redis][:path], "bin", "node"))
   end
 end

@@ -4,7 +4,6 @@
 #
 # Copyright 2011, VMware
 #
-compute_derived_attributes
 
 # this will nicely try to start or restart nats_server and not complain if it is not there or something
 execute "start-nats" do
@@ -48,11 +47,10 @@ when "ubuntu"
     mode 0644
   end
 
-  # runs /etc/init.d/nats_server (start|stop|restart), etc.
-  #service "nats_server" do
-  #  supports :status => true, :restart => true, :reload => true, :start => true, :stop => true
-  #  action [ :enable, :start ]
-  #end
+  service "nats_server" do
+    supports :status => true, :restart => true, :reload => true
+    action [ :enable, :start ]
+  end
 else
   Chef::Log.error("Installation of nats_server not supported on this platform.")
 end
@@ -62,8 +60,7 @@ template "nats_server.yml" do
   source "nats_server.yml.erb"
   owner node[:deployment][:user]
   mode 0644
-  notifies :run, "execute[start-nats]"
-  #notifies :restart, "service[nats_server]"
+  notifies :restart, "service[nats_server]"
 end
 
 
