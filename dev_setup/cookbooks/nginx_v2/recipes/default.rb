@@ -6,10 +6,6 @@
 #
 #
 
-compute_derived_attributes
-
-include_recipe 'deployment'
-
 template node[:router][:config_file] do
   path File.join(node[:deployment][:config_path], node[:router][:config_file])
   source "router.yml.erb"
@@ -17,13 +13,6 @@ template node[:router][:config_file] do
   mode 0644
   notifies :restart, "service[vcap_router]"
 end
-
-node[:nginx_v2][:path]    = File.join(node[:deployment][:home], "deploy", "nginx", "nginx-#{node[:nginx_v2][:version]}")
-node[:nginx_v2][:log_home] = File.join(node[:deployment][:home], "log", "nginx")
-node[:nginx_v2][:vcap_log] = File.join(node[:deployment][:home], "sys", "log", "vcap.access.log")
-node[:lua][:plugin_source_path] = File.join(node[:cloudfoundry][:home], "router", "ext", "nginx")
-node[:lua][:path]    = File.join(node[:deployment][:home], "deploy", "lua", "lua-#{node[:lua][:version]}")
-node[:lua][:module_path]    = File.join(node[:lua][:path], 'lib', 'lua', node[:lua][:simple_version])
 
 nginx_version = node[:nginx_v2][:version]
 nginx_path = node[:nginx_v2][:path]
@@ -45,170 +34,170 @@ when "ubuntu"
   bash "generate the ssl self signed cert" do
     # mysterious failure to start nginx with the latest beta build of 12.04 if something is echoed out.
     code <<-CMD
-export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
-echo "CLOUD_FOUNDRY_CONFIG_PATH $CLOUD_FOUNDRY_CONFIG_PATH"
-bash -x #{node[:cloudfoundry][:path]}/dev_setup/bin/vcap_generate_ssl_cert_self_signed
-CMD
-  notifies :restart, "service[nginx_router]"
-  not_if do
-    ::File.exists?(File.join(node[:nginx][:ssl][:config_dir],node[:nginx][:ssl][:basename]+".crt"))
+    export CLOUD_FOUNDRY_CONFIG_PATH=#{node[:deployment][:config_path]}
+    echo "CLOUD_FOUNDRY_CONFIG_PATH $CLOUD_FOUNDRY_CONFIG_PATH"
+    bash -x #{node[:cloudfoundry][:path]}/dev_setup/bin/vcap_generate_ssl_cert_self_signed
+    CMD
+    notifies :restart, "service[nginx_router]"
+    not_if do
+      ::File.exists?(File.join(node[:nginx][:ssl][:config_dir],node[:nginx][:ssl][:basename]+".crt"))
+    end
   end
-end
 
   %w[ build-essential].each do |pkg|
     package pkg
   end
 
-# don't make and reinstall nginx+lua if it was already done.
-unless File.exists?(nginx_path) && File.exists?(lua_module_path) &&  File.exists?(lua_path)
+  # don't make and reinstall nginx+lua if it was already done.
+  unless File.exists?(nginx_path) && File.exists?(lua_module_path) &&  File.exists?(lua_path)
 
-  # Lua related packages
-  ::FileUtils.mkdir_p node[:deployment][:setup_cache]
-  lua_tarball = File.join(node[:deployment][:setup_cache], "lua-#{lua_version}.tar.gz")
-  cf_remote_file lua_tarball do
-    owner node[:deployment][:user]
-    id node[:lua][:id]
-    checksum node[:lua][:checksums][:source]
-  end
+    # Lua related packages
+    ::FileUtils.mkdir_p node[:deployment][:setup_cache]
+    lua_tarball = File.join(node[:deployment][:setup_cache], "lua-#{lua_version}.tar.gz")
+    cf_remote_file lua_tarball do
+      owner node[:deployment][:user]
+      id node[:lua][:id]
+      checksum node[:lua][:checksums][:source]
+    end
 
-  lua_cjson_tarball = File.join(node[:deployment][:setup_cache], "lua-cjson-1.0.3.tar.gz")
-  cf_remote_file lua_cjson_tarball do
-    owner node[:deployment][:user]
-    id node[:lua][:cjson_id]
-    checksum node[:lua][:checksums][:cjson_source]
-  end
+    lua_cjson_tarball = File.join(node[:deployment][:setup_cache], "lua-cjson-1.0.3.tar.gz")
+    cf_remote_file lua_cjson_tarball do
+      owner node[:deployment][:user]
+      id node[:lua][:cjson_id]
+      checksum node[:lua][:checksums][:cjson_source]
+    end
 
-  # Nginx related packages
-  nginx_tarball = File.join(node[:deployment][:setup_cache], "nginx-#{nginx_version}.tar.gz")
-  cf_remote_file nginx_tarball do
-    owner node[:deployment][:user]
-    id node[:nginx_v2][:id]
-    checksum node[:nginx_v2][:checksums][:source]
-  end
+    # Nginx related packages
+    nginx_tarball = File.join(node[:deployment][:setup_cache], "nginx-#{nginx_version}.tar.gz")
+    cf_remote_file nginx_tarball do
+      owner node[:deployment][:user]
+      id node[:nginx_v2][:id]
+      checksum node[:nginx_v2][:checksums][:source]
+    end
 
-  nginx_patch = File.join(node[:deployment][:setup_cache], "zero_byte_in_cstr_20120315.patch")
-  cf_remote_file nginx_patch do
-    owner node[:deployment][:user]
-    id node[:nginx_v2][:patch_id]
-    checksum node[:nginx_v2][:checksums][:patch]
-  end
+    nginx_patch = File.join(node[:deployment][:setup_cache], "zero_byte_in_cstr_20120315.patch")
+    cf_remote_file nginx_patch do
+      owner node[:deployment][:user]
+      id node[:nginx_v2][:patch_id]
+      checksum node[:nginx_v2][:checksums][:patch]
+    end
 
-  pcre_tarball = File.join(node[:deployment][:setup_cache], "pcre-8.12.tar.gz")
-  cf_remote_file pcre_tarball do
-    owner node[:deployment][:user]
-    id node[:nginx_v2][:pcre_id]
-    checksum node[:nginx_v2][:checksums][:pcre_source]
-  end
+    pcre_tarball = File.join(node[:deployment][:setup_cache], "pcre-8.12.tar.gz")
+    cf_remote_file pcre_tarball do
+      owner node[:deployment][:user]
+      id node[:nginx_v2][:pcre_id]
+      checksum node[:nginx_v2][:checksums][:pcre_source]
+    end
 
-  nginx_upload_module_tarball = File.join(node[:deployment][:setup_cache], "nginx_upload_module-2.2.0.tar.gz")
-  cf_remote_file nginx_upload_module_tarball do
-    owner node[:deployment][:user]
-    id node[:nginx_v2][:module_upload_id]
-    checksum node[:nginx_v2][:checksums][:module_upload_source]
-  end
+    nginx_upload_module_tarball = File.join(node[:deployment][:setup_cache], "nginx_upload_module-2.2.0.tar.gz")
+    cf_remote_file nginx_upload_module_tarball do
+      owner node[:deployment][:user]
+      id node[:nginx_v2][:module_upload_id]
+      checksum node[:nginx_v2][:checksums][:module_upload_source]
+    end
 
-  headers_more_tarball = File.join(node[:deployment][:setup_cache], "headers-more-v0.15rc1.tar.gz")
-  cf_remote_file headers_more_tarball do
-    owner node[:deployment][:user]
-    id node[:nginx_v2][:module_headers_more_id]
-    checksum node[:nginx_v2][:checksums][:module_headers_more_source]
-  end
+    headers_more_tarball = File.join(node[:deployment][:setup_cache], "headers-more-v0.15rc1.tar.gz")
+    cf_remote_file headers_more_tarball do
+      owner node[:deployment][:user]
+      id node[:nginx_v2][:module_headers_more_id]
+      checksum node[:nginx_v2][:checksums][:module_headers_more_source]
+    end
 
-  devel_kit_tarball = File.join(node[:deployment][:setup_cache], "devel-kit-v0.2.17rc2.tar.gz")
-  cf_remote_file devel_kit_tarball do
-    owner node[:deployment][:user]
-    id node[:nginx_v2][:module_devel_kit_id]
-    checksum node[:nginx_v2][:checksums][:module_devel_kit_source]
-  end
+    devel_kit_tarball = File.join(node[:deployment][:setup_cache], "devel-kit-v0.2.17rc2.tar.gz")
+    cf_remote_file devel_kit_tarball do
+      owner node[:deployment][:user]
+      id node[:nginx_v2][:module_devel_kit_id]
+      checksum node[:nginx_v2][:checksums][:module_devel_kit_source]
+    end
 
-  nginx_lua_tarball = File.join(node[:deployment][:setup_cache], "nginx-lua.v0.3.1rc24.tar.gz")
-  cf_remote_file nginx_lua_tarball do
-    owner node[:deployment][:user]
-    id node[:nginx_v2][:module_lua_id]
-    checksum node[:nginx_v2][:checksums][:module_lua_source]
-  end
+    nginx_lua_tarball = File.join(node[:deployment][:setup_cache], "nginx-lua.v0.3.1rc24.tar.gz")
+    cf_remote_file nginx_lua_tarball do
+      owner node[:deployment][:user]
+      id node[:nginx_v2][:module_lua_id]
+      checksum node[:nginx_v2][:checksums][:module_lua_source]
+    end
 
-  directory nginx_path do
-    owner node[:deployment][:user]
-    group node[:deployment][:group]
-    mode "0755"
-    recursive true
-    action :create
-  end
+    directory nginx_path do
+      owner node[:deployment][:user]
+      group node[:deployment][:group]
+      mode "0755"
+      recursive true
+      action :create
+    end
 
-  directory node[:nginx_v2][:log_home] do
-    owner node[:deployment][:user]
-    group node[:deployment][:group]
-    mode "0755"
-    recursive true
-    action :create
-  end
+    directory node[:nginx_v2][:log_home] do
+      owner node[:deployment][:user]
+      group node[:deployment][:group]
+      mode "0755"
+      recursive true
+      action :create
+    end
 
-  directory lua_path do
-    owner node[:deployment][:user]
-    group node[:deployment][:group]
-    mode "0755"
-    recursive true
-    action :create
-  end
+    directory lua_path do
+      owner node[:deployment][:user]
+      group node[:deployment][:group]
+      mode "0755"
+      recursive true
+      action :create
+    end
 
-  bash "Install lua" do
-    cwd File.join("", "tmp")
-    user node[:deployment][:user]
-    code <<-EOH
-      tar xzf #{lua_tarball}
-      cd lua-#{lua_version}
-      make linux install INSTALL_TOP=#{lua_path}
-    EOH
-  end
+    bash "Install lua" do
+      cwd File.join("", "tmp")
+      user node[:deployment][:user]
+      code <<-EOH
+        tar xzf #{lua_tarball}
+        cd lua-#{lua_version}
+        make linux install INSTALL_TOP=#{lua_path}
+      EOH
+    end
 
-  bash "Install lua json" do
-    cwd File.join("", "tmp")
-    user node[:deployment][:user]
-    code <<-EOH
-      tar xzf #{lua_cjson_tarball}
-      cd lua-cjson-1.0.3
-      sed 's!^PREFIX ?=.*!PREFIX ?='#{lua_path}'!' Makefile > tmp
-      mv tmp Makefile
-      make
-      make install
-    EOH
-  end
+    bash "Install lua json" do
+      cwd File.join("", "tmp")
+      user node[:deployment][:user]
+      code <<-EOH
+        tar xzf #{lua_cjson_tarball}
+        cd lua-cjson-1.0.3
+        sed 's!^PREFIX ?=.*!PREFIX ?='#{lua_path}'!' Makefile > tmp
+        mv tmp Makefile
+        make
+        make install
+      EOH
+    end
 
-  bash "Install nginx" do
-    cwd File.join("", "tmp")
-    user node[:deployment][:user]
-    code <<-EOH
-      tar xzf #{nginx_tarball}
-      tar xzf #{pcre_tarball}
-      tar xzf #{nginx_upload_module_tarball}
-      tar xzf #{headers_more_tarball}
-      tar xzf #{devel_kit_tarball}
-      tar xzf #{nginx_lua_tarball}
+    bash "Install nginx" do
+      cwd File.join("", "tmp")
+      user node[:deployment][:user]
+      code <<-EOH
+        tar xzf #{nginx_tarball}
+        tar xzf #{pcre_tarball}
+        tar xzf #{nginx_upload_module_tarball}
+        tar xzf #{headers_more_tarball}
+        tar xzf #{devel_kit_tarball}
+        tar xzf #{nginx_lua_tarball}
 
-      [ -d chunkin-nginx-module ] && rm -rf chunkin-nginx-module
-      git clone https://github.com/agentzh/chunkin-nginx-module.git --depth 1
+        [ -d chunkin-nginx-module ] && rm -rf chunkin-nginx-module
+        git clone https://github.com/agentzh/chunkin-nginx-module.git --depth 1
 
-      cd nginx-#{nginx_version}
-      patch -p0 < #{nginx_patch}
+        cd nginx-#{nginx_version}
+        patch -p0 < #{nginx_patch}
 
-      LUA_LIB=#{lua_path}/lib LUA_INC=#{lua_path}/include ./configure \
-        --prefix=#{nginx_path} \
-        --with-pcre=../pcre-8.12 \
-        --with-cc-opt=-Wno-unused-but-set-variable \
-        --with-http_ssl_module \
-        --add-module=../chunkin-nginx-module \
-        --add-module=../nginx_upload_module-2.2.0 \
-        --add-module=../headers-more-v0.15rc1 \
-        --add-module=../simpl-ngx_devel_kit-bc97eea \
-        --add-module=../chaoslawful-lua-nginx-module-4d92cb1
+        LUA_LIB=#{lua_path}/lib LUA_INC=#{lua_path}/include ./configure \
+          --prefix=#{nginx_path} \
+          --with-pcre=../pcre-8.12 \
+          --with-cc-opt=-Wno-unused-but-set-variable \
+          --with-http_ssl_module \
+          --add-module=../chunkin-nginx-module \
+          --add-module=../nginx_upload_module-2.2.0 \
+          --add-module=../headers-more-v0.15rc1 \
+          --add-module=../simpl-ngx_devel_kit-bc97eea \
+          --add-module=../chaoslawful-lua-nginx-module-4d92cb1
 
-      make
-      make install
-    EOH
-  end
+        make
+        make install
+      EOH
+    end
 
-end # don't make and reinstall nginx+lua if it was already done.
+  end # don't make and reinstall nginx+lua if it was already done.
 
   # for now delete the repo first.
   ::FileUtils.rm_rf router_path if ::File.exists?(router_path)
@@ -222,7 +211,7 @@ end # don't make and reinstall nginx+lua if it was already done.
     group node[:deployment][:group]
   end
 
-  cf_bundle_install(router_path,"package --verbose", false)
+  cf_bundle_install(router_path)
   add_to_vcap_components("router")
 
 

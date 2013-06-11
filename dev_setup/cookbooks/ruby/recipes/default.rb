@@ -1,5 +1,3 @@
-# Compute the 'effective' deployment attributes
-compute_derived_attributes
 
 # convenience variables
 ruby_version = node[:ruby][:version]

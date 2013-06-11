@@ -4,7 +4,7 @@
 #
 # Copyright 2011, VMware
 #
-compute_derived_attributes
+
 template node[:router][:config_file] do
   path File.join(node[:deployment][:config_path], node[:router][:config_file])
   source "router.yml.erb"

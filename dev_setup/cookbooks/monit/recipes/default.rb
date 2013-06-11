@@ -2,7 +2,6 @@
 # Cookbook Name:: monit
 # Recipe:: default
 #
-compute_derived_attributes
 
 package "monit"
 

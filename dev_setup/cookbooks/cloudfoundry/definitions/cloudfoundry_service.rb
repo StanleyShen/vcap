@@ -5,22 +5,19 @@
 # Copyright 2011, VMware
 #
 define :cloudfoundry_service do
-  compute_derived_attributes
+
   params[:components].each do |component|
-    service "vcap_#{component}" do
-      provider CloudFoundry::VCapChefService
-      supports :status => true, :restart => true, :start => true, :stop => true
-      action [ :start ]
-    end
     add_to_vcap_components(component)
-    template "#{params[:name]}.yml" do
+    template "#{component}.yml" do
       path File.join(node[:deployment][:config_path], "#{component}.yml")
       source "#{component}.yml.erb"
       owner node[:deployment][:user]
       mode 0644
-      notifies :restart, "service[vcap_#{component}]"
+      retries 3
     end
   end
-  cf_bundle_install(File.expand_path(File.join(node[:cloudfoundry][:path], "services", params[:name])))
-
+  service_name = params[:name]
+  # Work around for RabbitMQ service since its directory name is "rabbit"
+  service_name = "rabbit" if service_name == "rabbitmq"
+  cf_bundle_install(File.join(node[:cloudfoundry][:path], "services", service_name))
 end

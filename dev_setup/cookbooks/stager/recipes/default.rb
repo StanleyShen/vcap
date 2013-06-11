@@ -4,7 +4,6 @@
 #
 package "redis-server"
 
-compute_derived_attributes
 
 node[:stager][:config_file] = File.join(node[:deployment][:config_path], "stager.yml")
 node[:stager][:config_file_redis] = File.join(node[:deployment][:config_path], "stager-redis-server.conf")
@@ -25,7 +24,6 @@ template node[:stager][:config_file_redis] do
 end
 
 cf_bundle_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "stager")))
-cf_gem_build_install(File.expand_path(File.join(node["cloudfoundry"]["path"], "staging")),"vcap_staging")
 add_to_vcap_components("stager")
 
 service "vcap_stager" do

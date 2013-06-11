@@ -1,12 +1,15 @@
-include_recipe "deployment"
+include_attribute "deployment"
+include_attribute "postgresql"
+
 default[:deployment][:welcome] = "VMware's Cloud Application Platform"
 
 default[:cloud_controller][:config_file] = "cloud_controller.yml"
-##default[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}"
+default[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}"
 default[:cloud_controller][:local_route] = nil
 default[:cloud_controller][:admins] = ["dev@cloudfoundry.org"]
 default[:cloud_controller][:description] = "VMware's Cloud Application Platform"
 default[:cloud_controller][:support_address] = "http://support.cloudfoundry.com"
+
 
 # Specifies if new users can register only from the host that is running the cloud controller
 default[:cloud_controller][:allow_registration] = true
@@ -48,7 +51,7 @@ default[:cloud_controller][:stager][:auth][:password] = "vcap"
 default[:cloud_controller][:allow_debug] = true
 
 # Default builtin services
-default[:cloud_controller][:builtin_services] = ["redis", "mongodb", "mysql", "neo4j", "postgresql"]
+default[:cloud_controller][:builtin_services] = ["redis", "mongodb", "postgresql"]
 
 # Default capacity
 default[:capacity][:memory] = 2048
