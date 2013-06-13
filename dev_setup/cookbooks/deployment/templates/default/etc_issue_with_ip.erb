@@ -27,6 +27,8 @@ if [ -n "$VCAP_STATUS" ]; then
   echo "$VCAP_STATUS" >> $message_file
 fi
 if [ -d /etc/issue.d/volatile.d ]; then
+	# wait a little while in case VM might have some timezone issue on initial boot
+	sleep 5
   # retouch the message files so their timestamp are not messed up by the timezone change on 1st boot
   touch /etc/issue.d/volatile.d/K00_vcap_welcome
   touch /etc/issue.d/volatile.d/K01_vcap_on_ip
