@@ -15,11 +15,6 @@ echo `date +%Y-%m-%d-%H%M%S`" vcap called with $@" | tee -a $_vcap_log
 # check that the network is correctly setup on this VM: at least one IP that is not the local loop:
 ip=`/sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print $2 }' | awk -F: '{ print $2 }'`
 if [ -z "$ip" ]; then
-  if [ -d "/etc/issue.d/volatile.d" ]; then
-    [ -f /etc/issue.d/volatile.d/K75_registration_app ] && app_status_file=/etc/issue.d/volatile.d/K50_applications_status.disabled || app_status_file=/etc/issue.d/volatile.d/K50_applications_status
-    touch $app_status_file
-    echo "Cloudfoundry cannot start: No network is available." > $app_status_file
-  fi
   echo "Cloudfoundry cannot start: No network is available." >> $_vcap_log
   exit 1
 fi
