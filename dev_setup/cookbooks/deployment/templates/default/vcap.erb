@@ -55,6 +55,9 @@ if [ "$do_reconfig" == "true" ]; then
   fi
 
   if [ -d "/etc/issue.d/volatile.d" ]; then
+		 # retouch the message files so their timestamp are not messed up by the timezone change on 1st boot
+		 touch /etc/issue.d/volatile.d/K00_vcap_welcome
+		 touch /etc/issue.d/volatile.d/K01_vcap_on_ip  
      # Don't override the Please Register
      please_register=`grep Please /etc/issue`
      [ -z "$please_register" ] && echo "Application starting... This may take a few minutes." > /etc/issue.d/volatile.d/K50_applications_status
