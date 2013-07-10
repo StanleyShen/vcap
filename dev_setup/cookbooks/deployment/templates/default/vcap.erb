@@ -19,9 +19,6 @@ if [ -z "$ip" ]; then
   exit 1
 fi
 
-# make sure avahi is publishing the aliases if avahi-publishaliases is installed
-[ -f /usr/bin/avahi-publish-aliases -a ! -f /tmp/avahi-publish-alias.pid ] && /usr/bin/avahi-publish-aliases
-
 # Make sure the binaries for this vcap runtime are ready:
 if [ -z "$CLOUD_FOUNDRY_CONFIG_PATH" ]; then
 #  echo "sourcing the cloudfoundry deployment local" | tee -a $_vcap_log

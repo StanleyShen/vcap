@@ -8,15 +8,6 @@ pid: /var/vcap/sys/run/dns_publisher.pid
 
 # publishers 'plugins'; ruby code loaded if the plugin is enabled.
 publishers:
-# publishes hostnames as aliases of the mdns's hostname. Uses avahi's python bindings.
-  mdns_avahi:
-#true is the default
-    enable: true
-    require: "#{ROOT_REL}/vcap_dns_publisher/avahi/mdns_avahi_publisher"
-    impl: VCAP::DNS_PUBLISHER::AvahiPublisher
-#domain_filter: a regexp if it starts and ends with '/'; by default /\.local$/
-    hostnames_filter: /\.local$/
-
 # registers hostnames with route53 (Not implemnted so far)
   route53:
     require: "#{ROOT_REL}/vcap_dns_publisher/route53/route53_gateway"

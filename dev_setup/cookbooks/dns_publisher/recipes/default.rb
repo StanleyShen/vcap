@@ -2,9 +2,6 @@
 # Cookbook Name:: dns_publisher
 # Recipe:: default
 #
-package "avahi-daemon"
-package "avahi-utils"
-package "python-avahi"
 
 add_to_vcap_components("dns_publisher")
 template "dns_publisher.yml" do
