@@ -41,6 +41,6 @@ if [ -d /etc/issue.d/volatile.d ]; then
   set -- $output
   mem=$2
   if [ $mem -lt 4000000 ]; then
-    echo "\nSystem has less than 4GB of RAM. At least 6GB of RAM is required for a comfortable experience.\n" > /etc/issue.d/volatile.d/K02_memory_warn
+    echo "\nInsufficient system memory detected. Intalio|Create requires at least 4GB memory to run properly.\n" > /etc/issue.d/volatile.d/K02_memory_warn
   fi
 fi
