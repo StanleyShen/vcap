@@ -142,7 +142,12 @@ http {
         expires     max;
     }
     # Make sure there is a /var/www/nginx/404/404.html page
-    error_page  404  /nginx/404/404.html;
+    error_page  404 = @404_happen;
+
+    location @404_happen{
+      rewrite .* /nginx/404/404.html permanent;
+    }
+
 
     location / {
       access_log   <%= node[:nginx_v2][:log_home] %>/nginx_router_access.log main;
@@ -261,7 +266,12 @@ http {
         expires     max;
     }
     # Make sure there is a /var/www/nginx/404/404.html page
-    error_page  404  /nginx/404/404.html;
+    error_page  404 = @404_happen;
+
+    location @404_happen{
+      rewrite .* /nginx/404/404.html permanent;
+    }
+
 
     location / {
       access_log   <%= node[:nginx_v2][:log_home] %>/nginx_router_access.log main;
