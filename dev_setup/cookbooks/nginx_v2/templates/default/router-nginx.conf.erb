@@ -56,7 +56,8 @@ http {
         proxy_set_header            X-Use-Port 8002;
         proxy_set_header            X-Auth-Port 8001;
         proxy_set_header            X-CDN-Port 8003;
-  
+        proxy_set_header            X-HTTP-HOST $http_host;
+          
         set $app_id 3;
         proxy_pass http://admin.intalio.local;
         
@@ -70,7 +71,8 @@ http {
         access_log   /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/log/nginx/nginx_router_intalio_app_access.log;
         proxy_set_header            X-Local-Port 8000;
         proxy_set_header            X-Auth-Port 8001;
-          
+        proxy_set_header            X-HTTP-HOST $http_host;
+                  
         set $app_id 1;
         proxy_pass http://intalio.local;
         
@@ -83,7 +85,8 @@ http {
       location / {
           access_log   /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/log/nginx/nginx_router_oauth_app_access.log;
           proxy_set_header            X-CDN-Port 8003;
-        
+          proxy_set_header            X-HTTP-HOST $http_host;
+                
           set $app_id 2;
           proxy_pass http://oauth.intalio.local;
       }
