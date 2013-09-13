@@ -2,7 +2,7 @@
 user  root root;
 worker_processes  1;
 
-error_log <%= node[:nginx_v2][:log_home] %>/nginx_router_error.log debug;
+error_log <%= node[:nginx_v2][:log_home] %>/nginx_router_error.log warn;
 pid        /var/run/nginx_router.pid;
 
 events {
