@@ -1,6 +1,6 @@
 include_attribute "deployment"
 
-default[:mongodb_node][:version] = "2.0.2"
+default[:mongodb_node][:version] = "2.2.6"
 default[:mongodb_node][:source] = "http://fastdl.mongodb.org/linux/mongodb-linux-#{node[:kernel][:machine]}-#{mongodb_node[:version]}.tgz"
 default[:mongodb_node][:path] = File.join(default[:deployment][:home], "deploy", "mongodb")
 
