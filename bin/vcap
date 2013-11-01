@@ -175,7 +175,7 @@ class Component
     # Return status if we succeeded in stopping
     return status unless running?
 
-    if running?
+    while running?
       sleep(0.25)
       if running?
         kill = "kill -9 #{pid}"
