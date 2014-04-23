@@ -1,9 +1,6 @@
 [submodule "services"]
 	path = services
 	url = https://github.com/intalio/vcap-services.git
-[submodule "tests"]
-	path = tests
-	url = https://github.com/intalio/vcap-tests.git
 [submodule "java"]
 	path = java
 	url = https://github.com/intalio/vcap-java.git
