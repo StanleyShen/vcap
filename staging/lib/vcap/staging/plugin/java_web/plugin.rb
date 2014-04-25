@@ -18,30 +18,37 @@ class JavaWebPlugin < StagingPlugin
   def start_command
     "./bin/jetty.sh start"
   end
-
+  
   def generate_startup_script(env_vars = {})
     after_env_before_script = block_given? ? yield : "\n"
-
     template = <<-SCRIPT
 #!/bin/bash
-# Generated during staging at #{Time.now}
-#TS=#{Time.now.to_i}
-#APP_ID=#{ENV['STAGED_APP_ID']}
+DROPLET_BASE_DIR=$PWD
 <%= environment_statements_for(env_vars) %>
+<%= after_env_before_script %>
 <%= change_directory_for_start %>
-<%= start_command %> > $PWD/logs/stdout.log 2> $PWD/logs/stderr.log &
-SCRIPT
+(<%= start_command %>) 
+    SCRIPT
     # TODO - ERB is pretty irritating when it comes to blank lines, such as when 'after_env_before_script' is nil.
     # There is probably a better way that doesn't involve making the above Heredoc horrible.
     ERB.new(template).result(binding).lines.reject {|l| l =~ /^\s*$/}.join
+  end
+
+  def generate_stop_script(env_vars = {})
+    template = <<-SCRIPT
+#!/bin/bash
+<%= environment_statements_for(env_vars) %>
+<%= stop_command %>
+SCRIPT
+    ERB.new(template).result(binding)
   end
   
   private
   def startup_script
     vars = environment_hash
-    vars['JETTY_PID'] = "$PWD/run.pid"
-    vars['JETTY_PORT'] = "$VCAP_APP_PORT"
-    vars['JAVA_OPTIONS'] = "-Xms#{application_memory}m -Xmx#{application_memory}m"
+    vars['JETTY_PID'] = "$DROPLET_BASE_DIR/run.pid"
+    vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT"
+    #vars['JAVA_OPTIONS'] = "-Xms#{application_memory}m -Xmx#{application_memory}m"
 
     # PWD here is after we change to the 'app' directory.
     generate_startup_script(vars)
