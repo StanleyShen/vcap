@@ -904,7 +904,7 @@ module DEA
           end
         rescue => e
           attempts += 1
-          if attempts > 120 || instance[:state] != :STARTING # 1 minute or instance was stopped
+          if attempts > 7200 || instance[:state] != :STARTING # 1 hour or instance was stopped
             timer.cancel
             block.call(false)
           end
