@@ -16,9 +16,21 @@ class JavaWebPlugin < StagingPlugin
   # Sinatra has a non-standard startup process.
   # TODO - Synthesize a 'config.ru' file for each app to avoid this.
   def start_command
-    "./bin/jetty.sh start"
+    "./bin/jetty.sh run"
+  end
+
+  def get_launched_process_pid
+    "STARTED=$!"
+  end
+
+  def wait_for_launched_process
+    "wait $STARTED"
   end
   
+  def pidfile_dir
+    "$DROPLET_BASE_DIR"
+  end
+
   def generate_startup_script(env_vars = {})
     after_env_before_script = block_given? ? yield : "\n"
     template = <<-SCRIPT
@@ -27,7 +39,10 @@ DROPLET_BASE_DIR=$PWD
 <%= environment_statements_for(env_vars) %>
 <%= after_env_before_script %>
 <%= change_directory_for_start %>
-(<%= start_command %>) 
+(<%= start_command %>) > $DROPLET_BASE_DIR/logs/stdout.log 2> $DROPLET_BASE_DIR/logs/stderr.log &
+<%= get_launched_process_pid %>
+echo "$STARTED" >> #{pidfile_dir}/run.pid
+<%= wait_for_launched_process %>
     SCRIPT
     # TODO - ERB is pretty irritating when it comes to blank lines, such as when 'after_env_before_script' is nil.
     # There is probably a better way that doesn't involve making the above Heredoc horrible.
@@ -46,7 +61,7 @@ SCRIPT
   private
   def startup_script
     vars = environment_hash
-    vars['JETTY_PID'] = "$DROPLET_BASE_DIR/run.pid"
+    vars['JETTY_PID'] = "$DROPLET_BASE_DIR/jetty.pid"
     vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT"
     #vars['JAVA_OPTIONS'] = "-Xms#{application_memory}m -Xmx#{application_memory}m"
 
