@@ -62,14 +62,14 @@ runtimes:
 <% if node[:dea][:runtimes].include?("nodejs") %>
   node:
     executable: <%= File.join(node[:nodejs][:path], "bin", "node") %>
-    version: 0.4.12
+    version: 0.10.28
     version_flag: '-v'
     environment:
 <% end %>
 <% if node[:dea][:runtimes].include?("java") %>
   java:
     executable: java
-    version: 1.6.0
+    version: 1.7.0
     version_regexp: 1\.[67]\.\d
     version_flag: '-version'
     environment:

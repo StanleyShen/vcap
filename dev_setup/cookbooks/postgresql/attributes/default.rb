@@ -1,7 +1,7 @@
 default[:postgresql_node][:server_root_password] = "changeme"
 default[:postgresql_node][:server_root_user] = "root"
 default[:postgresql_node][:database] = "pg_service"
-default[:postgresql_node][:version] = "9.1"
+default[:postgresql_node][:version] = "9.3"
 default[:postgresql_node][:index] = "0"
 default[:postgresql_node][:max_db_size] = "500"
 default[:postgresql_node][:available_storage] = "1024"

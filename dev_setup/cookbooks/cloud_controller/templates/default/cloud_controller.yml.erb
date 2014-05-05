@@ -98,8 +98,7 @@ staging:
     password: <%= node[:cloud_controller][:stager][:auth][:password] %>
 <% end %><% end %>
 <% if node[:cloud_controller][:max_droplet_size] %>
-#max size of the unzipped app (overrides the 512M and makes it <%= node[:cloud_controller][:max_droplet_size] %>) in bytes:
-max_droplet_size: <%= @max_droplet_size %>
+max_droplet_size: <%= node[:cloud_controller][:max_droplet_size] %>
 <% end %>
 
 # admin support

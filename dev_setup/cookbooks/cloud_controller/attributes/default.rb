@@ -29,7 +29,7 @@ default[:cloud_controller][:staging][:java_start] = "java_start.yml"
 default[:cloud_controller][:staging][:php] = "php.yml"
 
 # max_droplet_size
-default[:cloud_controller][:max_droplet_size] = "768M"
+default[:cloud_controller][:max_droplet_size] = "1610612736"
 
 # nginx offloading of file uploads/downloads
 default[:cloud_controller][:nginx][:use_nginx] = false
