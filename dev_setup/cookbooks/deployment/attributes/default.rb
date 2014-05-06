@@ -1,7 +1,7 @@
 include_attribute "cloudfoundry"
 default[:deployment][:name] = "intalio_devbox"
-default[:deployment][:user] = ENV["USER"]=='root' ? "vcap" : ENV["USER"] # this is in fact computed as `id -nu` by the chef-sololaunch.rb
-default[:deployment][:group] = "vcap" # this is in fact computed as `id -ng` by the chef-sololaunch.rb
+default[:deployment][:user] = ENV["USER"]=='root' ? "ubuntu" : ENV["USER"] # this is in fact computed as `id -nu` by the chef-sololaunch.rb
+default[:deployment][:group] = "ubuntu" # this is in fact computed as `id -ng` by the chef-sololaunch.rb
 
 default[:deployment][:home] = File.join(node[:cloudfoundry][:home], ".deployments", deployment[:name])
 default[:deployment][:config_path] = File.join(deployment[:home], "config")

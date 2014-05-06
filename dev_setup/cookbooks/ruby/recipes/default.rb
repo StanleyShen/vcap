@@ -9,7 +9,6 @@ Chef::Log.debug("#{deployment_name} is the current deployment_name")
 raise "Not the expected deployment_name deployment_name: #{deployment_name}" if deployment_name != "intalio_devbox"
 
 Chef::Log.debug("#{ruby_path} is the current ruby_path")
-raise "deployment_name: #{deployment_name}; deployment_home: #{node[:deployment][:home]} Not the expected deployment_name ruby_path: #{ruby_path}" if ruby_path != "/home/ubuntu/cloudfoundry/.deployments/intalio_devbox/deploy/rubies/ruby-#{node[:ruby][:version]}"
 
 do_install = true
 if File.exists?("#{ruby_path}/bin/ruby") &&
