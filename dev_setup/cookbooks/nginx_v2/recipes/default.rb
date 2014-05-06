@@ -200,18 +200,18 @@ when "ubuntu"
   end # don't make and reinstall nginx+lua if it was already done.
 
   # for now delete the repo first.
-  ::FileUtils.rm_rf router_path if ::File.exists?(router_path)
+  #::FileUtils.rm_rf router_path if ::File.exists?(router_path)
 
-  git router_path do
-    repository node[:cloudfoundry][:git][:router][:repo]
-    revision node[:cloudfoundry][:git][:router][:branch]
-    depth 1
-    action :sync
-    user node[:deployment][:user]
-    group node[:deployment][:group]
-  end
+  #git router_path do
+    #repository node[:cloudfoundry][:git][:router][:repo]
+    #revision node[:cloudfoundry][:git][:router][:branch]
+    #depth 1
+    #action :sync
+    #user node[:deployment][:user]
+    #group node[:deployment][:group]
+  #end
 
-  cf_bundle_install(router_path)
+  #cf_bundle_install(router_path)
   add_to_vcap_components("router")
 
 

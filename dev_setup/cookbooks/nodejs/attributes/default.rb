@@ -1,4 +1,4 @@
 include_attribute "deployment"
 default[:nodejs][:version] = "0.10.28"
 default[:nodejs][:path] = File.join(node[:deployment][:home], "deploy", "nodejs")
-default[:nodejs][:source] = "http://nodejs.org/dist/node-v#{node[:nodejs][:version]}.tar.gz"
+default[:nodejs][:source] = "http://nodejs.org/dist/v#{node[:nodejs][:version]}/node-v#{node[:nodejs][:version]}.tar.gz"
