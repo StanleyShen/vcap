@@ -61,9 +61,9 @@ EOH
         #and e=insert below it. if we can't find it then we will append.
         `grep "^\s*#listen_addresses" #{postgresql_conf_file}`
         if $?.exitstatus != 0
-          `sed -i "/^\s*#listen_addresses.*/a \listen_addresses='#{node[:postgresql_node][:host]}'" #{postgresql_conf_file}`
+          `sed -i "/^\s*#listen_addresses.*/a \listen_addresses='#{node[:postgresql_node][:listen_addresses]}'" #{postgresql_conf_file}`
         else
-          `echo "listen_addresses='#{node[:postgresql_node][:host]},localhost'" >> #{postgresql_conf_file}`
+          `echo "listen_addresses='#{node[:postgresql_node][:listen_addresses]}'" >> #{postgresql_conf_file}`
         end
       else
         `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql_node][:listen_addresses]}'/" #{postgresql_conf_file}`

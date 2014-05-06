@@ -43,6 +43,6 @@ bash "Install Nodejs" do
   make install
 EOH
   not_if do
-    ::File.exists?(File.join(node[:redis][:path], "bin", "node"))
+    ::File.exists?(File.join(node[:nodejs][:path], "bin", "node"))
   end
 end

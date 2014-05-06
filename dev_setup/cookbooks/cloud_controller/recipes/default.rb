@@ -44,9 +44,10 @@ node[:cloud_controller][:staging].each_pair do |framework, config|
 end
 
 bash "rake_migrate_ccdb" do
-  user node[:deployment][:user] #does not work: CHEF-2288
   cwd File.join(node[:cloudfoundry][:path], "cloud_controller")
+  user node[:deployment][:user] 
   code <<-EOH
+  PATH=#{node[:ruby][:path]}/bin:$PATH
   #{File.join(node[:ruby][:path], "bin", "rake")} db:migrate CLOUD_CONTROLLER_CONFIG=#{File.join(node[:deployment][:config_path], node[:cloud_controller][:config_file])}
   EOH
 end

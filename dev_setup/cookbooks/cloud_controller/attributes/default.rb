@@ -1,7 +1,7 @@
 include_attribute "deployment"
 include_attribute "postgresql"
 
-default[:deployment][:welcome] = "VMware's Cloud Application Platform"
+default[:deployment][:welcome] = "Welcome to Intalio Create"
 
 default[:cloud_controller][:config_file] = "cloud_controller.yml"
 default[:cloud_controller][:service_api_uri] = "http://api.#{node[:deployment][:domain]}"
@@ -40,10 +40,10 @@ default[:cloud_controller][:keys][:token] = 'token key goes here'
 default[:cloud_controller][:keys][:token_expiration] = 604800 # 7 * 24 * 60 * 60 (= 1 week)
 
 #Stager
-default[:cloud_controller][:stager][:max_staging_runtime] = 120 #seconds
+default[:cloud_controller][:stager][:max_staging_runtime] = 480 #seconds
 default[:cloud_controller][:stager][:secure] = false
-default[:cloud_controller][:stager][:new_stager_percent] = 0
-default[:cloud_controller][:stager][:new_stager_email_regexp] = '@@' #won't match any email.
+default[:cloud_controller][:stager][:new_stager_percent] = 100
+default[:cloud_controller][:stager][:new_stager_email_regexp] = 'create-support@intalio\.com' #won't match any email.
 default[:cloud_controller][:stager][:auth][:user] = "vcap"
 default[:cloud_controller][:stager][:auth][:password] = "vcap"
 
@@ -54,7 +54,7 @@ default[:cloud_controller][:allow_debug] = true
 default[:cloud_controller][:builtin_services] = ["redis", "mongodb", "postgresql"]
 
 # Default capacity
-default[:capacity][:memory] = 2048
-default[:capacity][:max_uris] = 4
-default[:capacity][:max_services] = 16
-default[:capacity][:max_apps] = 20
+default[:capacity][:memory] = 8192
+default[:capacity][:max_uris] = 32
+default[:capacity][:max_services] = 32
+default[:capacity][:max_apps] = 24
