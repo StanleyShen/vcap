@@ -1,3 +1,24 @@
+PATH
+  remote: ../common
+  specs:
+    vcap_common (1.0.3)
+      eventmachine (~> 0.12.11.cloudfoundry.3)
+      logging (>= 1.5.0)
+      nats (~> 0.4.26)
+      posix-spawn (~> 0.3.6)
+      thin (~> 1.4.1)
+      yajl-ruby (~> 0.8.3)
+
+PATH
+  remote: ../staging
+  specs:
+    vcap_staging (0.1.32)
+      nokogiri (>= 1.4.4)
+      rake
+      rspec
+      vcap_common (~> 1.0.3)
+      yajl-ruby (>= 0.7.9)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -6,17 +27,19 @@ GEM
     daemons (1.1.9)
     diff-lcs (1.1.3)
     eventmachine (0.12.11.cloudfoundry.3)
-    json_pure (1.7.4)
+    json_pure (1.8.1)
     little-plugger (1.1.3)
     logging (1.5.2)
       little-plugger (>= 1.1.2)
-    nats (0.4.24)
+    mini_portile (0.5.3)
+    nats (0.4.26)
       daemons (>= 1.1.5)
       eventmachine (>= 0.12.10)
       json_pure (>= 1.7.3)
-      thin (>= 1.3.1)
-    nokogiri (1.5.5)
-    posix-spawn (0.3.6)
+      thin (>= 1.4.1)
+    nokogiri (1.6.1)
+      mini_portile (~> 0.5.0)
+    posix-spawn (0.3.8)
     rack (1.4.1)
     rack-protection (1.2.0)
       rack
@@ -33,26 +56,13 @@ GEM
       rack (~> 1.3, >= 1.3.6)
       rack-protection (~> 1.2)
       tilt (~> 1.3, >= 1.3.3)
-    thin (1.3.1)
+    thin (1.4.1)
       daemons (>= 1.0.9)
       eventmachine (>= 0.12.6)
       rack (>= 1.0.0)
     tilt (1.3.3)
-    vcap_common (1.0.3)
-      eventmachine (~> 0.12.11.cloudfoundry.3)
-      logging (>= 1.5.0)
-      nats (~> 0.4.24)
-      posix-spawn (~> 0.3.6)
-      thin (~> 1.3.1)
-      yajl-ruby (~> 0.8.3)
     vcap_logging (0.1.4)
       rake
-    vcap_staging (0.1.32)
-      nokogiri (>= 1.4.4)
-      rake
-      rspec
-      vcap_common (~> 1.0.3)
-      yajl-ruby (>= 0.7.9)
     webmock (1.8.9)
       addressable (>= 2.2.7)
       crack (>= 0.1.7)
@@ -64,12 +74,11 @@ PLATFORMS
 DEPENDENCIES
   eventmachine
   logging (= 1.5.2)
-  nats (~> 0.4.24)
-  rake
+  nats (~> 0.4.26)
   rspec
   sinatra
-  vcap_common (= 1.0.3)
+  vcap_common!
   vcap_logging (>= 0.1.3)
-  vcap_staging (~> 0.1.32)
+  vcap_staging!
   webmock
   yajl-ruby (~> 0.8.3)
