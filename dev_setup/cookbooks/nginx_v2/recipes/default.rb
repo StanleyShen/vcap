@@ -19,7 +19,7 @@ nginx_path = node[:nginx_v2][:path]
 lua_version = node[:lua][:version]
 lua_path = node[:lua][:path]
 lua_module_path = node[:lua][:module_path]
-router_path = File.join(node[:cloudfoundry][:home], "router")
+router_path = File.join(node[:cloudfoundry][:path], "router")
 
 case node['platform']
 when "ubuntu"
@@ -211,7 +211,7 @@ when "ubuntu"
     #group node[:deployment][:group]
   #end
 
-  #cf_bundle_install(router_path)
+  cf_bundle_install(router_path)
   add_to_vcap_components("router")
 
 
@@ -276,33 +276,6 @@ when "ubuntu"
   end
 =end
 
-  bash "Stop running nginx" do
-    code <<-EOH
-      pid=`ps -ef | grep nginx | grep -v grep | awk '{print $2}'`
-      [ ! -z "$pid" ] && sudo kill $pid || true
-    EOH
-  end
-
-  bash "Migrate from the old router + nginx to the new one." do
-    code <<-EOH
-      if [ -h "#{node[:cloudfoundry][:path]}/router" ]; then
-        rm "#{node[:cloudfoundry][:path]}/router"
-      fi
-      if [ -d "#{node[:cloudfoundry][:path]}/router" ]; then
-        if [ -d "#{node[:cloudfoundry][:path]}/router_old" ]; then
-          rm -rf "#{node[:cloudfoundry][:path]}/router_old"
-        fi
-        mv "#{node[:cloudfoundry][:path]}/router" "#{node[:cloudfoundry][:path]}/router_old"
-      fi
-      ln -s "#{router_path}" "#{node[:cloudfoundry][:path]}/router"
-      chown node[:deployment][:user]:node[:deployment][:group] "#{node[:cloudfoundry][:path]}/router"
-      if [ -x "/etc/init.d/nginx" ]; then
-        chmod -x "/etc/init.d/nginx"
-        mv "/etc/init.d/nginx" "/etc/init.d/nginx_disabled"
-      fi
-    EOH
-  end
-  
   bash "Add *.intalio.local hostnames to /etc/host" do
     # This is needed for nginx config for port routing to resolve correctly 
     code <<-EOH
