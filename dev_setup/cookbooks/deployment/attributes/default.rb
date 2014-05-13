@@ -20,3 +20,5 @@ default[:deployment][:is_micro] = false
 default[:deployment][:tracked_inet] = "eth0" # name of the network interface used
 
 default[:deployment][:setup_cache] = File.join("", "var", "cache", "dev_setup") 
+
+default[:deployment][:vmc_knife_default_recipe] = File.join(node[:cloudfoundry][:home], 'intalio_recipe.json')

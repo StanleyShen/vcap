@@ -76,7 +76,7 @@ SCRIPT
 
   def change_file_permission
     `chmod +x $PWD/app/bin/jetty.sh`
-    `mv $PWD/app/modules/npn/npn-1.7.0_5.mod $PWD/app/modules/npn/npn-1.7.0_51.mod`
+    `mv $PWD/app/modules/npn/npn-1.7.0_5.mod $PWD/app/modules/npn/npn-1.7.0_55.mod`
   end
 end
 

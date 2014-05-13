@@ -66,23 +66,6 @@ if [ "$do_reconfig" == "true" ]; then
   echo "calling vmc_knife to make sure the urls are up to date." | tee -a $_vcap_log
   $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start cloud_controller | tee -a $_vcap_log
   $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start router | tee -a $_vcap_log
-  # wait until cloud_controller is indeed available:
-  COUNTER=0
-  while [  $COUNTER -lt 20 ]; do
-    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv:9022 2>&1 | grep "200 OK"`
-    if [ -n "$ready" ]; then
-      COUNTER=40
-      [ COUNTER != "0" ] && echo "Cloud Controller is available"
-    else
-      echo "[ $COUNTER ] Cloud controller is not available yet."
-      let COUNTER=COUNTER+1
-      sleep 5
-    fi
-  done
-  if [ -z "$ready" ]; then
-    echo "Cloud controller failed to start"
-    exit 1
-  fi
 	if [ -z "$VMC_KNIFE_DONT_RECONFIGURE" ]; then
 	  vmc_knife configure-applications | tee -a $_vcap_log
     vmc_knife configure-vcap-etc-hosts | tee -a $_vcap_log
@@ -92,29 +75,3 @@ fi
 #call vcap with the cmd-line args:
 $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME $@ | tee -a $_vcap_log
 
-if [ "$2" == "cloud_controller" ]; then
-if [ "$1" == "start" -o "$1" == "restart" ]; then
-  # wait until cloud_controller is indeed available:
-  COUNTER=0
-  while [  $COUNTER -lt 20 ]; do
-    ready=`wget -SO- -T 1 -t 1 http://api.intalio.priv:9022 2>&1 | grep "200 OK"`
-    if [ -n "$ready" ]; then
-      COUNTER=40
-      [ COUNTER != "0" ] && echo "Cloud Controller is available"
-    else
-      echo "[ $COUNTER ] Cloud controller is not available yet."
-      still_running=`$CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME status cloud_controller | grep RUNNING`
-      if [ -z "$still_running" ]; then
-        echo `$CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME status cloud_controller | grep STOPPED`
-        exit 4
-      fi
-      let COUNTER=COUNTER+1
-      sleep 5
-    fi
-  done
-  if [ -z "$ready" ]; then
-    echo "Cloud controller failed to start"
-    exit 1
-  fi
-fi
-fi

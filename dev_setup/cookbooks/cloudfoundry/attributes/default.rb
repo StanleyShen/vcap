@@ -17,3 +17,5 @@ default[:cloudfoundry][:git][:vcap_services][:branch] = "master"
 
 default[:cloudfoundry][:git][:router][:repo] = "https://github.com/intalio/router.git"
 default[:cloudfoundry][:git][:router][:branch] = "master"
+
+default[:cloudfoundry][:vmc][:version] = '0.3.23'
