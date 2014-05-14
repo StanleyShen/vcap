@@ -52,7 +52,7 @@ class GemfileTask
   end
 
   def install_bundler
-    install_gems([ ['bundler', '1.0.10'] ])
+    install_gems([ ['bundler', '1.6.2'] ])
   end
 
   # The application includes some version of Thin in its bundle.
