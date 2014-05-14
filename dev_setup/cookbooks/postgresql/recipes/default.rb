@@ -29,7 +29,7 @@ echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > etc/apt/
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
 sudo apt-get update
-apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
+apt-get install -qy postgresql-$POSTGRES_MAJOR_VERSION postgresql-contrib-$POSTGRES_MAJOR_VERSION libpq-dev libpq5
 EOH
     not_if do
       ::File.exists?(postgres_etc_install_folder)
