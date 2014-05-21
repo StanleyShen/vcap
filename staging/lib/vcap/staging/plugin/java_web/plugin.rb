@@ -8,6 +8,7 @@ class JavaWebPlugin < StagingPlugin
       create_app_directories
       copy_source_files
       change_file_permission
+      modify_files
       create_startup_script
       create_stop_script
     end
@@ -62,7 +63,7 @@ SCRIPT
   def startup_script
     vars = environment_hash
     vars['JETTY_PID'] = "$DROPLET_BASE_DIR/jetty.pid"
-    vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT"
+    vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT -Dlogback.appender=FILE_CF"
     #vars['JAVA_OPTIONS'] = "-Xms#{application_memory}m -Xmx#{application_memory}m"
 
     # PWD here is after we change to the 'app' directory.
@@ -76,7 +77,11 @@ SCRIPT
 
   def change_file_permission
     `chmod +x $PWD/app/bin/jetty.sh`
+  end
+
+  def modify_files
     `mv $PWD/app/modules/npn/npn-1.7.0_5.mod $PWD/app/modules/npn/npn-1.7.0_55.mod`
+    `sed -i -e s/Xmx.*$/Xmx#{application_memory}m/ $PWD/app/start.ini`
   end
 end
 
