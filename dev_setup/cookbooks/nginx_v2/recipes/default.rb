@@ -117,6 +117,13 @@ when "ubuntu"
       checksum node[:nginx_v2][:checksums][:module_lua_source]
     end
 
+    nginx_sticky_module = File.join(node[:deployment][:setup_cache], "nginx-sticky-module-1.1.tar.gz")
+    remote_file nginx_sticky_module do
+      owner node[:deployment][:user]
+      source "https://nginx-sticky-module.googlecode.com/files/nginx-sticky-module-1.1.tar.gz"
+      action :create_if_missing
+    end
+
     directory nginx_path do
       owner node[:deployment][:user]
       group node[:deployment][:group]
@@ -174,6 +181,7 @@ when "ubuntu"
         tar xzf #{headers_more_tarball}
         tar xzf #{devel_kit_tarball}
         tar xzf #{nginx_lua_tarball}
+        tar xzf #{nginx_sticky_module}
 
         [ -d chunkin-nginx-module ] && rm -rf chunkin-nginx-module
         git clone https://github.com/agentzh/chunkin-nginx-module.git --depth 1
@@ -190,7 +198,8 @@ when "ubuntu"
           --add-module=../nginx_upload_module-2.2.0 \
           --add-module=../headers-more-v0.15rc1 \
           --add-module=../simpl-ngx_devel_kit-bc97eea \
-          --add-module=../chaoslawful-lua-nginx-module-4d92cb1
+          --add-module=../chaoslawful-lua-nginx-module-4d92cb1 \
+          --add-module=../nginx-sticky-module-1.1
 
         make
         make install
