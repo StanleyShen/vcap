@@ -63,8 +63,7 @@ SCRIPT
   def startup_script
     vars = environment_hash
     vars['JETTY_PID'] = "$DROPLET_BASE_DIR/jetty.pid"
-    vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT -Dlogback.appender=FILE_CF"
-    #vars['JAVA_OPTIONS'] = "-Xms#{application_memory}m -Xmx#{application_memory}m"
+    vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT -Dlogback.appender=FILE_CF $JAVA_OPTS"
 
     # PWD here is after we change to the 'app' directory.
     generate_startup_script(vars)
