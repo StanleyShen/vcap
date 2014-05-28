@@ -7,6 +7,6 @@ default[:ruby][:path]    = File.join(node[:deployment][:home], "deploy", "rubies
 
 default[:rubygems][:version] = "2.2.2"
 default[:rubygems][:bundler][:version] = "1.6.2"
-default[:rubygems][:rake][:version] = "0.9.2.2"
+default[:rubygems][:rake][:version] = "10.3.2"
 default[:rubygems][:eventmachine][:version] = "0.12.11.cloudfoundry.3"
 default[:rubygems][:thin][:version] = "1.4.1"

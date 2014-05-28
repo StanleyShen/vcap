@@ -41,7 +41,7 @@ GEM
       thin (>= 1.4.1)
     posix-spawn (0.3.8)
     rack (1.5.2)
-    rake (10.3.1)
+    rake (10.3.2)
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
       rspec-expectations (~> 2.14.0)
