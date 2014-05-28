@@ -79,7 +79,8 @@ SCRIPT
   end
 
   def modify_files
-    `mv $PWD/app/modules/npn/npn-1.7.0_5.mod $PWD/app/modules/npn/npn-1.7.0_55.mod`
+    `cp $PWD/app/modules/npn/npn-1.7.0_5.mod $PWD/app/modules/npn/npn-1.7.0_51.mod`
+    `cp $PWD/app/modules/npn/npn-1.7.0_5.mod $PWD/app/modules/npn/npn-1.7.0_55.mod`
     `sed -i -e s/Xmx.*$/Xmx#{application_memory}m/ $PWD/app/start.ini`
   end
 end
