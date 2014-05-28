@@ -5,7 +5,7 @@ service:
   version: "<%= node[:postgresql_node][:version] %>"
   description: 'PostgreSQL database service'
   plans: ['free']
-  tags: ['postgresql', 'postgresql-9.1', 'relational']
+  tags: ['postgresql', 'postgresql-9.3', 'relational']
 host: localhost
 token: <%= node[:postgresql_node][:token] %>
 logging:

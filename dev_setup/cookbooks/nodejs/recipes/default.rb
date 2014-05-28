@@ -10,39 +10,23 @@
   package pkg
 end
 
-remote_file File.join("", "tmp", "node-v#{node[:nodejs][:version]}.tar.gz") do
+nodejs_tarball_path = File.join(node[:deployment][:setup_cache], "node-v#{node[:nodejs][:version]}-linux-x64.tgz")
+
+remote_file nodejs_tarball_path do
   owner node[:deployment][:user]
   source node[:nodejs][:source]
-  not_if do
-    ::File.exists?(File.join("", "tmp", "node-v#{node[:nodejs][:version]}.tar.gz"))
-  end
+  action :create_if_missing
 end
 
-
-directory node[:nodejs][:path] do
-  owner node[:deployment][:user]
-  group node[:deployment][:group]
-  mode "0755"
-  recursive true
-  action :create
-end
-
-bash "Install Nodejs" do
+bash "Install Nodejs #{node[:nodejs][:version]}" do
   cwd File.join("", "tmp")
-  user node[:deployment][:user] #does not work: CHEF-2288
-  environment ({'HOME' => "/home/#{node[:deployment][:user]}",
-                'USER' => "#{node[:deployment][:user]}"})
+  user node[:deployment][:user]
   code <<-EOH
-  source $HOME/.bashrc
-  rm -rf #{node[:nodejs][:path]}/*
-  cd /tmp
-  tar xzf node-v#{node[:nodejs][:version]}.tar.gz
-  cd node-v#{node[:nodejs][:version]}
-  ./configure --prefix=#{node[:nodejs][:path]}
-  make
-  make install
-EOH
+  tar xvzf #{nodejs_tarball_path}
+  mv node-v#{node[:nodejs][:version]}-linux-x64 #{node[:nodejs][:path]}
+  EOH
   not_if do
-    ::File.exists?(File.join(node[:nodejs][:path], "bin", "node"))
+    ::File.exists?(node[:nodejs][:path])
   end
 end
+

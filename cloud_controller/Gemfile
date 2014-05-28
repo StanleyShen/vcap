@@ -24,7 +24,7 @@ group :production do
   # gem 'postgres-pr', '0.6.3'
   # gem 'em_postgresql', '0.3.0'
 
-  gem 'mysql2', '>= 0.2.6', :require => nil
+  # gem 'mysql2', '>= 0.2.6', :require => nil
   # mysql2 includes an EventMachine driver (mysql2/em), don't use em-mysqlplus.
   # To enable, set the :database_env :adapter to 'em_mysql2' in config/cloud_controller.yml
   #
