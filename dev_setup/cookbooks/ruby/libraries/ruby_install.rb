@@ -2,7 +2,6 @@ module RubyInstall
   def cf_ruby_install(ruby_version, ruby_source, ruby_path)
     rubygems_version = node[:rubygems][:version]
     bundler_version = node[:rubygems][:bundler][:version]
-    rake_version = node[:rubygems][:rake][:version]
     eventmachine_version = node[:rubygems][:eventmachine][:version]
     thin_version = node[:rubygems][:thin][:version]
     ubuntu_version=`lsb_release -sr`
@@ -117,12 +116,6 @@ EOH
       options "--config-file #{ruby_path}/lib/chef.gemrc"
       retries 4
       version bundler_version
-      gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
-    end
-
-    gem_package "rake" do
-      retries 4
-      version rake_version
       gem_binary "sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")}"
     end
 

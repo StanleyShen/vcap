@@ -25,15 +25,6 @@ if File.exists?("#{ruby_path}/bin/ruby") &&
   end
 
   unless do_install
-    version = node[:rubygems][:rake][:version]
-    the_version=`#{ruby_path}/bin/rake --version`
-    do_install = false if /#{ruby_version_regexp}/ =~ the_version
-    if do_install
-      Chef::Log.debug("#{ruby_path}/bin/rake exists, but the version #{the_version} is different: from the one expected: #{version}")
-    end
-  end
-
-  unless do_install
     version = node[:rubygems][:version]
     the_version=`#{ruby_path}/bin/gem --version`
     do_install = false if /#{version}/ =~ the_version
