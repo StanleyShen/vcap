@@ -10,3 +10,4 @@ depends "deployment"
 
 # connection parameters to the ccdb
 depends "ccdb"
+depends "redis"

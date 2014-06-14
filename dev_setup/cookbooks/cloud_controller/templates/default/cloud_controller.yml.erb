@@ -49,7 +49,7 @@ rails_logging:
 
 redis:
   host: 127.0.0.1
-  port: 5454
+  port: <%= node[:redis][:port] %>
 # password:
 
 directories:
