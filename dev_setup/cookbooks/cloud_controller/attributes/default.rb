@@ -54,7 +54,7 @@ default[:cloud_controller][:allow_debug] = true
 default[:cloud_controller][:builtin_services] = ["redis", "mongodb", "postgresql"]
 
 # Default capacity
-default[:capacity][:memory] = 8192
+default[:capacity][:memory] = 16384
 default[:capacity][:max_uris] = 32
 default[:capacity][:max_services] = 32
 default[:capacity][:max_apps] = 24
