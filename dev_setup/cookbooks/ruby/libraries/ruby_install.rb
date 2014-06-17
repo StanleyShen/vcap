@@ -50,8 +50,8 @@ module RubyInstall
         fi
       fi
       cd ruby-#{ruby_version}
-      echo "About to do: configure --prefix=#{ruby_path}"
-      ./configure --prefix=#{ruby_path}
+      echo "About to do: configure --disable-pthread --prefix=#{ruby_path}"
+      ./configure --disable-pthread --prefix=#{ruby_path}
       make
       make install
 EOH
