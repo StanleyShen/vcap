@@ -67,7 +67,6 @@ if [ "$do_reconfig" == "true" ]; then
   $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start cloud_controller | tee -a $_vcap_log
   $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start router | tee -a $_vcap_log
 	if [ -z "$VMC_KNIFE_DONT_RECONFIGURE" ]; then
-	  vmc_knife configure-applications | tee -a $_vcap_log
     vmc_knife configure-vcap-etc-hosts | tee -a $_vcap_log
 	fi
 fi
