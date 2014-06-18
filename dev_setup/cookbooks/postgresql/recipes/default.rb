@@ -69,9 +69,6 @@ EOH
         `sed -i.bkup -e "s/^\s*listen_addresses.*$/listen_addresses='#{node[:postgresql_node][:listen_addresses]}'/" #{postgresql_conf_file}`
       end
 
-      # turn off the ssl
-      `sed -i 's/ssl\s=\strue/ssl = false/' #{postgresql_conf_file}`
-      
       # update the local psql connections to psotgres.
       unless node[:postgresql_node][:local_acl].nil?
         #replace 'local   all             all                                     peer'
