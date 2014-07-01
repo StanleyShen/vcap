@@ -17,8 +17,6 @@ gemspec = Gem::Specification.new do |s|
 
   s.add_dependency('rspec')
 
-  s.add_dependency('vcap_common', '~> 1.0.3')
-
   s.executables  = []
   s.bindir       = 'bin'
   s.require_path = 'lib'

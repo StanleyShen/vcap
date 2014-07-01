@@ -1,3 +1,5 @@
 source :rubygems
 
+gem 'vcap_common', path: '../common'
+
 gemspec

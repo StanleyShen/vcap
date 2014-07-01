@@ -53,6 +53,7 @@ echo "$STARTED" >> #{pidfile_dir}/run.pid
   def generate_stop_script(env_vars = {})
     template = <<-SCRIPT
 #!/bin/bash
+DROPLET_BASE_DIR=$PWD
 <%= environment_statements_for(env_vars) %>
 <%= stop_command %>
 SCRIPT
@@ -64,6 +65,7 @@ SCRIPT
     vars = environment_hash
     vars['JETTY_PID'] = "$DROPLET_BASE_DIR/jetty.pid"
     vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT -Dlogback.appender=FILE_CF $JAVA_OPTS"
+    vars['APP_DIR'] = "$DROPLET_BASE_DIR/app/"
 
     # PWD here is after we change to the 'app' directory.
     generate_startup_script(vars)
