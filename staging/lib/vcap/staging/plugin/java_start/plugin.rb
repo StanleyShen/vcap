@@ -37,7 +37,7 @@ done
     <<-SCRIPT
 while [ ! -f #{get_launched_process_pid} ]
 do
-  sleep 2
+  sleep 1
 done
 
 #{wait_for_process_terminated}

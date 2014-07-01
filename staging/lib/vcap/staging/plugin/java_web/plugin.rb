@@ -8,7 +8,6 @@ class JavaWebPlugin < StagingPlugin
       create_app_directories
       copy_source_files
       change_file_permission
-      modify_files
       create_startup_script
       create_stop_script
     end
@@ -78,10 +77,6 @@ SCRIPT
 
   def change_file_permission
     `chmod +x $PWD/app/bin/jetty.sh`
-  end
-
-  def modify_files
-    `sed -i -e s/Xmx.*$/Xmx#{application_memory}m/ $PWD/app/start.ini`
   end
 end
 
