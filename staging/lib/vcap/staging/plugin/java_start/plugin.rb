@@ -90,6 +90,7 @@ SCRIPT
     vars['PID_FILE'] = get_launched_process_pid
     vars['APP_DIR'] = "$DROPLET_BASE_DIR/app/"
     vars['LOG_DIR'] = "$DROPLET_BASE_DIR/logs/"
+    vars['JAVA_OPTS'] = "-Xmx#{application_memory}m $JAVA_OPTS"
 
     # PWD here is after we change to the 'app' directory.
     generate_startup_script(vars)
