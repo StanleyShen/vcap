@@ -294,3 +294,16 @@ EOH
     ::File.exists?("/home/#{node[:deployment][:user]}/.bash_login")
   end
 end
+
+bash "Update max pid range" do
+  code <<-EOH
+file=/etc/sysctl.conf
+string="kernel.pid_max = 65536"
+if grep -q kernel.pid_max $file ; then
+  sudo sed -i "s/kernel\.pid_max.*$/$string/g" $file
+else
+  echo $string | sudo tee -a $file
+fi
+EOH
+end
+
