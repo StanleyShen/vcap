@@ -10,6 +10,7 @@ class JavaStartPlugin < StagingPlugin
       copy_source_files
       change_file_permission
       create_startup_script
+      place_state_file
       create_stop_script
     end
   end
@@ -66,6 +67,7 @@ DROPLET_BASE_DIR=$PWD
 <%= after_env_before_script %>
 <%= change_directory_for_start %>
 (<%= start_command %>) > $DROPLET_BASE_DIR/logs/stdout.log 2> $DROPLET_BASE_DIR/logs/stderr.log &
+<%= set_state_in_state_file %>
 <%= wait_for_launched_process %>
     SCRIPT
     # TODO - ERB is pretty irritating when it comes to blank lines, such as when 'after_env_before_script' is nil.
@@ -103,6 +105,19 @@ SCRIPT
 
   def change_file_permission
     `chmod +x $PWD/app/bin/server.sh`
+  end
+
+  def place_state_file
+    content = <<-CONTENT
+---
+state_file: app/.state
+    CONTENT
+    `echo "#{content}" > $PWD/droplet.yaml`
+  end
+
+  def set_state_in_state_file(state = 'RUNNING')
+    content = "{  \"state\": \"#{state}\" }"
+    "echo '#{content}' > $APP_DIR/.state"
   end
 
 end
