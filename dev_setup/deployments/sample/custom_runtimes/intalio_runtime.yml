@@ -48,6 +48,7 @@ jobs:
         builtin_services:
           - redis
           - mongodb
+          - elasticsearch
           - postgresql
         keys:
           token_expiration: 604800 # 7 * 24 * 60 * 60 (= 1 week) * 10
@@ -86,6 +87,15 @@ jobs:
           quotafiles: -1
           smallfiles: false
     - mongodb_gateway:
+        service:
+          timeout: 30
+    - elasticsearch_node:
+        index: "0"
+        available_memory: 8192
+        max_memory: 3072
+        version: 1.1.1
+        node_timeout: 35 #2 is the default but we keep getting timeout issues. 8 works well on virtualbox. on kvm with raw disk, ...
+    - elasticsearch_gateway:
         service:
           timeout: 30
     - postgresql_node:

@@ -1,0 +1,17 @@
+---
+cloud_controller_uri: <%= node[:cloud_controller][:service_api_uri] %>
+service:
+  name: elasticsearch
+  version: "<%= node.elasticsearch[:version] %>"
+  description: 'Elasticsearch'
+  plans: ['free']
+  tags: ['elasticsearch', 'elasticsearch-<%= node.elasticsearch[:version] %>', 'search']
+host: localhost
+index: <%= node.elasticsearch[:gateway_index] %>
+token: <%= node.elasticsearch[:token] %>
+mbus: nats://<%= node[:nats_server][:user] %>:<%= node[:nats_server][:password] %>@<%= node[:nats_server][:host] %>:<%= node[:nats_server][:port] %>/
+pid: /var/vcap/sys/run/elasticsearch_gateway.pid
+logging:
+  level: debug
+# allow_over_provisioning: false
+node_timeout: <%= node.elasticsearch[:node_timeout] %>

@@ -51,7 +51,7 @@ default[:cloud_controller][:stager][:auth][:password] = "vcap"
 default[:cloud_controller][:allow_debug] = true
 
 # Default builtin services
-default[:cloud_controller][:builtin_services] = ["redis", "mongodb", "postgresql"]
+default[:cloud_controller][:builtin_services] = ["redis", "mongodb", "postgresql", "elasticsearch"]
 
 # Default capacity
 default[:capacity][:memory] = 16384
