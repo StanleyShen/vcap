@@ -26,7 +26,14 @@ directory nats_config_dir do
   recursive true
   action :create
   notifies :run, "execute[start-nats]"
-  #notifies :restart, "service[nats_server]"
+  notifies :restart, "service[nats_server]"
+end
+
+template "nats_server.yml" do
+  path node[:nats_server][:config]
+  source "nats_server.yml.erb"
+  owner node[:deployment][:user]
+  mode 0644
 end
 
 case node['platform']
@@ -40,12 +47,12 @@ when "ubuntu"
     #notifies :restart, "service[nats_server]"
   end
 
-  template "vcap_reconfig" do
-    path "/etc/init/vcap_reconfig.conf"
-    source "vcap_reconfig.conf.erb"
-    owner node[:deployment][:user]
-    mode 0644
-  end
+  #template "vcap_reconfig" do
+    #path "/etc/init/vcap_reconfig.conf"
+    #source "vcap_reconfig.conf.erb"
+    #owner node[:deployment][:user]
+    #mode 0644
+  #end
 
   service "nats_server" do
     supports :status => true, :restart => true, :reload => true
@@ -53,14 +60,6 @@ when "ubuntu"
   end
 else
   Chef::Log.error("Installation of nats_server not supported on this platform.")
-end
-
-template "nats_server.yml" do
-  path node[:nats_server][:config]
-  source "nats_server.yml.erb"
-  owner node[:deployment][:user]
-  mode 0644
-  notifies :restart, "service[nats_server]"
 end
 
 

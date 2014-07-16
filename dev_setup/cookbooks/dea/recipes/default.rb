@@ -5,7 +5,7 @@
 # Copyright 2011, VMWARE
 #
 #
-%w{lsof psmisc librmagick-ruby}.each do |pkg|
+%w{lsof psmisc}.each do |pkg|
   package pkg
 end
 

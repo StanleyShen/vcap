@@ -4,10 +4,6 @@
 #
 # Copyright 2011, VMware
 #
-node[:nats_server][:host] ||= cf_local_ip
-node[:ccdb][:host] ||= cf_local_ip
-node[:postgresql_node][:host] ||= cf_local_ip
-node[:serialization_data_server][:host] ||= cf_local_ip
 
 case node['platform']
 when "ubuntu"
@@ -124,41 +120,41 @@ template "ssh_gen_keys" do
 end
 
 
-template "hostname_uniq_if_up" do
-  path File.join("", "etc", "network", "if-up.d", "hostname_uniq")
-  source "hostname_uniq_if_up.erb"
-  mode 0755
-end
+#template "hostname_uniq_if_up" do
+  #path File.join("", "etc", "network", "if-up.d", "hostname_uniq")
+  #source "hostname_uniq_if_up.erb"
+  #mode 0755
+#end
 
 # Optional: generate an entry for the current IP of the bound interface
 # this is a workaround when the reverse DNS is not supported
 # it is harmless otherwise.
-unless node[:deployment][:tracked_inet_hosts_entry] == false
-  bash "insert tracked inet entry in /etc/hosts" do
-	  code <<-EOH
-IFACE=#{node[:deployment][:tracked_inet]}
-IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
-[ -z "$IP" ] && IP='127.0.0.1'
-already=`grep __#{node[:deployment][:tracked_inet]}__ip__ /etc/hosts`
-echo "already here $already look for $IFACE and $IP"
-if [ -z "$already" ]; then
-  # insert a new line
-  sed -i '/127\.0\.0\.1/{G;s/$/'$IP' __'$IFACE'__ip__/;}' /etc/hosts
-else
-  # update the existing line
-  sed -i 's/[^#].*[[:space:]]*__'$IFACE'__ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
-fi
-EOH
-	end
-end
+#unless node[:deployment][:tracked_inet_hosts_entry] == false
+  #bash "insert tracked inet entry in /etc/hosts" do
+    #code <<-EOH
+#IFACE=#{node[:deployment][:tracked_inet]}
+#IP=`ifconfig | sed -n '/'$IFACE'/{n;p;}' | grep 'inet addr:' | grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | head -1`
+#[ -z "$IP" ] && IP='127.0.0.1'
+#already=`grep __#{node[:deployment][:tracked_inet]}__ip__ /etc/hosts`
+#echo "already here $already look for $IFACE and $IP"
+#if [ -z "$already" ]; then
+  ## insert a new line
+  #sed -i '/127\.0\.0\.1/{G;s/$/'$IP' __'$IFACE'__ip__/;}' /etc/hosts
+#else
+  ## update the existing line
+  #sed -i 's/[^#].*[[:space:]]*__'$IFACE'__ip__/'$IP'\ __'$IFACE'__ip__/g' /etc/hosts
+#fi
+#EOH
+  #end
+#end
 
-template "etc_issue_with_ip" do
-  path File.join("", "etc", "network", "if-up.d", "update-etc-issue")
-  source "etc_issue_with_ip.erb"
-  owner node[:deployment][:user]
-  owner node[:deployment][:group]
-  mode 0755
-end
+#template "etc_issue_with_ip" do
+  #path File.join("", "etc", "network", "if-up.d", "update-etc-issue")
+  #source "etc_issue_with_ip.erb"
+  #owner node[:deployment][:user]
+  #owner node[:deployment][:group]
+  #mode 0755
+#end
 
 template "etc_issue.conf" do
   path File.join("", "etc", "init", "etc_issue.conf")
@@ -189,79 +185,79 @@ template node[:deployment][:vcap_exec] do
   mode 0755
 end
 
-case node['platform']
-when "ubuntu"
-  bash "invoke_hostname_unique" do
-		code <<-EOH
-/etc/network/if-up.d/hostname_uniq
-EOH
-  end
+#case node['platform']
+#when "ubuntu"
+  #bash "invoke_hostname_unique" do
+		#code <<-EOH
+#/etc/network/if-up.d/hostname_uniq
+#EOH
+  #end
 
-	bash "Create some symlinks and customize .bashrc" do
-    user node[:deployment][:user] #does not work: CHEF-2288
-    group node[:deployment][:group] #does not work: CHEF-2288
-    environment ({'HOME' => "/home/#{node[:deployment][:user]}",
-                  'USER' => "#{node[:deployment][:user]}"})
-      code <<-EOH
-cd #{node[:cloudfoundry][:home]}
-# few symbolic links (todo: too many assumptions on the layout of the deployment)
-[ -h log ] && rm log
-ln -s #{node[:deployment][:log_path]} log
-[ -h config ] && rm config
-ln -s #{node[:deployment][:config_path]} config
-[ -h deployed_apps ] && rm deployed_apps
-if [ ! -d /var/vcap.local/dea/apps ]; then
-  mkdir -p /var/vcap.local/dea/apps
-  chown #{node[:deployment][:user]}:#{node[:deployment][:group]} /var/vcap.local/dea/apps
-fi
-ln -s /var/vcap.local/dea/apps deployed_apps
+	#bash "Create some symlinks and customize .bashrc" do
+    #user node[:deployment][:user] #does not work: CHEF-2288
+    #group node[:deployment][:group] #does not work: CHEF-2288
+    #environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                  #'USER' => "#{node[:deployment][:user]}"})
+      #code <<-EOH
+#cd #{node[:cloudfoundry][:home]}
+## few symbolic links (todo: too many assumptions on the layout of the deployment)
+#[ -h log ] && rm log
+#ln -s #{node[:deployment][:log_path]} log
+#[ -h config ] && rm config
+#ln -s #{node[:deployment][:config_path]} config
+#[ -h deployed_apps ] && rm deployed_apps
+#if [ ! -d /var/vcap.local/dea/apps ]; then
+  #mkdir -p /var/vcap.local/dea/apps
+  #chown #{node[:deployment][:user]}:#{node[:deployment][:group]} /var/vcap.local/dea/apps
+#fi
+#ln -s /var/vcap.local/dea/apps deployed_apps
 
-cd /home/#{node[:deployment][:user]}
-# add the local_run_profile to the user's  home.
-grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
-[ -z "$grep_it" ] && echo "source #{node[:deployment][:local_run_profile]}" >> .bashrc
-grep_it=`grep alias\\ #{node[:deployment][:vcap_exec_alias]}= .bashrc`
-[ -z "$grep_it" ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc
-grep_it=`grep alias\\ _psql= .bashrc`
-[ -z "$grep_it" ] && echo "alias _pgsql='sudo -u postgres psql'" >> .bashrc
-grep_it=`grep alias\\ _mongo= .bashrc`
-[ -z "$grep_it" ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc
-exit 0
-EOH
-Chef::Log.warn("Code to exec for customizing the deployment #{code}")
-  end
+#cd /home/#{node[:deployment][:user]}
+## add the local_run_profile to the user's  home.
+#grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
+#[ -z "$grep_it" ] && echo "source #{node[:deployment][:local_run_profile]}" >> .bashrc
+#grep_it=`grep alias\\ #{node[:deployment][:vcap_exec_alias]}= .bashrc`
+#[ -z "$grep_it" ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc
+#grep_it=`grep alias\\ _psql= .bashrc`
+#[ -z "$grep_it" ] && echo "alias _pgsql='sudo -u postgres psql'" >> .bashrc
+#grep_it=`grep alias\\ _mongo= .bashrc`
+#[ -z "$grep_it" ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc
+#exit 0
+#EOH
+#Chef::Log.warn("Code to exec for customizing the deployment #{code}")
+  #end
 
-  node[:deployment][:etc_hosts][:api_dot_domain].each do |ip|
-    bash "Bind #{ip} to api.#{node[:deployment][:domain]} in /etc/hosts" do
-    user "root"
-    code <<-EOH
-cmd="grep -E '#{Regexp.escape(ip)}[[:space:]].*[[:space:]]api\.#{Regexp.escape(node[:deployment][:domain])}[^[:alnum:]]?' /etc/hosts"
-binding_exists=`grep -E '#{Regexp.escape(ip)}[[:space:]].*[[:space:]]api\.#{Regexp.escape(node[:deployment][:domain])}[^[:alnum:]]?' /etc/hosts`
-echo "A $? $cmd returned $binding_exists"
-if [ -z "$binding_exists" ]; then
-  #cmd="grep -E '#{Regexp.escape(ip)}[[:space:]].*' /etc/hosts | head -1"
-  cmd="grep #{ip} /etc/hosts"
-  ip_already_bound=`grep #{ip} /etc/hosts`
-  echo "B $? $cmd returned $ip_already_bound"
-  if [ -z "$ip_already_bound" ]; then
-    echo "#{ip}    api.#{node[:deployment][:domain]}" >> /etc/hosts
-  else
-    cmd2="echo '$ip_already_bound' | grep api.#{node[:deployment][:domain]}"
-    nothing_to_do=`echo "$ip_already_bound" | grep api.#{node[:deployment][:domain]}`
-    echo "C $? $cmd2 returned $nothing_to_do"
-    if [ -z "$nothing_to_do" ]; then
-      sed -i "s/^#{Regexp.escape(ip)}[[:space:]].*$/$ip_already_bound api.#{node[:deployment][:domain]}/g" /etc/hosts
-    fi
-  fi
-else
-  echo "#{ip} was already bound to api.#{node[:deployment][:domain]} in /etc/hosts"
-fi
-EOH
-Chef::Log.error(code)
-    end
-  end
+  #node[:deployment][:etc_hosts][:api_dot_domain].each do |ip|
+    #bash "Bind #{ip} to api.#{node[:deployment][:domain]} in /etc/hosts" do
+    #user "root"
+    #code <<-EOH
+#cmd="grep -E '#{Regexp.escape(ip)}[[:space:]].*[[:space:]]api\.#{Regexp.escape(node[:deployment][:domain])}[^[:alnum:]]?' /etc/hosts"
+#binding_exists=`grep -E '#{Regexp.escape(ip)}[[:space:]].*[[:space:]]api\.#{Regexp.escape(node[:deployment][:domain])}[^[:alnum:]]?' /etc/hosts`
+#echo "A $? $cmd returned $binding_exists"
+#if [ -z "$binding_exists" ]; then
+  ##cmd="grep -E '#{Regexp.escape(ip)}[[:space:]].*' /etc/hosts | head -1"
+  #cmd="grep #{ip} /etc/hosts"
+  #ip_already_bound=`grep #{ip} /etc/hosts`
+  #echo "B $? $cmd returned $ip_already_bound"
+  #if [ -z "$ip_already_bound" ]; then
+    #echo "#{ip}    api.#{node[:deployment][:domain]}" >> /etc/hosts
+  #else
+    #cmd2="echo '$ip_already_bound' | grep api.#{node[:deployment][:domain]}"
+    #nothing_to_do=`echo "$ip_already_bound" | grep api.#{node[:deployment][:domain]}`
+    #echo "C $? $cmd2 returned $nothing_to_do"
+    #if [ -z "$nothing_to_do" ]; then
+      #sed -i "s/^#{Regexp.escape(ip)}[[:space:]].*$/$ip_already_bound api.#{node[:deployment][:domain]}/g" /etc/hosts
+    #fi
+  #fi
+#else
+  #echo "#{ip} was already bound to api.#{node[:deployment][:domain]} in /etc/hosts"
+#fi
+#EOH
+#Chef::Log.error(code)
+    #end
+  #end
 
-end
+#end
 
 file node[:deployment][:local_run_profile] do
   owner node[:deployment][:user]

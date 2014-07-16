@@ -58,7 +58,7 @@ case node['platform']
       code <<-EOH
               # Configure as daemon with a 4 minutes start delay
               sudo sed -i 's/set daemon[[:space:]]*120/set daemon  60/g' /etc/monit/monitrc
-              sudo sed -i 's/^#[[:space:]]*with start delay 240/     with start delay 240/g' /etc/monit/monitrc
+              sudo sed -i 's/^#[[:space:]]*with start delay 240/     with start delay 10/g' /etc/monit/monitrc
               #sudo sed -i 's/monit quit/sudo service monit stop/g' /etc/init/vcap_reconfig.conf
               #sudo sed -i 's/monit start/sudo service monit start/g' /etc/init/vcap_reconfig.conf
               #Make sure that at least the localhost can connect to monit.
@@ -157,31 +157,6 @@ case node['platform']
       end
     end
 
-  end
-
-  node[:monit][:vcap_components] ||= Hash.new
-  node[:monit][:vcap_daemons] ||= Hash.new
-  node[:monit][:others] ||= Hash.new
-  node[:monit][:depends_on] ||= Hash.new
-
-  #every vcap component requires nats_server if we are running it on this machine:
-  if node[:monit][:vcap_daemons].include?("nats_server")
-    node[:monit][:vcap_components].each do |name|
-      node[:monit][:depends_on][name] = [ "nats_server" ]
-    end
-  end
-
-  #the dea must not be started before the service nodes are ready
-  #true at least in a micro-setup:
-  if node[:monit][:vcap_components].include?("dea")
-    nodes_components = node[:monit][:vcap_components].select{
-      |name| name =~ /_node$/ || name =~ /^router$/ || name =~ /^cloud_controller$/
-    }
-    unless nodes_components.empty?
-      dea_deps = node[:monit][:depends_on]["dea"].nil? ?
-        nodes_components : ( node[:monit][:depends_on]["dea"] + nodes_components )
-      node[:monit][:depends_on]["dea"] = dea_deps
-    end
   end
 
   execute "vcap_monitrc" do

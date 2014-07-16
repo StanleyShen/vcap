@@ -19,58 +19,6 @@ if [ -z "$ip" ]; then
   exit 1
 fi
 
-# Make sure the binaries for this vcap runtime are ready:
-if [ -z "$CLOUD_FOUNDRY_CONFIG_PATH" ]; then
-#  echo "sourcing the cloudfoundry deployment local" | tee -a $_vcap_log
-  source $HOME/.cloudfoundry_deployment_local
-fi
-
-# reconfigure the urls eventually
-if [ "$2" == "dea" -a "$1" != "stop" ]; then
-  do_reconfig="true"
-elif [ -z "$2" ]; then
-  [ "$1" == "restart" ] && do_reconfig="true"
-  [ "$1" == "start" ] && do_reconfig="true"
-fi
-if [ "$do_reconfig" == "true" ]; then
-  [ -f /etc/init.d/nginx_router ] && nginx_path=/etc/init.d/nginx_router || nginx_path=/etc/init.d/nginx
-  if [ -f "$nginx_path" ]; then
-    sudo $nginx_path status
-    if [ "$?" != "0" ]; then
-      echo "Fixing nginx script and starting nginx"
-      sudo sed -i 's/[[:space:]]*echo -n "Starting/#this line prevents the startup at boot time on 12.04           echo -n "Starting/' $nginx_path
-       sudo sed -i 's/[[:space:]]*log_action_begin_msg "Starting/#this line prevents the startup at boot time on 12.04           log_action_begin_msg "Starting/' $nginx_path
-      sudo $nginx_path start
-    fi
-  fi
-  # plug your own apps here:
-  # call the registration app if there is such a thing it will take care of the dns gateway bind
-  if [ -f "/home/ubuntu/intalio/registration_app/start_register_app.rb" ]; then
-     cd /home/ubuntu/intalio/registration_app
-     [ -z "$RUBYOPT" ] && export RUBYOPT="rubygems"
-     ruby start_register_app.rb >> $_vcap_log 2>&1 # | tee -a $_vcap_log # can't redirect
-  fi
-
-  if [ -d "/etc/issue.d/volatile.d" ]; then
-		 # retouch the message files so their timestamp are not messed up by the timezone change on 1st boot
-		 touch /etc/issue.d/volatile.d/K00_vcap_welcome
-		 touch /etc/issue.d/volatile.d/K01_vcap_on_ip  
-     # Don't override the Please Register
-     please_register=`grep Please /etc/issue`
-     [ -z "$please_register" ] && echo "Application starting... This may take a few minutes." > /etc/issue.d/volatile.d/K50_applications_status
-  fi
-
-  # this is called before the apps are started and after the cloud_controller is started
-  # let's make sure that the applications are correctly configured with their url
-  cd /home/ubuntu
-  echo "calling vmc_knife to make sure the urls are up to date." | tee -a $_vcap_log
-  $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start cloud_controller | tee -a $_vcap_log
-  $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME start router | tee -a $_vcap_log
-	if [ -z "$VMC_KNIFE_DONT_RECONFIGURE" ]; then
-    vmc_knife configure-vcap-etc-hosts | tee -a $_vcap_log
-	fi
-fi
-
 #call vcap with the cmd-line args:
 $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME $@ | tee -a $_vcap_log
 

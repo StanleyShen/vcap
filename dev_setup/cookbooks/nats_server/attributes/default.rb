@@ -1,9 +1,10 @@
+default[:nats_server][:host] = "api.intalio.priv"
 default[:nats_server][:port] = "4222"
 default[:nats_server][:user] = "nats"
-default[:nats_server][:password] = "nats"
+default[:nats_server][:password] = "92AekyivMFRoTa"
 default[:nats_server][:logtime] = "true"
 default[:nats_server][:debug] = "false"
 default[:nats_server][:trace] = "false"
 default[:nats_server][:is_os_daemon] = true
-default[:nats_server][:version] = "0.4.24"
+default[:nats_server][:version] = "0.4.26"
 #default[:nats_server][:tracked_net_iface] = "eth0"
