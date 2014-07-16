@@ -34,8 +34,6 @@ bash "enable user limits" do
   not_if { ::File.read("/etc/pam.d/su").match(/^session    required   pam_limits\.so/) }
 end
 
-log "increase limits for the elasticsearch user"
-
 file "/etc/security/limits.d/10-elasticsearch.conf" do
   content <<-END.gsub(/^    /, '')
     #{node.elasticsearch.fetch(:user, node[:deployment][:user])}     -    nofile    #{node.elasticsearch[:limits][:nofile]}
