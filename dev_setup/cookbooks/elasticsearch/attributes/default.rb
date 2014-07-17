@@ -18,7 +18,7 @@ default.elasticsearch[:download_url]  = [node.elasticsearch[:host], node.elastic
 # === others
 default.elasticsearch[:exec_path] = File.join(node[:deployment][:home], "deploy", "elasticsearch", node.elasticsearch[:version])
 default.elasticsearch[:logs_dir]  = node[:deployment][:log_path]
-default.elasticsearch[:master_data_dir]  = '/home/ubuntu/intalio/elasticsearch_master_data'
+default.elasticsearch[:master_data_dir]  = '/home/ubuntu/intalio/elasticsearch'
 default.elasticsearch[:capacity] = 10
 default.elasticsearch[:max_memory] = 2048
 default.elasticsearch[:limits][:memlock] = 'unlimited'
