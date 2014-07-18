@@ -60,6 +60,8 @@ class LegacyServicesController < ApplicationController
     if req.options && req.options['plan_option']
       plan_option = req.options['plan_option']
     end
+
+    svc.timeout = 120
     ServiceConfig.provision(svc, user, req.name, req.tier, plan_option)
 
     render :json => {}
