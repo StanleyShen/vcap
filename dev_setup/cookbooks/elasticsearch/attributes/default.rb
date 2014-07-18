@@ -1,3 +1,4 @@
+require "uuidtools"
 include_attribute "deployment"
 
 # === GATEWAY
@@ -5,7 +6,7 @@ include_attribute "deployment"
 #
 default.elasticsearch[:gateway_index] = "0"
 default.elasticsearch[:token] = "0xdeadbeef"
-default.elasticsearch[:node_timeout] = 2
+default.elasticsearch[:node_timeout] = 60
 
 # === VERSION AND LOCATION
 #
@@ -26,10 +27,10 @@ default.elasticsearch[:limits][:nofile]  = '64000'
   
 # ==== INDEX 
 default.elasticsearch[:index][:number_of_shards] = 1
-  
+
 # === CLUSTER
 #
-default.elasticsearch[:cluster][:name] = `hostname`.strip
+default.elasticsearch[:cluster][:name] = UUIDTools::UUID.random_create.to_s
 
 # === LIMITS
 #
