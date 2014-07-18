@@ -11,7 +11,7 @@
     group <%= group %>
     start program = "<%= node[:monit][:vcap_exec] %> start <%= name %> "
          as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
-         with timeout 30 seconds
+         with timeout 20 seconds
     stop program = "<%= node[:monit][:vcap_exec] %> stop <%= name %> "
          as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
          with timeout 10 seconds

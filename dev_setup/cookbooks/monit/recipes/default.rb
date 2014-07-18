@@ -57,7 +57,7 @@ when "ubuntu"
     user "root"
     code <<-EOH
               # Configure as daemon with a 4 minutes start delay
-              sudo sed -i 's/set daemon[[:space:]]*120/set daemon  60/g' /etc/monit/monitrc
+              sudo sed -i 's/set daemon[[:space:]]*120/set daemon  40/g' /etc/monit/monitrc
               sudo sed -i 's/^#[[:space:]]*with start delay 240/     with start delay 10/g' /etc/monit/monitrc
               #sudo sed -i 's/monit quit/sudo service monit stop/g' /etc/init/vcap_reconfig.conf
               #sudo sed -i 's/monit start/sudo service monit start/g' /etc/init/vcap_reconfig.conf
