@@ -26,7 +26,7 @@ directory nats_config_dir do
   recursive true
   action :create
   notifies :run, "execute[start-nats]"
-  notifies :restart, "service[nats_server]"
+  #notifies :restart, "service[nats_server]"
 end
 
 template "nats_server.yml" do

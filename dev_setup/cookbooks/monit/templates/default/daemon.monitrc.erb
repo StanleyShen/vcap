@@ -1,0 +1,14 @@
+check process nginx_router with pidfile /var/run/nginx_router.pid
+  group controller
+  start program = "/etc/init.d/nginx_router start"
+  stop  program = "/etc/init.d/nginx_router stop"
+  if failed host 127.0.0.1 port 80 then restart
+  if 5 restarts within 5 cycles then timeout
+
+check process redis_server with pidfile /var/run/redis/redis-server.pid
+  group controller
+  start program = "/etc/init.d/redis-server start"
+  stop  program = "/etc/init.d/redis-server stop"
+  if failed host 127.0.0.1 port 6379 then restart
+  if 5 restarts within 5 cycles then timeout
+  

@@ -185,79 +185,48 @@ template node[:deployment][:vcap_exec] do
   mode 0755
 end
 
-#case node['platform']
-#when "ubuntu"
+case node['platform']
+when "ubuntu"
   #bash "invoke_hostname_unique" do
-		#code <<-EOH
+    #code <<-EOH
 #/etc/network/if-up.d/hostname_uniq
 #EOH
   #end
 
-	#bash "Create some symlinks and customize .bashrc" do
-    #user node[:deployment][:user] #does not work: CHEF-2288
-    #group node[:deployment][:group] #does not work: CHEF-2288
-    #environment ({'HOME' => "/home/#{node[:deployment][:user]}",
-                  #'USER' => "#{node[:deployment][:user]}"})
-      #code <<-EOH
-#cd #{node[:cloudfoundry][:home]}
-## few symbolic links (todo: too many assumptions on the layout of the deployment)
-#[ -h log ] && rm log
-#ln -s #{node[:deployment][:log_path]} log
-#[ -h config ] && rm config
-#ln -s #{node[:deployment][:config_path]} config
-#[ -h deployed_apps ] && rm deployed_apps
-#if [ ! -d /var/vcap.local/dea/apps ]; then
-  #mkdir -p /var/vcap.local/dea/apps
-  #chown #{node[:deployment][:user]}:#{node[:deployment][:group]} /var/vcap.local/dea/apps
-#fi
-#ln -s /var/vcap.local/dea/apps deployed_apps
+  bash "Create some symlinks and customize .bashrc" do
+    user node[:deployment][:user] #does not work: CHEF-2288
+    group node[:deployment][:group] #does not work: CHEF-2288
+    environment ({'HOME' => "/home/#{node[:deployment][:user]}",
+                  'USER' => "#{node[:deployment][:user]}"})
+      code <<-EOH
+cd #{node[:cloudfoundry][:home]}
+# few symbolic links (todo: too many assumptions on the layout of the deployment)
+[ -h log ] && rm log
+ln -s #{node[:deployment][:log_path]} log
+[ -h config ] && rm config
+ln -s #{node[:deployment][:config_path]} config
+[ -h deployed_apps ] && rm deployed_apps
+if [ ! -d /var/vcap.local/dea/apps ]; then
+  mkdir -p /var/vcap.local/dea/apps
+  chown #{node[:deployment][:user]}:#{node[:deployment][:group]} /var/vcap.local/dea/apps
+fi
+ln -s /var/vcap.local/dea/apps deployed_apps
 
-#cd /home/#{node[:deployment][:user]}
-## add the local_run_profile to the user's  home.
-#grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
-#[ -z "$grep_it" ] && echo "source #{node[:deployment][:local_run_profile]}" >> .bashrc
-#grep_it=`grep alias\\ #{node[:deployment][:vcap_exec_alias]}= .bashrc`
-#[ -z "$grep_it" ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc
-#grep_it=`grep alias\\ _psql= .bashrc`
-#[ -z "$grep_it" ] && echo "alias _pgsql='sudo -u postgres psql'" >> .bashrc
-#grep_it=`grep alias\\ _mongo= .bashrc`
-#[ -z "$grep_it" ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc
-#exit 0
-#EOH
-#Chef::Log.warn("Code to exec for customizing the deployment #{code}")
-  #end
-
-  #node[:deployment][:etc_hosts][:api_dot_domain].each do |ip|
-    #bash "Bind #{ip} to api.#{node[:deployment][:domain]} in /etc/hosts" do
-    #user "root"
-    #code <<-EOH
-#cmd="grep -E '#{Regexp.escape(ip)}[[:space:]].*[[:space:]]api\.#{Regexp.escape(node[:deployment][:domain])}[^[:alnum:]]?' /etc/hosts"
-#binding_exists=`grep -E '#{Regexp.escape(ip)}[[:space:]].*[[:space:]]api\.#{Regexp.escape(node[:deployment][:domain])}[^[:alnum:]]?' /etc/hosts`
-#echo "A $? $cmd returned $binding_exists"
-#if [ -z "$binding_exists" ]; then
-  ##cmd="grep -E '#{Regexp.escape(ip)}[[:space:]].*' /etc/hosts | head -1"
-  #cmd="grep #{ip} /etc/hosts"
-  #ip_already_bound=`grep #{ip} /etc/hosts`
-  #echo "B $? $cmd returned $ip_already_bound"
-  #if [ -z "$ip_already_bound" ]; then
-    #echo "#{ip}    api.#{node[:deployment][:domain]}" >> /etc/hosts
-  #else
-    #cmd2="echo '$ip_already_bound' | grep api.#{node[:deployment][:domain]}"
-    #nothing_to_do=`echo "$ip_already_bound" | grep api.#{node[:deployment][:domain]}`
-    #echo "C $? $cmd2 returned $nothing_to_do"
-    #if [ -z "$nothing_to_do" ]; then
-      #sed -i "s/^#{Regexp.escape(ip)}[[:space:]].*$/$ip_already_bound api.#{node[:deployment][:domain]}/g" /etc/hosts
-    #fi
-  #fi
-#else
-  #echo "#{ip} was already bound to api.#{node[:deployment][:domain]} in /etc/hosts"
-#fi
-#EOH
-#Chef::Log.error(code)
-    #end
-  #end
-
-#end
+cd /home/#{node[:deployment][:user]}
+# add the local_run_profile to the user's  home.
+grep_it=`grep #{node[:deployment][:local_run_profile]} .bashrc`
+[ -z "$grep_it" ] && echo "source #{node[:deployment][:local_run_profile]}" >> .bashrc
+grep_it=`grep alias\\ #{node[:deployment][:vcap_exec_alias]}= .bashrc`
+[ -z "$grep_it" ] && echo "alias #{node[:deployment][:vcap_exec_alias]}='#{node[:deployment][:vcap_exec]}'" >> .bashrc
+grep_it=`grep alias\\ _psql= .bashrc`
+[ -z "$grep_it" ] && echo "alias _pgsql='sudo -u postgres psql'" >> .bashrc
+grep_it=`grep alias\\ _mongo= .bashrc`
+[ -z "$grep_it" ] && echo "alias _mongo='#{node[:deployment][:home]}/deploy/mongodb/bin/mongo'" >> .bashrc
+exit 0
+EOH
+Chef::Log.warn("Code to exec for customizing the deployment #{code}")
+  end
+end
 
 file node[:deployment][:local_run_profile] do
   owner node[:deployment][:user]

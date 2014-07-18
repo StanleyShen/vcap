@@ -290,8 +290,8 @@ when "ubuntu"
     code <<-EOH
       intalio_host=`grep "intalio.local" /etc/hosts`
       if [ -z "$intalio_host" ]; then
-        sudo sed -i '$a #Do NOT remove!! This is needed for nginx config for port routing to resolve correctly' /etc/hosts
-        sudo sed -i '$a 127.0.0.1 intalio.local oauth.intalio.local admin.intalio.local cdn.intalio.local' /etc/hosts
+        sudo sed -i '$a #Do NOT remove! This is needed for nginx config for port routing to resolve correctly' /etc/hosts
+        sudo sed -i '$a 127.0.0.1 api.intalio.priv intalio.local oauth.intalio.local admin.intalio.local cdn.intalio.local' /etc/hosts
       fi
     EOH
   end

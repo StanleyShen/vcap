@@ -16,7 +16,6 @@ PATH
       nokogiri (>= 1.4.4)
       rake
       rspec
-      vcap_common (~> 1.0.3)
       yajl-ruby (>= 0.7.9)
 
 GEM
