@@ -1,4 +1,4 @@
-default[:postgresql_node][:host] = "api.intalio.priv"
+default[:postgresql_node][:host] = "127.0.0.1"
 default[:postgresql_node][:server_root_password] = "changeme"
 default[:postgresql_node][:server_root_user] = "root"
 default[:postgresql_node][:database] = "pg_service"
