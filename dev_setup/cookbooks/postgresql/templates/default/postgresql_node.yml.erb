@@ -12,6 +12,7 @@ max_db_size: <%= node[:postgresql_node][:max_db_size] %>
 max_long_query: <%= node[:postgresql_node][:max_long_query] %>
 max_long_tx: <%= node[:postgresql_node][:max_long_tx] %>
 max_db_conns: <%= node[:postgresql_node][:max_db_conns] %>
+db_hostname: <%= node[:postgresql_node][:db_hostname] %>
 postgresql:
   host: <%= node[:postgresql_node][:host] %>
   port: 5432

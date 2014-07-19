@@ -15,4 +15,4 @@ default[:mongodb_node][:mongod_conf][:noprealloc] = false
 default[:mongodb_node][:mongod_conf][:quota] = true
 default[:mongodb_node][:mongod_conf][:quotafiles] = 4
 default[:mongodb_node][:mongod_conf][:smallfiles] = true
-
+default[:mongodb_node][:db_hostname] = node[:deployment][:db_hostname]

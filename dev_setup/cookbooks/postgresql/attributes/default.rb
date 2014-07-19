@@ -15,6 +15,7 @@ default[:postgresql_node][:listen_addresses] = "*"
 default[:postgresql_node][:extensions_in_template1] = "ltree,uuid-ossp" #for example: "ltree,uuid-ossp"
 default[:postgresql_node][:local_acl] = "md5" #enable psql local connections for admin jobs
 default[:postgresql_node][:system_port] = 5432
+default[:postgresql_node][:db_hostname] = node[:deployment][:db_hostname]
 #default[:postgresql_node][:pg_hba_extra][:user] = "all"
 #default[:postgresql_node][:pg_hba_extra][:database] = "all"
 #default[:postgresql_node][:pg_hba_extra][:ip_and_mask] = "0.0.0.0/0"
