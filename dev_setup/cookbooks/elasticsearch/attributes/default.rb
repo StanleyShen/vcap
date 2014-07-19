@@ -24,6 +24,7 @@ default.elasticsearch[:capacity] = 10
 default.elasticsearch[:max_memory] = 2048
 default.elasticsearch[:limits][:memlock] = 'unlimited'
 default.elasticsearch[:limits][:nofile]  = '64000'
+default.elasticsearch[:db_hostname] = node[:deployment][:db_hostname]
   
 # ==== INDEX 
 default.elasticsearch[:index][:number_of_shards] = 1

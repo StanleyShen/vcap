@@ -13,6 +13,7 @@ max_memory: <%= node.elasticsearch[:max_memory] %>
 exec_path: <%= node.elasticsearch[:exec_path] %>
 logs_dir: <%= node.elasticsearch[:logs_dir] %>
 master_data_dir: <%= node.elasticsearch[:master_data_dir] %>
+db_hostname: <%= node.elasticsearch[:db_hostname] %>
 http_port_range:
   first: 45001
   last: 46000
