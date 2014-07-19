@@ -1,3 +1,4 @@
+include_attribute "deployment"
 default[:postgresql_node][:host] = "127.0.0.1"
 default[:postgresql_node][:server_root_password] = "changeme"
 default[:postgresql_node][:server_root_user] = "root"
