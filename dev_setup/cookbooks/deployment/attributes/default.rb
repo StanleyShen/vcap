@@ -22,3 +22,4 @@ default[:deployment][:tracked_inet] = "eth0" # name of the network interface use
 default[:deployment][:setup_cache] = File.join("", "var", "cache", "dev_setup") 
 
 default[:deployment][:vmc_knife_default_recipe] = File.join(node[:cloudfoundry][:home], 'intalio_recipe.json')
+default[:deployment][:db_hostname] = "db.intalio.priv"
