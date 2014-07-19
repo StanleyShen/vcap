@@ -163,12 +163,12 @@ template "etc_issue.conf" do
   mode 0644
 end
 
-#template "vcap_shutdown.conf" do
-  #path File.join("", "etc", "init", "vcap_shutdown.conf")
-  #source "vcap_shutdown.conf.erb"
-  #owner "root"
-  #mode 0644
-#end
+template "vcap_shutdown.conf" do
+  path File.join("", "etc", "init", "vcap_shutdown.conf")
+  source "vcap_shutdown.conf.erb"
+  owner "root"
+  mode 0644
+end
 
 template "etc_issue_update" do
   path File.join("", "etc", "issue_update")
