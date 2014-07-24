@@ -25,6 +25,29 @@ if [ -z "$CLOUD_FOUNDRY_CONFIG_PATH" ]; then
   source $HOME/.cloudfoundry_deployment_local
 fi
 
+# reconfigure the urls eventually
+if [ "$2" == "cloud_controller" -a "$1" == "start" ]; then
+  do_reconfig="true"
+fi
+
+if [ "$do_reconfig" == "true" ]; then
+  # call the registration app if there is such a thing it will take care of the dns gateway bind
+  if [ -f "/home/ubuntu/intalio/registration_app/start_register_app.rb" ]; then
+     cd /home/ubuntu/intalio/registration_app
+     [ -z "$RUBYOPT" ] && export RUBYOPT="rubygems"
+     ruby start_register_app.rb >> $_vcap_log 2>&1 # | tee -a $_vcap_log # can't redirect
+  fi
+
+  if [ -d "/etc/issue.d/volatile.d" ]; then
+		 # retouch the message files so their timestamp are not messed up by the timezone change on 1st boot
+		 sudo touch /etc/issue.d/volatile.d/K00_vcap_welcome
+		 sudo touch /etc/issue.d/volatile.d/K01_vcap_on_ip  
+     # Don't override the Please Register
+     please_register=`grep Please /etc/issue`
+     [ -z "$please_register" ] && echo "Application starting... This may take a few minutes." > /etc/issue.d/volatile.d/K50_applications_status
+  fi
+fi
+
 #call vcap with the cmd-line args:
 $CLOUD_FOUNDRY_VCAP_PATH/dev_setup/bin/vcap_dev --name $CLOUD_FOUNDRY_DEPLOYMENT_NAME --dir $CLOUD_FOUNDRY_HOME $@ | tee -a $_vcap_log
 
