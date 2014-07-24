@@ -151,7 +151,7 @@ done
 
 set +e
 vmc_knife data-apply-privileges pg_intalio
-[ -e "/var/lib/postgresql/9.0" ] && pg_version="9.0" || pg_version="9.1"
+pg_version="9.3"
 echo "Size of the postgresql DB files:"
 sudo du -ch /var/lib/postgresql/$pg_version | grep total
 echo "Shrink postgresql files ? (default yes)"
@@ -326,7 +326,7 @@ cat $configdir/*.yml | grep level
 # turn off vmc
 sed -i 's/allow_registration: true/allow_registration: false/g' $configdir/cloud_controller.yml
 
-postgres_conf=/etc/postgresql/9.1/main/postgresql.conf
+postgres_conf=/etc/postgresql/9.3/main/postgresql.conf
 
 echo "We need update postgresql for below changes"
 echo "1. update shared_buffers to 64MB"
