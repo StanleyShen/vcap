@@ -5,7 +5,7 @@ index: <%= node.elasticsearch[:gateway_index] %>
 base_dir: /var/vcap/services/elasticsearch/instances
 node_id: <%= "elasticsearch_node_#{node.elasticsearch[:gateway_index]}" %>
 migration_nfs: /mnt/migration
-supported_versions: [1.1.1, 1.1.2, 1.2.0, 1.2.1, 1.2.2]
+supported_versions: [1.3.0]
 version: <%= node.elasticsearch[:version] %>
 capacity: <%= node.elasticsearch[:capacity] %>
 pid: /var/vcap/sys/run/elasticsearch_node.pid
