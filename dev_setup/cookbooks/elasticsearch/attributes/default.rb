@@ -10,7 +10,7 @@ default.elasticsearch[:node_timeout] = 60
 
 # === VERSION AND LOCATION
 #
-default.elasticsearch[:version]       = "1.1.1"
+default.elasticsearch[:version]       = "1.3.0"
 default.elasticsearch[:host]          = "http://download.elasticsearch.org"
 default.elasticsearch[:repository]    = "elasticsearch/elasticsearch"
 default.elasticsearch[:filename]      = "elasticsearch-#{node.elasticsearch[:version]}.tar.gz"
@@ -21,7 +21,7 @@ default.elasticsearch[:exec_path] = File.join(node[:deployment][:home], "deploy"
 default.elasticsearch[:logs_dir]  = node[:deployment][:log_path]
 default.elasticsearch[:master_data_dir]  = '/home/ubuntu/intalio/elasticsearch'
 default.elasticsearch[:capacity] = 10
-default.elasticsearch[:max_memory] = 512
+default.elasticsearch[:max_memory] = 256
 default.elasticsearch[:limits][:memlock] = 'unlimited'
 default.elasticsearch[:limits][:nofile]  = '64000'
 default.elasticsearch[:db_hostname] = node[:deployment][:db_hostname]
