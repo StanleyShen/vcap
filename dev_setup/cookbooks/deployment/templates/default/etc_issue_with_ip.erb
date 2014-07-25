@@ -32,7 +32,7 @@ if [ -d /etc/issue.d/volatile.d ]; then
   # retouch the message files so their timestamp are not messed up by the timezone change on 1st boot
   touch /etc/issue.d/volatile.d/K00_vcap_welcome
   touch /etc/issue.d/volatile.d/K01_vcap_on_ip
-  if [ ! -f /etc/issue.d/volatile.d/K50_applications_status && -n "$ip" ]; then
+  if [ ! -f /etc/issue.d/volatile.d/K50_applications_status ] && [ -n "$ip" ]; then
     echo "Starting Virtual Machine" > /etc/issue.d/volatile.d/K50_applications_status
     chmod o+rw /etc/issue.d/volatile.d/K50_applications_status
   fi
