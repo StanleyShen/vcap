@@ -10,7 +10,7 @@ default.elasticsearch[:node_timeout] = 60
 
 # === VERSION AND LOCATION
 #
-default.elasticsearch[:version]       = "1.1.1"
+default.elasticsearch[:version]       = "1.3.0"
 default.elasticsearch[:host]          = "http://download.elasticsearch.org"
 default.elasticsearch[:repository]    = "elasticsearch/elasticsearch"
 default.elasticsearch[:filename]      = "elasticsearch-#{node.elasticsearch[:version]}.tar.gz"
