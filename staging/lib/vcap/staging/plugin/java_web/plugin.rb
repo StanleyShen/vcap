@@ -63,7 +63,12 @@ SCRIPT
   def startup_script
     vars = environment_hash
     vars['JETTY_PID'] = "$DROPLET_BASE_DIR/jetty.pid"
-    vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT -Dlogback.appender=FILE_CF -Xmx#{application_memory}m $JAVA_OPTS"
+    #vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT -Dlogback.appender=FILE_CF -Xmx#{application_memory}m $JAVA_OPTS"
+    
+    #in order to be able to chagne the memory without re-stage, better not set the memory during the staging
+    #should always use the one configured in the recipe.json
+    vars['JETTY_ARGS'] = "jetty.port=$VCAP_APP_PORT -Dlogback.appender=FILE_CF $JAVA_OPTS"
+    
     vars['APP_DIR'] = "$DROPLET_BASE_DIR/app/"
     vars['LOG_DIR'] = "$DROPLET_BASE_DIR/logs/"
 
