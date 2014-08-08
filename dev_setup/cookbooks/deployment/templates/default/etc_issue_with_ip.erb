@@ -35,6 +35,7 @@ if [ -d /etc/issue.d/volatile.d ]; then
   touch /etc/issue.d/volatile.d/K01_vcap_on_ip
   if [ ! -f /etc/issue.d/volatile.d/K50_applications_status ] && [ -n "$ip" ]; then
     echo "Starting Virtual Machine" > /etc/issue.d/volatile.d/K50_applications_status
+    chown ubuntu:ubuntu /etc/issue.d/volatile.d/K50_applications_status
     chmod o+rw /etc/issue.d/volatile.d/K50_applications_status
   fi
   
