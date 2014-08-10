@@ -1,0 +1,3 @@
+port: 58080
+logging:
+  level: debug

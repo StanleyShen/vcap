@@ -1,0 +1,13 @@
+source 'https://rubygems.org'
+
+gem "eventmachine", '~> 1.0.3'
+gem "vmc_knife", '~> 0.0.68'
+gem "logging"
+
+gem 'vcap_logging', :require => ['vcap/logging']
+
+group :test do
+  gem "rake"
+  gem "rspec"
+  gem "ci_reporter"
+end
