@@ -251,6 +251,9 @@ dpkg -l 'linux-*' | sed '/^ii/!d;/'"$(uname -r | sed "s/\(.*\)-\([^0-9]\+\)/\1/"
 #to make upgrading, we need these packages, to make it easy, we just installing them again
 sudo apt-get install g++ make ruby1.8-dev libxslt-dev libxml2-dev libpq-dev
 
+# install newer HWE
+sudo apt-get install
+
 sudo apt-get autoremove -y --force-yes
 sudo apt-get clean
 sudo apt-get autoclean
