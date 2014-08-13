@@ -1,18 +1,18 @@
 require 'rubygems'
-require 'logging'
+require 'json/pure'
 require 'eventmachine'
 require 'vcap/logging'
 
-require "create_admin/backup_job"
-require "create_admin/dns_update_job"
-require "create_admin/upgrade_job"
-
+require "common/pid_file"
+require "jobs/backup_job"
+require "jobs/dns_update_job"
+require "jobs/upgrade_job"
 
 module CreateAdmin
   JOBS = {
-    'upgrade' => 'CreateAdmin::UpgradeJob',
-    'backup' => 'CreateAdmin::BackupJob',
-    'dns_update' => 'CreateAdmin::DNSUpdateJob'
+    'upgrade' => 'Jobs::UpgradeJob',
+    'backup' => 'Jobs::BackupJob',
+    'dns_update' => 'Jobs::DNSUpdateJob'
   }
   class Agent
   end  
@@ -25,6 +25,14 @@ class ::CreateAdmin::Agent
   def initialize(options)
     @options = options || {}
 
+    begin
+      pid_file = PidFile.new(@options['pid'])
+      pid_file.unlink_at_exit
+    rescue => e
+      puts "ERROR: Can't create create_admin pid file #{@options['pid']}"
+      exit 1
+    end
+      
     VCAP::Logging.setup_from_config(options['logging'])
     @logger = VCAP::Logging.logger('create_admin')
 
@@ -44,6 +52,11 @@ end
 
 class ::CreateAdmin::ConnectionHandler
   attr_accessor :options
+  attr_reader :closed
+  
+  def initialize
+    @closed = false
+  end
 
   def receive_data(command)
     logger = @options[:logger]
@@ -52,16 +65,30 @@ class ::CreateAdmin::ConnectionHandler
     logger.info("Command is  >>>  #{command}")
 
     job = parse(command)
+    if job.nil?
+      logger.error("Can't find the job with command: #{command}")
+      close("Can't find the job with command: #{command}")
+      return
+    end
+
     job.logger = logger
+    job.requester = self
     
-    job.run(self)
+    job.run()
+  rescue => e
+    logger.error("Failed to execute command #{command}")
+    logger.error(e)
+    close("Failed to execute command #{command}, message: #{e.message}")
   end
 
   def message(status)
     send_data(status)
   end
   
-  def close(message)
+  def close(message)    
+    return if @closed
+    @closed = true
+
     EM.next_tick do
       send_data(message)
       close_connection_after_writing
@@ -74,10 +101,22 @@ class ::CreateAdmin::ConnectionHandler
 
     job_type, paras = command.split(':', 2)
     job = CreateAdmin::JOBS[job_type]
-    logger.error("Can't find the job: #{job}") if job.nil?
+    return if job.nil?
 
-    klass = job.split('::').inject(Object) {|o,c| o.const_get c}          
-    klass.new(paras)
+    klass = job.split('::').inject(Object) {|o,c| o.const_get c}
+    parsed_paras = if paras.nil? || paras.empty?
+      nil
+    else
+      begin
+        JSON.parse(paras)
+      rescue
+        nil
+      end
+    end
+
+    logger.info("the parsed parameters is .... #{parsed_paras}")
+
+    klass.new(parsed_paras)
   end
 
 end
