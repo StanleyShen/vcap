@@ -22,14 +22,8 @@ class ::Jobs::DNSUpdateJob
   
   def run()
     debug 'Performing hostname update'
-    
-    debug 'manifest_path is ...#{@manifest_path}'
-    debug 'org_hostname is ... #{@org_hostname}'
-    debug 'auth_header is ...  #{@auth_headers}'
-    debug 'hostname      is ...#{@hostname}'
-    
-    total = 5
 
+    total = 5
     if (@org_hostname.nil? || @org_hostname.empty?)
       failed 'No original hostname provided'
       return

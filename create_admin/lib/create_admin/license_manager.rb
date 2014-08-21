@@ -30,10 +30,6 @@ module CreateAdmin
       
       vm_id = dns_prefix.slice(0, (dns_prefix.length-1))
       
-      puts "vm_id is ...... #{vm_id}"
-      puts "token is ...... #{vm_token}"
-      puts "password is ...... #{password}"
-      
       { :gateway_url => dns_gateway_url, :vm_id => vm_id, :token => vm_token, :password => password[1], :vm_hostname => vm_hostname }
     end
 
@@ -50,7 +46,6 @@ module CreateAdmin
     end
 
     def attach_license(url, username, access_token, license)
-
       puts "Importing license to #{url}"
       header = get_access_header(username, access_token)
       #puts "Using header #{header}"
@@ -58,7 +53,6 @@ module CreateAdmin
       header['Content-Type'] = 'application/octet-stream'
       res = target.to_uri(:timeout => 30).post(license,  header)
 
-      puts "License attached. Status: #{res.code}"
       raise "Failed to attach license #{res.code}" unless res.ok?
     end
 
@@ -66,7 +60,6 @@ module CreateAdmin
       res = query(dns_gateway_url, 'get_vm_license_status', vm_id_or_prefix, token, password)
       return res.body if res.ok?
 
-      puts "Failed to get license #{res.body}"
       raise "Unable to get license. Response code #{res.code}"
     end
 

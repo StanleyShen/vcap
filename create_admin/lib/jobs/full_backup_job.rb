@@ -86,15 +86,12 @@ class ::Jobs::FullBackupJob
       File.rename(archive, "#{@backup_home}/#{ts_filename}")
 
       call_extensible_backup(client, archive)
-#      CF.reset_backup_schedule_failure() if @file_suffix != ''
 
-#      completed(t.backup_panel.msg.backup_completed)
       completed
     rescue => e
       error "Got exception #{e.message}"
       error e.backtrace
       debug "Rolling back if applicable"
-#      CF.flag_backup_schedule_failure() if @file_suffix != ''
       rollback(archive)
       failed( {'message' => "Backup failed: #{e.message}",
                'backup' => 'failed', 'exception' => e.backtrace })

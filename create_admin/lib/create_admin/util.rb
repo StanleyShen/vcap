@@ -41,18 +41,12 @@ module CreateAdmin
   end
   
   def self.get_download_url(def_url)
-    puts "get_download_url .... def_url i s..... #{def_url}"
     begin
       conn = ::DataService::PostgresSvc.get_postgres_db()
-      puts "get_download_url .... conn i s..... #{conn}"
       result = conn.exec("select io_repository_url from io_system_setting where io_active='t';")
-      
-      puts "get_download_url .... result i s..... #{result}"
-      
       url = result.getvalue(0, 0)
       return url.nil? ? def_url : "#{url}/create-distrib.tar.gz"
     rescue Exception => e
-      puts "exception is ... #{e}"
       warn e
       #debug e.backtrace
       warn "Using default download url"
@@ -126,12 +120,6 @@ module CreateAdmin
     app_info[:env] = parsed_env
     app_info
   end
-  
-#  def get_app(client,name)
-#    app = client.app_info(name)
-#    raise "No application called #{name} is deployed." if app.nil?
-#    app
-#  end
   
   def self.get_local_ipv4
     ip = Socket.ip_address_list.detect{ |intf|
@@ -228,7 +216,6 @@ module CreateAdmin
   end
   
   def self.check_and_update_backup_settings()
-    Log.debug "check_and_update_backup_settings......" 
     svc = BackupDataService.new()
     setting = svc.get_backup_setting()
 

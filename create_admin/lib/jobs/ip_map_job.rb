@@ -43,7 +43,6 @@ class ::Jobs::IPMapJob
       
   rescue => e
     error "Got exception #{e.message}"
-    #rollback(manifest_raw)
     failed( {'message' => "IP mapping update failed: #{e.message}",
              'ip_map' => 'failed', 'exception' => e.backtrace })
   end

@@ -79,7 +79,6 @@ class ScheduledBackup
     manifest = load_manifest(@manifest_path)
     client = vmc_client_from_manifest(manifest, true)
 
-    debug "Got vmc client"
     client_json = client_to_json(client)
     debug "Vmc client #{client_json}"
     job_params = { 'client_json' => client_json, 'suffix' => identifier }

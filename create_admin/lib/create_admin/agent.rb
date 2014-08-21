@@ -37,7 +37,7 @@ class ::CreateAdmin::Agent
       pid_file = PidFile.new(@options['pid'])
       pid_file.unlink_at_exit
     rescue => e
-      puts "ERROR: Can't create create_admin pid file #{@options['pid']}"
+      error "ERROR: Can't create create_admin pid file #{@options['pid']}"
       exit 1
     end
       
@@ -116,9 +116,6 @@ class ::CreateAdmin::ConnectionHandler
       rescue
         nil
       end
-    end
-
-    info("the parsed parameters is .... #{parsed_paras}")
 
     klass.new(parsed_paras)
   end

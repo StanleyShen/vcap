@@ -37,6 +37,4 @@ config.update(cfg_overrides)
 
 config['config_file'] = File.expand_path(config['config_file'])
 
-puts "ENV is .... #{ENV.inspect}"
-
 agent = ::CreateAdmin::Agent.new(config)
