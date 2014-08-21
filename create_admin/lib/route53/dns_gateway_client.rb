@@ -159,9 +159,11 @@ module DnsProvider
       #Note the following debug statement is true if we make all kinds of assumptions.
       #Good enough for now.
       puts "Calling the dns_gateway #{@dns_gateway_url} to bind #{@local_ip} to #{@dns_prefix}#{@sub_domain}, #{@dns_prefix}oauth.#{@sub_domain}, #{@dns_prefix}admin.#{@sub_domain} using public IP #{@use_public_ip}"
+
       #the dns_prefix and local_ip won't be used for now.
       gateway_url = URI.parse(@dns_gateway_url)
       puts "Using SSL #{gateway_url.scheme == 'https'} on port #{gateway_url.port}"
+      
       response = Net::HTTP.start(gateway_url.host, gateway_url.port, :use_ssl => gateway_url.scheme == 'https') do |http|
         #query_string = URI.escape(query_string, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))
         local_ip = escape_param(@local_ip.to_s)
@@ -171,8 +173,10 @@ module DnsProvider
         encrypted = escape_param(@encrypted.to_s)
         use_public_ip = escape_param(@use_public_ip.to_s)
         query_string = "ip=#{local_ip}&dns_prefix=#{dns_prefix}&vm_token=#{vm_token}&vm_password=#{vm_password}&encrypted=#{encrypted}&public_ip=#{use_public_ip}"
-        #puts "Query string #{query_string}"
+
+        puts "request ip map url: #{gateway_url.path}?#{query_string}"
         req = Net::HTTP::Get.new("#{gateway_url.path}?#{query_string}")
+
         # route 53 operation is expected to be public
         req.basic_auth gateway_url.user, gateway_url.password if gateway_url.user
 

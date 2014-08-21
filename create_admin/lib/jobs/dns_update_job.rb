@@ -16,12 +16,18 @@ class ::Jobs::DNSUpdateJob
   def initialize(options)
     @manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']
     @org_hostname = options['org_hostname']
-    @auth_header = options['oauth_access_headers']
+    @auth_headers = options['oauth_access_headers']
     @hostname = options['hostname']
   end
   
   def run()
     debug 'Performing hostname update'
+    
+    debug 'manifest_path is ...#{@manifest_path}'
+    debug 'org_hostname is ... #{@org_hostname}'
+    debug 'auth_header is ...  #{@auth_headers}'
+    debug 'hostname      is ...#{@hostname}'
+    
     total = 5
 
     if (@org_hostname.nil? || @org_hostname.empty?)
@@ -29,7 +35,7 @@ class ::Jobs::DNSUpdateJob
       return
     end
     
-    if (@oauth_access_headers.nil? || @oauth_access_headers.empty?)
+    if (@auth_headers.nil? || @auth_headers.empty?)
       failed 'No access token provided'
       return
     end 
@@ -72,10 +78,10 @@ class ::Jobs::DNSUpdateJob
     DnsProvider.update_etc_issue("This installation of Intalio|Create is bound to #{@hostname}.")
  
     completed
-    rescue => e
-      error "Got exception #{e.message}"
-      failed( {'message' => "Update hostname failed: #{e.message}",
-               'dns_update' => 'failed', 'exception' => e.backtrace })
+  rescue => e
+    error "Got exception #{e.message}"
+    failed( {'message' => "Update hostname failed: #{e.message}",
+             'dns_update' => 'failed', 'exception' => e.backtrace })
   end
   
   private
@@ -85,7 +91,7 @@ class ::Jobs::DNSUpdateJob
     system_setting_data = { :io_instance_url => "http://#{@hostname}" }
     debug "Updating hostname from #{@org_hostname} to #{@hostname}"
     system_settings.each { |uuid|
-      res = "https://#{@org_hostname}/io_system_setting/#{uuid}".to_uri(:timeout => 5, :verify_mode => OpenSSL::SSL::VERIFY_NONE ).put('', @oauth_access_headers, system_setting_data)
+      res = "https://#{@org_hostname}/io_system_setting/#{uuid}".to_uri(:timeout => 30, :verify_mode => OpenSSL::SSL::VERIFY_NONE ).put('', @auth_headers, system_setting_data)
       raise "Unable to update system setting" unless res.ok?
     }
   end

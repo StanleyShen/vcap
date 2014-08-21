@@ -1,18 +1,25 @@
 require 'rubygems'
 require 'json/pure'
 require 'eventmachine'
-require 'vcap/logging'
 
+require "create_admin/log"
 require "common/pid_file"
-require "jobs/backup_job"
-require "jobs/dns_update_job"
-require "jobs/upgrade_job"
+
+Dir[File.dirname(__FILE__) + '/../jobs/*.rb'].each do |file| 
+  require file
+end
 
 module CreateAdmin
   JOBS = {
     'upgrade' => 'Jobs::UpgradeJob',
     'backup' => 'Jobs::BackupJob',
-    'dns_update' => 'Jobs::DNSUpdateJob'
+    'dns_update' => 'Jobs::DNSUpdateJob',
+    'update_license' => 'Jobs::UpdateLicenseJob',
+    'ip_map' => 'Jobs::IPMapJob',
+    'full_backup' => 'Jobs::FullBackupJob',
+    'restore' => 'Jobs::RestoreJob',
+    'full_restore' => 'Jobs::FullRestoreJob',
+    'status' => 'Jobs::StatusJob'
   }
   class Agent
   end  
@@ -21,7 +28,8 @@ module CreateAdmin
 end
 
 class ::CreateAdmin::Agent
-
+  include ::CreateAdmin::Log
+  
   def initialize(options)
     @options = options || {}
 
@@ -34,9 +42,7 @@ class ::CreateAdmin::Agent
     end
       
     VCAP::Logging.setup_from_config(options['logging'])
-    @logger = VCAP::Logging.logger('create_admin')
 
-    @options[:logger] = @logger
     start_server()
   end
 
@@ -51,6 +57,8 @@ class ::CreateAdmin::Agent
 end
 
 class ::CreateAdmin::ConnectionHandler
+  include ::CreateAdmin::Log
+
   attr_accessor :options
   attr_reader :closed
   
@@ -59,25 +67,23 @@ class ::CreateAdmin::ConnectionHandler
   end
 
   def receive_data(command)
-    logger = @options[:logger]
     command.strip!
 
-    logger.info("Command is  >>>  #{command}")
+    info("Command is  >>>  #{command}")
 
     job = parse(command)
     if job.nil?
-      logger.error("Can't find the job with command: #{command}")
+      error("Can't find the job with command: #{command}")
       close("Can't find the job with command: #{command}")
       return
     end
 
-    job.logger = logger
     job.requester = self
     
     job.run()
   rescue => e
-    logger.error("Failed to execute command #{command}")
-    logger.error(e)
+    error("Failed to execute command #{command}")
+    error(e)
     close("Failed to execute command #{command}, message: #{e.message}")
   end
 
@@ -97,8 +103,6 @@ class ::CreateAdmin::ConnectionHandler
   
   private
   def parse(command)
-    logger = @options[:logger]
-
     job_type, paras = command.split(':', 2)
     job = CreateAdmin::JOBS[job_type]
     return if job.nil?
@@ -114,7 +118,7 @@ class ::CreateAdmin::ConnectionHandler
       end
     end
 
-    logger.info("the parsed parameters is .... #{parsed_paras}")
+    info("the parsed parameters is .... #{parsed_paras}")
 
     klass.new(parsed_paras)
   end

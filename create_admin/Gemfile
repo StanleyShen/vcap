@@ -3,6 +3,9 @@ source 'https://rubygems.org'
 gem "eventmachine", '~> 1.0.3'
 gem "vmc_knife", '~> 0.0.68'
 gem "wrest", '~> 1.5.0'
+gem "clockwork", '~> 0.7.7'
+gem "sys-filesystem", '~> 1.1.2'
+gem 'pg', '~> 0.17.1'
 gem "logging"
 
 gem 'vcap_logging', :require => ['vcap/logging']

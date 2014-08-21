@@ -21,34 +21,32 @@ class ::Jobs::BackupJob
   end
 
   def run()
-    begin
-      total = 3
-      at(0, total, "Preparing to backup")
+    total = 3
+    at(0, total, "Preparing to backup")
 
-      filename = Time.now.strftime("%a-%d-%b-%Y-%H%M")+"#{@file_suffix}.tar.gz"
-      manifest = load_manifest(@manifest_path)
+    filename = Time.now.strftime("%a-%d-%b-%Y-%H%M")+"#{@file_suffix}.tar.gz"
+    manifest = load_manifest(@manifest_path)
 
-      FileUtils.mkpath(@backup_home) unless File.directory?(@backup_home)      
-      @full_path_to_backup = File.join('', @backup_home, filename)
+    FileUtils.mkpath(@backup_home) unless File.directory?(@backup_home)      
+    @full_path_to_backup = File.join('', @backup_home, filename)
 
-      client = vmc_client_from_manifest(manifest)
-      configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /pg_intalio/, {:file_names=> @full_path_to_backup, :app_name=>'intalio', :data_only=>true})
+    client = vmc_client_from_manifest(manifest)
+    configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /pg_intalio/, {:file_names=> @full_path_to_backup, :app_name=>'intalio', :data_only=>true})
 
-      at(1, total, "Backup started")
-      configurer.export()
-      
-      at(2, total, "Backup created")
+    at(1, total, "Backup started")
+    configurer.export()
+    
+    at(2, total, "Backup created")
 
-      completed("Backup completed!")
-    rescue => e
-      log_error "Got exception #{e.message}"
-      log_error e.backtrace
-      log_debug "Rolling back if applicable"
-      rollback(@full_path_to_backup) unless @full_path_to_backup.nil?
+    completed("Backup completed!")
+  rescue => e
+    error "Got exception #{e.message}"
+    error e.backtrace
+    debug "Rolling back if applicable"
+    rollback(@full_path_to_backup) unless @full_path_to_backup.nil?
 
-      failed( {'message' => "Backup failed: #{e.message}",
-               'backup' => 'failed', 'exception' => e.backtrace })
-    end
+    failed( {'message' => "Backup failed: #{e.message}",
+             'backup' => 'failed', 'exception' => e.backtrace })
   end
   
   def rollback(full_path_to_backup)
