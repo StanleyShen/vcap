@@ -15,13 +15,12 @@ module Jobs
   end
 end
 class ::Jobs::FullRestoreJob
-  include VMC::KNIFE::Cli
 
   def initialize(options)
     @backup = options['backup']
     raise "No backup provided" if (@backup.nil? || @backup.empty?)
 
-    @manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']
+    @manifest_path = options['manifest']
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
     @tmp_dir = "#{@backup_home}/tmp"
     @current_tmp_dir = "#{@backup_home}/current"
@@ -33,7 +32,7 @@ class ::Jobs::FullRestoreJob
       at(0, 1, "Preparing to restore")
       remove_vmc_knife_data_dir()
 
-      manifest = load_manifest(@manifest_path)
+      manifest = @admin_instance.manifest(false, @manifest_path)
 
       unless File.directory?(@current_tmp_dir)
         FileUtils.mkpath(@current_tmp_dir)
@@ -44,7 +43,7 @@ class ::Jobs::FullRestoreJob
         @num = 0
         total = (data_services.size * 2)+1
         backup_ext = '.tar.gz'
-        client = vmc_client_from_manifest(manifest)
+        client = @admin_instance.vmc_client(false, @manifest_path)
 
         data_services.each { | name, attributes |
           dir = attributes['director']

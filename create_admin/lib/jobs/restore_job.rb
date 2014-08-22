@@ -15,13 +15,12 @@ module Jobs
 end
 
 class ::Jobs::RestoreJob
-  include VMC::KNIFE::Cli
 
   def initialize(options)
     @backup = options['backup']
     raise "No backup provided" if (@backup.nil? || @backup.empty?)
 
-    @manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']
+    @manifest_path = options['manifest']
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
   end
   
@@ -30,10 +29,10 @@ class ::Jobs::RestoreJob
       total = 2
 
       at(0, total, "Preparing to restore")
-      manifest = load_manifest(@manifest_path)
-      filename = "#{@backup_home}/#{@backup}"
-      client = vmc_client_from_manifest(manifest)
+      manifest = @admin_instance.manifest(false, @manifest_path)
+      client = @admin_instance.vmc_client(false, @manifest_path)
 
+      filename = "#{@backup_home}/#{@backup}"
       debug "restoring backup up with #{filename}"
       configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /pg_intalio/, {:file_names=>filename, :app_name=>'intalio', :data_only=>true})
 

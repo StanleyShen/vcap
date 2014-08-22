@@ -15,7 +15,6 @@ module Jobs
 end
 
 class ::Jobs::UpgradeJob
-  include VMC::KNIFE::Cli
   include HttpProxy
 
   def initialize(options)
@@ -28,10 +27,11 @@ class ::Jobs::UpgradeJob
       "#{options['app_name']}.tar.gz"
     end
 
-    manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']
-    manifest = load_manifest(@manifest_path)
-    @client = vmc_client_from_manifest(manifest, true)
-    @admin_env = CreateAdmin.app_info(manifest, 'admin')[:env]
+    manifest_path = options['manifest']
+    manifest = @admin_instance.manifest(false, manifest_path)
+
+    @client = @admin_instance.vmc_client(false, manifest_path)
+    @admin_env = CreateAdmin.app_info('admin', true, manifest_path)[:env]
 
     @data_archive_name = options['data_archive_name'] || 'data_external.zip'
     @is_dev = options['is_dev'] || false
@@ -105,7 +105,6 @@ class ::Jobs::UpgradeJob
   end
 
   def doUnzip()
-
     ENV['INTALIO_BOOT_DATA'] = "#{ENV['HOME']}/test" if @is_dev
     bootstrap_home = ENV['INTALIO_BOOT_DATA'] || '/home/ubuntu/intalio/boot_data'
 

@@ -28,7 +28,6 @@ class ::Jobs::UpdateLicenseJob
     at(0, total, "Preparing to update license")
 
     creds = get_license_credentials(@manifest_path)
-    info "creds is ..... #{creds}"
 
     license = get_new_license(creds[:gateway_url], creds[:vm_id], creds[:token], creds[:password])
     at(1, total, "Got updated license")

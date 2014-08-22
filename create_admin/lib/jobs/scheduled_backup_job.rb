@@ -11,7 +11,6 @@ require 'dataservice/postgres_ds'
 class ScheduledBackup
   include DataService::PostgresSvc
   include ::CreateAdmin::Log
-  include VMC::KNIFE::Cli
 
   @@id_mapping = { 's' => 'io_backup_lifespan'}
 

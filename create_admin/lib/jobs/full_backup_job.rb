@@ -18,14 +18,12 @@ module Jobs
 end
 
 class ::Jobs::FullBackupJob
-  include VMC::KNIFE::Cli
 
   def initialize(options)
     options = options || {}
 
-    @manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']    
+    @manifest_path = options['manifest']
     @auth_headers= options['oauth_access_headers']
-
     @backup_ext = options['backup_ext'] || '.zip'
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
     @tmp_dir = "#{@backup_home}/tmp"
@@ -39,19 +37,19 @@ class ::Jobs::FullBackupJob
 
   def run
     begin
+      manifest = @admin_instance.manifest(false, @manifest_path)
+      client = @admin_instance.vmc_client(false, @manifest_path)
+
       at(0, 1, "Preparing to backup")
-      filename = "backup#{@backup_ext}"
-      manifest = load_manifest(@manifest_path)
+      filename = "backup#{@backup_ext}"      
 
       backup_ext = '.tar.gz'
-
       FileUtils.mkpath(@tmp_dir) unless File.directory?(@tmp_dir)
 
       data_services = manifest['recipes'][0]['data_services']
       total = (data_services.size * 2) + 1
       @num = 0
       backups = {}
-      client = vmc_client_from_manifest(manifest)
 
       data_services.each { | name, attributes |
         dir = attributes['director']

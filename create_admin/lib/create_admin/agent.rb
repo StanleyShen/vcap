@@ -3,6 +3,7 @@ require 'json/pure'
 require 'eventmachine'
 
 require "create_admin/log"
+require "create_admin/admin_instance"
 require "common/pid_file"
 
 Dir[File.dirname(__FILE__) + '/../jobs/*.rb'].each do |file| 
@@ -21,8 +22,14 @@ module CreateAdmin
     'full_restore' => 'Jobs::FullRestoreJob',
     'status' => 'Jobs::StatusJob'
   }
+  
+  def self.instance
+    ::CreateAdmin::Log.info("go to get the instance right now.....")
+    ::CreateAdmin::AdminInstance.instance
+  end
+
   class Agent
-  end  
+  end
   class ConnectionHandler < EM::Connection
   end
 end
@@ -31,7 +38,7 @@ class ::CreateAdmin::Agent
   include ::CreateAdmin::Log
   
   def initialize(options)
-    @options = options || {}
+    @options = options
 
     begin
       pid_file = PidFile.new(@options['pid'])
@@ -40,8 +47,6 @@ class ::CreateAdmin::Agent
       error "ERROR: Can't create create_admin pid file #{@options['pid']}"
       exit 1
     end
-      
-    VCAP::Logging.setup_from_config(options['logging'])
 
     start_server()
   end
@@ -73,13 +78,13 @@ class ::CreateAdmin::ConnectionHandler
 
     job = parse(command)
     if job.nil?
-      error("Can't find the job with command: #{command}")
-      close("Can't find the job with command: #{command}")
+      error("Failed to parse the command: #{command}")
+      close("Failed to parse the command: #{command}")
       return
     end
 
     job.requester = self
-    
+    job.admin_instance = CreateAdmin.instance
     job.run()
   rescue => e
     error("Failed to execute command #{command}")
@@ -116,6 +121,7 @@ class ::CreateAdmin::ConnectionHandler
       rescue
         nil
       end
+    end
 
     klass.new(parsed_paras)
   end

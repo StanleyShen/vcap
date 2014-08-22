@@ -10,7 +10,6 @@ module Jobs
 end
 
 class ::Jobs::DNSUpdateJob
-  include VMC::KNIFE::Cli
   include Wrest
 
   def initialize(options)
@@ -44,7 +43,7 @@ class ::Jobs::DNSUpdateJob
     update_system_setting()    
     sleep(1)
     
-    @manifest = update_manifest()
+    update_manifest()
     sleep(1)
 
     msg = "Configuring hostname"
@@ -103,12 +102,16 @@ class ::Jobs::DNSUpdateJob
     end
     debug "Updated manifest sub_domain to #{@hostname}"
     File.open(@manifest_path, 'w') {|f| f.write(JSON.pretty_generate(manifest_json)) }
-    load_manifest(@manifest_path)
+    
+    # refresh the manifest of the instance
+    @admin_instance.manifest(true, @manifest_path)
   end
   
   def configure_app()
-    client = vmc_client_from_manifest(@manifest)
-    configurer = VMC::KNIFE::RecipesConfigurationApplier.new(@manifest, client)
+    manifest = @admin_instance.manifest(false, @manifest_path)
+    client = @admin_instance.vmc_client(false, @manifest_path)
+
+    configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client)
     configurer.execute
   end
   
@@ -123,18 +126,19 @@ class ::Jobs::DNSUpdateJob
       debug "Configuring /etc/hosts with uri: #{uris}"
       update_hosts.execute()
     else
-      log_warn "Skipping /etc/hosts update"
+      warn "Skipping /etc/hosts update"
     end
   end
 
   # Likely to be deprecated
   def configure_etc_avahi_aliases()
     if File.exist?('/etc/avahi/aliases')
-      update_aliases = VMC::KNIFE::VCAPUpdateAvahiAliases.new(nil, @manifest)
+      manifest = @admin_instance.manifest(false, @manifest_path)
+      update_aliases = VMC::KNIFE::VCAPUpdateAvahiAliases.new(nil, manifest)
       update_aliases.do_exec = true
       update_aliases.execute
     else
-      log_warn "Skipping avahi configuration"
+      warn "Skipping avahi configuration"
     end
   end
 
@@ -151,19 +155,22 @@ class ::Jobs::DNSUpdateJob
   end
   
   def restart
-    client = vmc_client_from_manifest(@manifest)
-    configurer = VMC::KNIFE::RecipesConfigurationApplier.new(@manifest, client)
+    manifest = @admin_instance.manifest(false, @manifest_path)
+    client = @admin_instance.vmc_client(false, @manifest_path)
+
+    configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client)
     method_object = configurer.method(:restart)
     method_object.call
   end
 
-  def manifest_uris()    
-    return [] unless @manifest
+  def manifest_uris()
+    manifest = @admin_instance.manifest(false, @manifest_path)
+    return [] unless manifest
 
     uris = []
-    uris << @manifest['target']
+    uris << manifest['target']
 
-    @manifest['recipes'].each do |recipe|
+    manifest['recipes'].each do |recipe|
       recipe['applications'].each do | key, app |
         app['uris'].each do | uri |
           uris << uri

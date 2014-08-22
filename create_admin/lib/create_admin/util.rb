@@ -8,37 +8,6 @@ require "create_admin/log"
 module CreateAdmin
   include ::DataService::PostgresSvc
   include ::CreateAdmin::Log
-
-  @@vmc_client = nil
-  @@backup_threads = nil
-  @@current_setting = nil
-  @@backup_schedule_start_time = nil
-  @@backup_schedule_failure = 0
-  @@is_new_backup_schedule = false
-  
-  def self.backup_schedule_start_time
-    @@backup_schedule_start_time
-  end
-
-  def self.get_backup_schedule_failure
-    @@backup_schedule_failure
-  end
-
-  def self.flag_backup_schedule_failure
-    @@backup_schedule_failure+=1
-  end
-
-  def self.reset_backup_schedule_failure
-    @@backup_schedule_failure=0
-  end
-  
-  def self.backup_schedule_started
-    @@is_new_backup_schedule = false
-  end
-  
-  def self.is_new_backup_schedule
-    @@is_new_backup_schedule
-  end
   
   def self.get_download_url(def_url)
     begin
@@ -55,7 +24,7 @@ module CreateAdmin
       conn.close() unless conn.nil?
     end
   end
-  
+
   # Index the urls
   # @param app_urls The list of app_urls either as an array either a string with commas.
   def self.index_urls(app_urls)
@@ -104,22 +73,6 @@ module CreateAdmin
     end
     return scheme ? "#{scheme}://#{url_with_best_score}" : url_with_best_score
   end
-
-  def self.app_info(manifest, app, parse_env = true)
-    client = vmc_client_from_manifest(manifest)
-    app_info = client.app_info(app)
-    return if app_info.nil?
-
-    return app_info unless parse_env
-    app_env = app_info[:env]
-    parsed_env = {}
-    app_env.each do |e|
-      k,v = e.split('=', 2)
-      parsed_env[k] = v
-    end
-    app_info[:env] = parsed_env
-    app_info
-  end
   
   def self.get_local_ipv4
     ip = Socket.ip_address_list.detect{ |intf|
@@ -156,73 +109,5 @@ module CreateAdmin
       suffix = @@filesize_conv[mult]
       return "%.2f %s" % [ size / (mult / 1024), suffix ]
     }
-  end
-  
-  class BackupDataService
-    include ::DataService::PostgresSvc
-    include ::CreateAdmin::Log
-    
-    def get_backup_setting()
-      begin
-        conn = get_postgres_db()
-        pgresult = conn.exec("select extract(epoch from io_backup_period), io_backup_period, io_backup_storage_space_quantity[1] from io_system_setting where io_active='t';")
-        result_to_setting(pgresult)
-      rescue Exception => e
-        warn e
-        debug e.backtrace
-        return nil
-      ensure
-        conn.close unless conn.nil?
-      end
-  
-    end
-  
-    def result_to_setting(pgresult)
-      period = pgresult.getvalue(0, 0).to_i || 0
-      label = pgresult.getvalue(0, 1)
-      storage = pgresult.getvalue(0, 2).to_i * (1024*1024) || -1
-      BackupSetting.new(period, label, storage)
-    end
-  end
-  
-  def self.vmc_client_from_manifest(manifest, renew = false)
-    target = manifest['target']
-    user = manifest['email']
-    password = manifest['password']
-
-    vmc_client(target, user, password, renew)
-  end
-  
-  def self.vmc_client(target, user, password, renew = false)
-    begin
-      Log.debug "Getting vmc client"
-      @@vmc_client = login_vmc_client(target, user, password) if @@vmc_client.nil? || renew
-      @@vmc_client
-    rescue => e
-      Log.error "Unable to login #{e.message}"
-      Log.error e.backtrace
-      nil
-    end
-  end
-  
-  def self.login_vmc_client(target, user, password)
-    target = target || 'api.intalio.priv'
-    user = user || 'system@intalio.com'
-    password = password || 'gold'
-
-    client = VMC::Client.new(target)
-    client.login(user, password)
-    client
-  end
-  
-  def self.check_and_update_backup_settings()
-    svc = BackupDataService.new()
-    setting = svc.get_backup_setting()
-
-    changed = @@current_setting.nil? || @@current_setting.period != setting.period
-
-    Log.debug "Backup setting changed => #{changed} with settings #{setting}" if changed
-    self.create_new_backup_schedules(setting) if changed
-    setting
   end
 end

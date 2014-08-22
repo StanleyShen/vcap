@@ -3,12 +3,16 @@ require 'vcap/logging'
 
 module CreateAdmin
   module Log
-    @@logger = VCAP::Logging.logger('create_admin')
-
+    @@logger = nil
     levels = [:fatal, :error, :info, :warn, :debug]
+
     levels.each { | level |
       define_method(level) do | msg |
-        @@logger.send(level, msg)
+        if @@logger
+          @@logger.send(level, msg)
+        else
+          puts msg
+        end
       end
     }
     
@@ -16,10 +20,13 @@ module CreateAdmin
       levels = [:fatal, :error, :info, :warn, :debug]
       levels.each { | level |
         define_method(level) do | msg |
-          @@logger.send(level, msg)
+          if @@logger
+            @@logger.send(level, msg)
+          else
+            puts msg
+          end
         end
-      }    
-      
+      }
     end
     
     # Change the default logger

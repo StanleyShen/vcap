@@ -19,20 +19,23 @@ class ::Jobs::StatusJob
 
   def initialize(options)
     options = options || {}
-    manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']
-    @manifest = load_manifest(@manifest_path)
 
-    @admin_env = CreateAdmin.app_info(@manifest, 'admin')[:env]
+    @manifest_path = options['manifest']
+
+    @admin_instance = CreateAdmin.instance
+    @manifest = @admin_instance.manifest(false, @manifest_path)
+    @client = @admin_instance.vmc_client(false, @manifest_path)
+
+    @admin_env = @admin_instance.app_info('admin', true, @manifest_path)[:env]
     @version_file = options['INTALIO_VERSION_FILE'] || @admin_env['INTALIO_VERSION_FILE'] 
     @apps_in_recipe = ['intalio']
     @app_name_intalio = 'intalio'
     @app_status = {}
   end
-  
+
   def run    
     begin
-      @vmc_client = vmc_client_from_manifest(@manifest, false)
-      client_info = @vmc_client.info
+      client_info = @client.info
     rescue VMC::Client::TargetError => e
       return { "error" => "cloudfoundry is down", "message" => e.message, "exception" => e }.to_json
     end
@@ -51,20 +54,19 @@ class ::Jobs::StatusJob
     end
 
     status[:vmc_info] = { :description => client_info[:description],
-                          :target => @vmc_client.target,
+                          :target => @client.target,
                           :support => client_info[:support],
                           :usage => { :memory => "#{mem} of #{tmem}",
                                       :services => "#{ser} of #{tser}",
                                       :apps => "#{apps} of #{tapps}",} }
-    puts "status is ...... #{status}"
     cli_client = VMC::Cli::Command::AppsExt.new
-    cli_client.client = @vmc_client
+    cli_client.client = @client
 
     status[:free_disk_space] = get_free_disk_space()
 
     status[:app_stats] = apps_stats = {}
     @apps_in_recipe.each do |appname|
-      apps_stats[appname.to_sym] = get_app_health(@vmc_client, cli_client, appname)
+      apps_stats[appname.to_sym] = get_app_health(@client, cli_client, appname)
     end
 
     def_download_url = @admin_env['DEFAULT_DOWNLOAD_URL']
@@ -148,9 +150,8 @@ class ::Jobs::StatusJob
   
     begin
       cli_client = VMC::Cli::Command::AppsExt.new
-      cli_client.client = @vmc_client
-      version_file = @admin_env['INTALIO_VERSION_FILE']
-      manifest = cli_client.__files(@app_name_intalio, version_file)
+      cli_client.client = @client
+      manifest = cli_client.__files(@app_name_intalio, @version_file)
       debug "App manifest #{manifest}"
   
       version = 0
@@ -201,7 +202,7 @@ class ::Jobs::StatusJob
     end
   
     # get the uri of the intalio application
-    app_stats = @vmc_client.app_stats(@app_name_intalio)
+    app_stats = @client.app_stats(@app_name_intalio)
   
     #debug "App stats #{app_stats}"
     license = @app_status['license'] || ''
@@ -396,7 +397,7 @@ class ::Jobs::StatusJob
   
   def get_app_health(client, cli_client, name)
     begin
-      app = CreateAdmin.app_info(@manifest, name)
+      app = @admin_instance.app_info(name, true, @manifest_path)
       return { :status => "not-deployed"} if app.nil?
 
       health = cli_client.__health(app)

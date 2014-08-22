@@ -14,11 +14,12 @@ class ::Jobs::IPMapJob
     @ip = options['ip']
     raise "No ip provided" if (@ip.nil? || @ip.empty?)
 
-    @manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']
+    @manifest_path = options['manifest']
   end
   
   def run
     total = 2
+    @manifest_path = @manifest_path || ENV['VMC_KNIFE_DEFAULT_RECIPE']
 
     at(0, total, "Preparing to update IP mapping")
     contents = File.open(@manifest_path, 'r') { |f| f.read }
@@ -36,6 +37,9 @@ class ::Jobs::IPMapJob
     
     if successful_bind['success']
       completed('message' => 'IP Address Updated!')
+
+      # refresh the manifest
+      manifest = @admin_instance.manifest(true, @manifest_path)
     else
       rollback(manifest_raw)
       failed('ip_map' => 'failed', 'message' => successful_bind['message'])
