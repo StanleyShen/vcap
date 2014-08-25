@@ -24,7 +24,6 @@ module CreateAdmin
   }
   
   def self.instance
-    ::CreateAdmin::Log.info("go to get the instance right now.....")
     ::CreateAdmin::AdminInstance.instance
   end
 

@@ -79,6 +79,26 @@ class ::Jobs::FullBackupJob
         }
         zipfile.add(encryption_key_name, encryption_key_path) if File.exists?(encryption_key_path)
       end
+      
+      # backup for cdn
+      intalio_dir = '/home/ubuntu/intalio/'
+      cdn_dir = 'cdn'
+
+      if File.directory?(File.join(intalio_dir, cdn_dir))
+        cdn_zip_path = File.join(Dir.tmpdir, "cdn-#{Time.now.strftime("%d-%b-%Y-%H%M%s")}.zip")
+    
+        # create zip file for all cdn files
+        Zip::ZipFile.open(cdn_zip_path,  Zip::ZipFile::CREATE) do |zipfile|
+          Dir[File.join(intalio_dir, 'cdn', '**', '**')].each do |file|
+            zipfile.add(file.sub(intalio_dir, ''), file)
+          end
+        end
+    
+        Zip::ZipFile.open(archive, 'w') do |zipfile|
+          zipfile.add("cdn.zip", cdn_zip_path)
+        end
+        FileUtils.rm(cdn_zip_path)
+      end
 
       ts_filename = File.stat(archive).mtime.strftime("%a-%d-%b-%Y-%H%M")+"#{@file_suffix}#{@backup_ext}"
       File.rename(archive, "#{@backup_home}/#{ts_filename}")

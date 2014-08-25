@@ -70,13 +70,34 @@ class ::Jobs::FullRestoreJob
         backup_ext = '.tar.gz'
         backups = {}
         encryption_key_name = 'io_encryption_key'
-        encryption_key_path = "/home/ubuntu/cloudfoundry/#{encryption_key_name}"          
+        encryption_key_path = "/home/ubuntu/cloudfoundry/#{encryption_key_name}"
+
+        intalio_dir = '/home/ubuntu/intalio/'
+        cdn_dir = 'cdn'
+        cdn_backup_dir = 'cdn.old'
         Zip::ZipFile.open(archive) do |zipfile|
           zipfile.each { |f|
             fname = f.name
             fullpath = "#{@tmp_dir}/#{fname}"
             zipfile.extract("#{fname}", fullpath)
-            if(fname.end_with?(backup_ext))
+
+            if (fname.start_with?('cdn.'))
+              # backup original cdn files
+              cdn_full_path = File.join(intalio_dir, cdn_dir)
+              cdn_backup_path = File.join(intalio_dir, cdn_backup_dir)
+              if File.directory?(cdn_full_path)
+                FileUtils.rm_rf(cdn_backup_path)
+                FileUtils.mv(cdn_full_path, cdn_backup_path)
+              end
+
+              Zip::ZipFile.open(fullpath) { |cdn_z_file|
+                 cdn_z_file.each{|extrat_f|
+                    t_path = File.join(intalio_dir, extrat_f.name)
+                    FileUtils.mkdir_p(File.dirname(t_path))
+                    cdn_z_file.extract(extrat_f, t_path) unless File.exist?(t_path)
+                 }
+              }
+            elsif(fname.end_with?(backup_ext))
               name = fname.gsub(backup_ext, '')
               backups[name] = fullpath
             elsif(fname == encryption_key_name)
