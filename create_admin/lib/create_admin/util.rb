@@ -9,20 +9,18 @@ module CreateAdmin
   include ::DataService::PostgresSvc
   include ::CreateAdmin::Log
   
+  def self.normalize_file_path(path)
+    # absolute path
+    return path if (path.start_with?(File::SEPARATOR))
+    File.join(ENV['HOME'], path)
+  end
+  
   def self.get_download_url(def_url)
-    begin
-      conn = ::DataService::PostgresSvc.get_postgres_db()
-      result = conn.exec("select io_repository_url from io_system_setting where io_active='t';")
-      url = result.getvalue(0, 0)
-      return url.nil? ? def_url : "#{url}/create-distrib.tar.gz"
-    rescue Exception => e
-      warn e
-      #debug e.backtrace
-      warn "Using default download url"
-      return def_url
-    ensure
-      conn.close() unless conn.nil?
-    end
+    sql = "select io_repository_url from io_system_setting where io_active='t';"
+    query(sql) {|res|
+      val = result.getvalue(0, 0)
+      val.nil? ? def_url : "#{val}/create-distrib.tar.gz"
+    }    
   end
 
   # Index the urls

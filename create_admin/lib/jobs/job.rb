@@ -23,11 +23,7 @@ class Jobs::Job
   def run()
     raise 'Subclass needs to implement this run method.'
   end
-
-  def vmc_client_from_manifest(manifest, renew = false)
-    CreateAdmin.vmc_client_from_manifest(manifest, renew)
-  end
-
+    
   def at(num, total, *messages)
     send_status({:status => JOB_STATES[:working], :num => num, :total => total}, false, *messages)
   end
@@ -40,14 +36,22 @@ class Jobs::Job
     send_status({:status => JOB_STATES[:failed]}, true, *messages)
   end
   
-  def message(message, end_request = false)
+  def send_json(data, end_request = false)
     if end_request
-      @requester.close(message.to_json)
+      @requester.close(data.to_json)
     else
-      @requester.message(message.to_json)
+      @requester.message(data.to_json)
     end
   end
-
+  
+  def send_data(data, end_request = false)
+    if end_request
+      @requester.close(data)
+    else
+      @requester.message(data)
+    end
+  end
+  
   private
   def send_status(status, end_request, message = nil)
     if message
