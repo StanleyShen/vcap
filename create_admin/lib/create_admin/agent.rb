@@ -21,8 +21,6 @@ module CreateAdmin
     'restore' => 'Jobs::RestoreJob',
     'full_restore' => 'Jobs::FullRestoreJob',
     'status' => 'Jobs::StatusJob',
-    'user_profile' => 'Jobs::UserProfile',
-    'translations' => 'Jobs::Translations',
     'download' => 'Jobs::DownloadFile',
     'upload' => 'Jobs::UploadFile'
   }
