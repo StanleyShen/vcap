@@ -84,7 +84,7 @@ class ::Jobs::StatusJob
 
     # TODO:......
     status[:admin_version] = 10#ADMIN_VERSION
-    send_json(status, true)
+    send_data(status, true)
   end
   
   private

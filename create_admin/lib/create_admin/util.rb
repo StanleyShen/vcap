@@ -15,6 +15,42 @@ module CreateAdmin
     File.join(ENV['HOME'], path)
   end
   
+  def self.file_metadata(file_path)
+    name = File.basename(file_path)
+    size = File.size(file_path)
+    last_modified = File.mtime(file_path).to_i
+    {'name' => name, 'size' => size, 'last_modified' => last_modified}
+  end
+
+  def self.get_file(options, name_required = false)
+    type = options['type']
+    path = options['path']
+    name = options['name']
+
+    if (path.nil?)
+      raise 'type must be specified.' if type.nil?
+      raise 'name must be specified.' if name_required && name.nil?
+      case type
+        when 'backup'
+          path = if name
+            File.join("#{ENV['HOME']}/cloudfoundry/backup", name)
+          else
+            "#{ENV['HOME']}/cloudfoundry/backup"
+          end
+        when 'cdn'
+          path = if name
+            File.join("#{ENV['HOME']}/intalio/cdn/resources", name)
+          else
+            "#{ENV['HOME']}/intalio/cdn/resources"
+          end
+      end
+      path = normalize_file_path(path)
+    else
+      path = normalize_file_path(path)
+    end
+    path
+  end
+  
   def self.get_download_url(def_url)
     sql = "select io_repository_url from io_system_setting where io_active='t';"
     query(sql) {|res|

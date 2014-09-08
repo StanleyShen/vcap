@@ -57,23 +57,7 @@ class ::Jobs::UploadFile
     @size = meta['size']
     raise 'Must provide size property for uploading.' if @size.nil?
 
-    type = meta['type']
-    path = meta['path']
-    name = meta['name']
-
-    if (path.nil?)
-      raise 'name and type must specified.' if name.nil? && type.nil?
-      case type
-      when 'backup'
-        path = File.join("#{ENV['HOME']}/cloudfoundry/backup", name)
-      when 'cdn'
-        path = File.join("#{ENV['HOME']}/intalio/cdn/resources", name)
-      end
-    else
-      path = CreateAdmin.normalize_file_path(path)
-    end
-
+    @output_path = CreateAdmin.get_file(meta, true)
     @tmp_file = Tempfile.new('create_admin_file_upload')
-    @output_path = path
   end
 end

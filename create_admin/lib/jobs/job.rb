@@ -36,14 +36,6 @@ class Jobs::Job
     send_status({:status => JOB_STATES[:failed]}, true, *messages)
   end
   
-  def send_json(data, end_request = false)
-    if end_request
-      @requester.close(data.to_json)
-    else
-      @requester.message(data.to_json)
-    end
-  end
-  
   def send_data(data, end_request = false)
     if end_request
       @requester.close(data)
@@ -51,7 +43,7 @@ class Jobs::Job
       @requester.message(data)
     end
   end
-  
+
   private
   def send_status(status, end_request, message = nil)
     if message
@@ -65,10 +57,6 @@ class Jobs::Job
       end
     end
 
-    if end_request
-      @requester.close(status.to_json)
-    else
-      @requester.message(status.to_json)
-    end
+    send_data(status, end_request)
   end
 end

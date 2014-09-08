@@ -5,6 +5,7 @@ require 'eventmachine'
 require "create_admin/log"
 require "create_admin/admin_instance"
 require "common/pid_file"
+require 'em/protocols/object_protocol'
 
 Dir[File.dirname(__FILE__) + '/../jobs/*.rb'].each do |file| 
   require file
@@ -22,7 +23,9 @@ module CreateAdmin
     'full_restore' => 'Jobs::FullRestoreJob',
     'status' => 'Jobs::StatusJob',
     'download' => 'Jobs::DownloadFile',
-    'upload' => 'Jobs::UploadFile'
+    'upload' => 'Jobs::UploadFile',
+    'list_files' => 'Jobs::ListFilesJob',
+    'delete_file' => 'Jobs::DeleteFileJob'
   }
   class ::CreateAdmin::ConnetionClosedFlag
     def bytesize
@@ -84,34 +87,40 @@ end
 
 class ::CreateAdmin::ConnectionHandler
   include ::CreateAdmin::Log
+  include ::EventMachine::Protocols::ObjectProtocol
 
   attr_accessor :options
   attr_reader :closed
+
+  # max length for the command string(it must be enough)
+  MAX_COMMAND_SIZE = 16 * 1024
   
   def initialize
     @closed = false
+    @marshal = true
   end
 
+  # if the command starts with underscore, the command string won't be deserializer, it is for debug purpose
+  # for example: _delete_file:{"path": "/path/of/file"}
   def receive_data(data)
     if @job.nil?
-      # the first received data must be command     
-      parsed_vals = parse(data)      
-      @job = find_job(parsed_vals[0], parsed_vals[1])
-      more_data = parsed_vals[2]
-
-      @debug_str = "#{parsed_vals[0]}:#{parsed_vals[1]}"
-      if @job.nil?
-        error("Failed to parse the command: #{@debug_str}")
-        close("Failed to parse the command: #{@debug_str}")
-        return
-      end
-      info("Command is  >>>  #{@debug_str}")
-      @job.requester = self
-      @job.admin_instance = CreateAdmin.instance
-      @job.run()
+      @marshal = false if (data.start_with?('_'))
       
-      # should process the more data? 
-      @job.process_non_cmd_data(more_data) if more_data && !more_data.empty? && @job.respond_to?(:process_non_cmd_data)
+      if @marshal
+        (@buf ||= '') << data
+        while @buf.size >= 4
+          size = @buf.unpack('N').first
+          if @buf.size >= (4 + size)
+            @buf.slice!(0,4)
+            parse_command(serializer.load(@buf.slice!(0,size)), @buf)
+          else
+            break
+          end
+        end
+      else
+        command = data[1..-1]
+        parse_command(command, nil)
+      end
     elsif @job.respond_to?(:process_non_cmd_data)
       @job.process_non_cmd_data(data)
     end
@@ -123,7 +132,6 @@ class ::CreateAdmin::ConnectionHandler
 
   def unbind
     EM::next_tick {
-      close_connection()
       begin
         @job.process_non_cmd_data(::CreateAdmin::CONNECTION_EOF) if @job.respond_to?(:process_non_cmd_data)
       rescue => e
@@ -133,27 +141,44 @@ class ::CreateAdmin::ConnectionHandler
     }        
   end
 
-  def message(status)
-    send_data(status)
+  def message(data)
+    if @marshal
+      send_object(data)
+    else
+      send_data(data)
+    end
   end
 
-  def close(message = nil)
+  def close(data = nil)
     return if @closed
     @closed = true
 
     EM.next_tick do
-      send_data(message) if message
+      message(data) if data
       close_connection_after_writing
     end
   end
 
   private
-  # it is possible some more data is after the command string
-  # the dataformat is like:  command_name:{..json string as command paramter..}\r\n more data....
-  def parse(command)
-    datas = command.split("\r\n", 2)
-    job_type, paras = datas[0].split(':', 2)
-    [job_type, paras, datas[1]]
+  def parse_command(command, more_data)
+    job_type, paras = command.split(':', 2)
+
+    @debug_str = "#{job_type}:#{paras}"     
+    @job = find_job(job_type, paras)
+
+    if @job.nil?
+      error("Failed to parse the command: #{@debug_str}")
+      close("Failed to parse the command: #{@debug_str}")
+      return
+    end
+    info("Command is  >>>  #{@debug_str}")
+
+    @job.requester = self
+    @job.admin_instance = CreateAdmin.instance
+    @job.run()
+    
+    # should process the more data? 
+    @job.process_non_cmd_data(more_data) if more_data && !more_data.empty? && @job.respond_to?(:process_non_cmd_data)
   end
   
   def find_job(job_type, paras)
