@@ -108,18 +108,18 @@ class ::CreateAdmin::ConnectionHandler
       
       if @marshal
         (@buf ||= '') << data
-        while @buf.size >= 4
+        while (@buf.size >= 4 && @job.nil?)
           size = @buf.unpack('N').first
           if @buf.size >= (4 + size)
             @buf.slice!(0,4)
-            parse_command(serializer.load(@buf.slice!(0,size)), @buf)
-          else
-            break
+            @job = parse_command(serializer.load(@buf.slice!(0,size)), @buf)
+            @buf = nil
           end
+          break
         end
       else
         command = data[1..-1]
-        parse_command(command, nil)
+        @job = parse_unserialize_command(command)
       end
     elsif @job.respond_to?(:process_non_cmd_data)
       @job.process_non_cmd_data(data)
@@ -142,6 +142,7 @@ class ::CreateAdmin::ConnectionHandler
   end
 
   def message(data)
+    puts "[send data] data is .... #{data}"
     if @marshal
       send_object(data)
     else
@@ -160,25 +161,29 @@ class ::CreateAdmin::ConnectionHandler
   end
 
   private
+  
+  def self.parse_unserialize_command(command)
+    vals = command.split("\r\n", 2)
+    parse_command(vals[0], vals[1])
+  end
+
   def parse_command(command, more_data)
     job_type, paras = command.split(':', 2)
 
     @debug_str = "#{job_type}:#{paras}"     
-    @job = find_job(job_type, paras)
+    job = find_job(job_type, paras)
 
-    if @job.nil?
-      error("Failed to parse the command: #{@debug_str}")
-      close("Failed to parse the command: #{@debug_str}")
-      return
-    end
+    raise "Failed to parse the command: #{@debug_str}" if job.nil?
+
     info("Command is  >>>  #{@debug_str}")
 
-    @job.requester = self
-    @job.admin_instance = CreateAdmin.instance
-    @job.run()
+    job.requester = self
+    job.admin_instance = CreateAdmin.instance
+    job.run()
     
     # should process the more data? 
-    @job.process_non_cmd_data(more_data) if more_data && !more_data.empty? && @job.respond_to?(:process_non_cmd_data)
+    job.process_non_cmd_data(more_data) if more_data && !more_data.empty? && job.respond_to?(:process_non_cmd_data)
+    job
   end
   
   def find_job(job_type, paras)

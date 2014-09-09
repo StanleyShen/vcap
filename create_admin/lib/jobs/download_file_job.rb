@@ -21,6 +21,7 @@ class ::Jobs::DownloadFile
     streamer = EventMachine::FileStreamer.new(@requester, @path)
     streamer.callback{
       # file was sent successfully
+      error "[DownloadFile] file is sent successfully."
       @requester.close
     }
   end
