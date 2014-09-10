@@ -17,11 +17,6 @@ class ::CreateAdmin::AdminInstance
 
   attr_accessor :backup_threads, :current_setting, :backup_schedule_start_time, :backup_schedule_failure, :is_new_backup_schedule
 
-  def initialize
-    @backup_schedule_failure = 0
-    @is_new_backup_schedule = false
-  end
-
   def app_info(app, parse_env = true, manifest_path = nil)
     client = vmc_client(false, manifest_path)
     app_info = client.app_info(app)
@@ -93,6 +88,11 @@ class ::CreateAdmin::AdminInstance
   end
   
   private
+
+  def initialize
+    @backup_schedule_failure = 0
+    @is_new_backup_schedule = false
+  end
   
   def refresh_manifest(manifest_path = nil)
     @vmc_client = nil
