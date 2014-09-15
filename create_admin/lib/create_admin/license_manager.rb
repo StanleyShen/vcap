@@ -1,6 +1,7 @@
 require 'rubygems'
 require "wrest"
 
+require 'create_admin/admin_instance'
 require 'patch/connection_factory_proxy_patch'
 
 module CreateAdmin
@@ -9,17 +10,17 @@ module CreateAdmin
     include Wrest
 
     def get_license_credentials(manifest_path)
-      contents = File.open(manifest_path, 'r') { |f| f.read }
-      manifest_raw = JSON.parse(contents)
+      admin_instace = CreateAdmin::AdminInstance.instance
+      manifest = admin_instace.manifest(true, manifest_path)
 
-      dns_provider_section = manifest_raw['dns_provider']
+      dns_provider_section = manifest['dns_provider']
       dns_gateway_url = dns_provider_section['dns_gateway_url']
 
       vm_token = dns_provider_section['vm_token']
       password = dns_provider_section['vm_password']
       dns_prefix = dns_provider_section['dns_prefix']
 
-      sub_domain = manifest_raw['sub_domain']
+      sub_domain = manifest['sub_domain']
 
       if dns_prefix.nil? or dns_prefix == ''
         dns_prefix = dns_provider_section['vm_id'] || ''
@@ -86,5 +87,4 @@ module CreateAdmin
     end
 
   end
-
 end

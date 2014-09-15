@@ -18,9 +18,9 @@ class ::Jobs::IPMapJob
   end
   
   def run
-    total = 2
-    @manifest_path = @manifest_path || ENV['VMC_KNIFE_DEFAULT_RECIPE']
+    @manifest_path = @admin_instance.manifest_path(@manifest_path)
 
+    total = 2
     at(0, total, "Preparing to update IP mapping")
     contents = File.open(@manifest_path, 'r') { |f| f.read }
     manifest_raw = JSON.parse(contents)

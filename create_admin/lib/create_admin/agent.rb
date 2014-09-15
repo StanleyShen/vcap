@@ -17,6 +17,7 @@ module CreateAdmin
     'backup' => 'Jobs::BackupJob',
     'dns_update' => 'Jobs::DNSUpdateJob',
     'update_license' => 'Jobs::UpdateLicenseJob',
+    'license_status' => 'Jobs::LicenseStatusJob',
     'ip_map' => 'Jobs::IPMapJob',
     'full_backup' => 'Jobs::FullBackupJob',
     'restore' => 'Jobs::RestoreJob',
@@ -25,7 +26,10 @@ module CreateAdmin
     'download' => 'Jobs::DownloadFile',
     'upload' => 'Jobs::UploadFile',
     'list_files' => 'Jobs::ListFilesJob',
-    'delete_file' => 'Jobs::DeleteFileJob'
+    'delete_file' => 'Jobs::DeleteFileJob',
+    'stop_app' => 'Jobs::StopAppJob',
+    'start_app' => 'Jobs::StartAppJob',
+    'app_file' => 'Jobs::AppFileJob'
   }
   class ::CreateAdmin::ConnetionClosedFlag
     def bytesize
@@ -162,7 +166,7 @@ class ::CreateAdmin::ConnectionHandler
 
   private
   
-  def self.parse_unserialize_command(command)
+  def parse_unserialize_command(command)
     vals = command.split("\r\n", 2)
     parse_command(vals[0], vals[1])
   end
@@ -188,6 +192,7 @@ class ::CreateAdmin::ConnectionHandler
   
   def find_job(job_type, paras)
     job_cf = CreateAdmin::JOBS[job_type]
+info("job_type is  >>>  #{job_type}, and found the job...#{job_cf}")
     return if job_cf.nil?
 
     klass = job_cf.split('::').inject(Object) {|o,c| o.const_get c}

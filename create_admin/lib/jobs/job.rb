@@ -23,17 +23,17 @@ class Jobs::Job
   def run()
     raise 'Subclass needs to implement this run method.'
   end
-    
-  def at(num, total, *messages)
-    send_status({:status => JOB_STATES[:working], :num => num, :total => total}, false, *messages)
+
+  def at(num, total, messages)
+    send_status({:status => JOB_STATES[:working], :num => num, :total => total}, false, messages)
   end
 
-  def completed(*messages)
-    send_status({:status => JOB_STATES[:completed]}, true, *messages)
+  def completed(messages = nil, end_request = true)
+    send_status({:status => JOB_STATES[:completed]}, end_request, messages)
   end
 
-  def failed(*messages)
-    send_status({:status => JOB_STATES[:failed]}, true, *messages)
+  def failed(messages = nil, end_request = true)
+    send_status({:status => JOB_STATES[:failed]}, end_request, messages)
   end
   
   def send_data(data, end_request = false)
@@ -44,7 +44,6 @@ class Jobs::Job
     end
   end
 
-  private
   def send_status(status, end_request, message = nil)
     if message
       if message.is_a?(String)

@@ -14,13 +14,13 @@ class ::Jobs::UpdateLicenseJob
 
   def initialize(options)
     @user = options['user']
-    raise "No user provided" if (@user.nil? || @user.empty?)
+    raise 'No user provided.' if (@user.nil? || @user.empty?)
 
     @access_token = options['access_token']
     @success_msg = options['success_message'] || 'License has been updated.'
     raise "No access_token provided" if (@access_token.nil? || @access_token.empty?)
 
-    @manifest_path = options['manifest'] || ENV['VMC_KNIFE_DEFAULT_RECIPE']
+    @manifest_path = options['manifest']
   end
 
   def run

@@ -34,11 +34,19 @@ class ::CreateAdmin::AdminInstance
     app_info
   end
   
+  def governed_apps
+    ['intalio']
+  end
+  
   def manifest(refresh = false, manifest_path = nil)
     if (refresh)
       return refresh_manifest(manifest_path)
     end
     @manifest = @manifest || refresh_manifest(manifest_path) 
+  end
+  
+  def manifest_path(path)
+    path || ENV['VMC_KNIFE_DEFAULT_RECIPE']
   end
   
   def vmc_client(renew = false, manifest_path = nil)
