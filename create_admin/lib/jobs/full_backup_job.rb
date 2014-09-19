@@ -4,6 +4,7 @@ require 'vmc_knife'
 require 'vmc_knife/commands/knife_cmds'
 
 require 'jobs/job'
+require 'jobs/scheduled_backup_job'
 require 'fileutils'
 
 #
@@ -36,6 +37,7 @@ class ::Jobs::FullBackupJob
   end
 
   def run
+    @backup_instance = ScheduledBackup.instance
     begin
       manifest = @admin_instance.manifest(false, @manifest_path)
       client = @admin_instance.vmc_client(false, @manifest_path)
@@ -105,8 +107,11 @@ class ::Jobs::FullBackupJob
 
       call_extensible_backup(client, archive)
 
+      @backup_instance.reset_failure
       completed
     rescue => e
+      @backup_instance.flag_failure
+      
       error "Got exception #{e.message}"
       error e.backtrace
       debug "Rolling back if applicable"

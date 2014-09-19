@@ -13,9 +13,7 @@ class ::CreateAdmin::AdminInstance
   include ::CreateAdmin::Log
   include VMC::KNIFE::Cli
 
-  @@instance = nil
-
-  attr_accessor :backup_threads, :current_setting, :backup_schedule_start_time, :backup_schedule_failure, :is_new_backup_schedule
+  @@instance = nil  
 
   def app_info(app, parse_env = true, manifest_path = nil)
     client = vmc_client(false, manifest_path)
@@ -67,39 +65,32 @@ class ::CreateAdmin::AdminInstance
     client
   end
 
-  def backup_schedule_start_time
-    @backup_schedule_start_time
-  end
-
-  def get_backup_schedule_failure
-    @backup_schedule_failure
-  end
-
-  def flag_backup_schedule_failure
-    @backup_schedule_failure+=1
-  end
-
-  def reset_backup_schedule_failure
-    @backup_schedule_failure=0
-  end
-
-  def backup_schedule_started
-    @is_new_backup_schedule = false
-  end
-
-  def is_new_backup_schedule
-    @is_new_backup_schedule
-  end
-
   def self.instance
    @@instance =  @@instance || ::CreateAdmin::AdminInstance.new
   end
+
+  # instance cache  
+  def add_cache(key, value)
+    @instance_cache[key] = value
+  end
   
+  def get_cache(key, value)
+    @instance_cache[key]
+  end
+  
+  def delete_cache(key = nil)
+    if key.nil?
+      @instance_cache = {}
+    else
+      @instance_cache.delete(key)
+    end
+  end
+
   private
+  @instance_cache = nil
 
   def initialize
-    @backup_schedule_failure = 0
-    @is_new_backup_schedule = false
+    @@instance_cache = {}
   end
   
   def refresh_manifest(manifest_path = nil)

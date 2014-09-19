@@ -134,6 +134,7 @@ module DEA
 
       # XXX(mjp) - Ugh, this is needed for VCAP::Component.register(). Find a better solution when time permits.
       @config = config.dup()
+      @logger.warn("[dea] initializing finished....")
     end
 
     def run()
@@ -1184,6 +1185,10 @@ module DEA
         end
       end
 
+      @logger.warn("instance   is >>>> #{instance.inspect}")
+      @logger.warn("services   is >>>> #{services.inspect}")
+      @logger.warn("app env    is >>>> #{services.inspect}")
+      @logger.warn("final env  is >>>> #{env}")
       return env
     end
 

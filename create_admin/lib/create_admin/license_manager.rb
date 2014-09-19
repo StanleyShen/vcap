@@ -1,5 +1,6 @@
 require 'rubygems'
 require "wrest"
+require 'json/pure'
 
 require 'create_admin/admin_instance'
 require 'patch/connection_factory_proxy_patch'
@@ -62,6 +63,18 @@ module CreateAdmin
       return res.body if res.ok?
 
       raise "Unable to get license. Response code #{res.code}"
+    end
+    
+    def get_license_terms(intalio_hostname)
+      uri = "http://#{intalio_hostname}/instance/get_license_terms"
+      debug "getting license from #{uri}"
+      begin
+        response = uri.to_uri(:timeout => 50).get()
+        return JSON.parse(response.body) if response.ok?
+      rescue Exception => e
+        warn "Unable to get license #{e.message}"
+        return ""
+      end
     end
 
     private

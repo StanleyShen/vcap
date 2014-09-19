@@ -6,6 +6,7 @@ require "create_admin/util"
 require "create_admin/http_proxy"
 require "vmc/vmcapphelpers"
 require "jobs/job"
+require 'jobs/scheduled_backup_job'
 require "route53/dns_gateway_client"
 
 module Jobs
@@ -22,24 +23,26 @@ class ::Jobs::StatusJob
 
     @manifest_path = options['manifest']
 
-    @admin_instance = CreateAdmin.instance
-    @manifest = @admin_instance.manifest(false, @manifest_path)
-    @client = @admin_instance.vmc_client(false, @manifest_path)
-
-    @admin_env = @admin_instance.app_info('admin', true, @manifest_path)[:env]
-    @version_file = options['INTALIO_VERSION_FILE'] || @admin_env['INTALIO_VERSION_FILE'] 
-    @apps_in_recipe = ['intalio']
-    @app_name_intalio = 'intalio'
+    @version_file = options['INTALIO_VERSION_FILE']     
+    @app_name_intalio = options['intalio_app']  || 'intalio'
     @app_status = {}
   end
 
-  def run    
+  def run
+    @manifest = @admin_instance.manifest(false, @manifest_path)
+    @client = @admin_instance.vmc_client(false, @manifest_path)    
+    @admin_env = @admin_instance.app_info('admin', true, @manifest_path)[:env]
+    @version_file = @version_file || @admin_env['INTALIO_VERSION_FILE']
+    @apps_in_recipe = @admin_instance.governed_apps
+        
     begin
       client_info = @client.info
     rescue VMC::Client::TargetError => e
       return { "error" => "cloudfoundry is down", "message" => e.message, "exception" => e }.to_json
     end
-
+    
+    info("client_info is ...... #{client_info}")
+    
     status = {}
 
     published_ip = @manifest['dns_provider']['dns_published_ip']
@@ -59,10 +62,10 @@ class ::Jobs::StatusJob
                           :usage => { :memory => "#{mem} of #{tmem}",
                                       :services => "#{ser} of #{tser}",
                                       :apps => "#{apps} of #{tapps}",} }
+    status[:free_disk_space] = get_free_disk_space()
+      
     cli_client = VMC::Cli::Command::AppsExt.new
     cli_client.client = @client
-
-    status[:free_disk_space] = get_free_disk_space()
 
     status[:app_stats] = apps_stats = {}
     @apps_in_recipe.each do |appname|
@@ -72,7 +75,7 @@ class ::Jobs::StatusJob
     def_download_url = @admin_env['DEFAULT_DOWNLOAD_URL']
     begin
       intalio_health = apps_stats[@app_name_intalio.to_sym][:health]
-#      status[:intalio_master_test] = get_intalio_status(request, intalo_health)
+      status[:intalio_master_test] = get_intalio_status(intalo_health)
       status[:available_update] = get_update_version_info(CreateAdmin.get_download_url(def_download_url), intalio_health)
     rescue => e
       error "system error when querying the master test: #{e.message}"
@@ -185,21 +188,21 @@ class ::Jobs::StatusJob
   
   end
   
-  def get_intalio_status(request, intalio_health)  
-    jobs = get_app_jobs_info(@app_name_intalio)
-    debug "Current job #{jobs}"
-  
+  def get_intalio_status(intalio_health)  
+#    jobs = get_app_jobs_info(@app_name_intalio)
+#    debug "Current job #{jobs}"
+#  
     backup_info = get_backup_dates()
   
-    if jobs.nil?
-      jobs = {}
-    elsif jobs[:status] != 'completed' && jobs[:status] != 'failed'
-      #we report the last jobs statuses that took place.
-      #so if all the report
-      return { :colored_status => "orange", :status => "jobs going on",
-             :message => "Application #{@app_name_intalio} has some jobs going on",
-             :jobs => jobs, :backups => backup_info }
-    end
+#    if jobs.nil?
+#      jobs = {}
+#    elsif jobs[:status] != 'completed' && jobs[:status] != 'failed'
+#      #we report the last jobs statuses that took place.
+#      #so if all the report
+#      return { :colored_status => "orange", :status => "jobs going on",
+#             :message => "Application #{@app_name_intalio} has some jobs going on",
+#             :jobs => jobs, :backups => backup_info }
+#    end
   
     # get the uri of the intalio application
     app_stats = @client.app_stats(@app_name_intalio)
@@ -245,13 +248,14 @@ class ::Jobs::StatusJob
   end
   
   def get_backup_dates
-    last_backup = t.status_panel.value.no_backup #'None'
-    next_backup = t.status_panel.value.no_schedule #'Not scheduled'
+    last_backup = 'None' # t.status_panel.value.no_backup #'None'
+    next_backup = 'Not scheduled' #t.status_panel.value.no_schedule #'Not scheduled'
     last_failure = ''
   
+    @backup_instance = ScheduledBackup.instance
     begin
-      setting = CreateAdmin.check_and_update_backup_settings()
-      period = setting.period
+      setting = @backup_instance.get_backup_setting()
+      period = setting.nil? ? setting.period : 0
       debug "Got backup period #{period}"
   
       base_dir = ENV['BACKUP_HOME']
@@ -273,7 +277,7 @@ class ::Jobs::StatusJob
   
       round_backup = proc { | backup_time, period |
         if(period >= 3600)
-          if(period >= (3600 * 24) && CreateAdmin.is_new_backup_schedule)
+          if(period >= (3600 * 24) && !@backup_instance.backup_job_started)
             minute = Time.now().min
             (Time.now().to_i - (minute * 60) + 3600) * 1000
           else
@@ -287,10 +291,10 @@ class ::Jobs::StatusJob
       }
   
       unless period.nil? || period == 0
-        start_time = CreateAdmin.backup_schedule_start_time || START_UP_TIME
+        start_time = @backup_instance.schedule_start_time
         backup_time = (last_scheduled_backup.to_i > 0 && last_scheduled_backup/1000 > start_time) ? last_scheduled_backup/1000 : start_time
   
-        past_failures = CF.get_backup_schedule_failure()
+        past_failures = @backup_instance.backup_failures
         if past_failures > 0
           new_period = period + (period * past_failures)
           next_backup = round_backup.call(backup_time + new_period, period)
@@ -366,8 +370,8 @@ class ::Jobs::StatusJob
     begin
       update_info = client.app_update_info(name)
       since = Time.now.to_i - update_info[:since].to_i
-      since_str = uptime_string(Time.now.to_i - update_info[:since].to_i)
-      update_info[:since_str] = since_str
+
+      update_info[:since_str] = CreateAdmin.uptime_string(Time.now.to_i - update_info[:since].to_i)
       if update_info[:state] == "UPDATING"
         #check since how long it has been in the updating state.
         thirty_minutes_updating_timeout = (ENV['CF_UPDATING_TIMEOUT'] || 30).to_i
@@ -415,18 +419,7 @@ class ::Jobs::StatusJob
             mem   = (usage[:mem] * 1024) # mem comes in K's
             disk  = usage[:disk]
           end
-          uris = stat[:uris]
-          # force the uri closest to the current one to be the first uri
-          # so that the browser's javascript will display that one as the hostname of the intalio app
-          # in the info panel.
-#          intalio_uris_indexed = CreateAdmin.index_urls(uris)
-#          intalio_hostname = CreateAdmin.get_closest_url(nil,request.host,intalio_uris_indexed)
-#          ind = uris.index(intalio_hostname)
-#          if ind != 0
-#            uris.delete_at(ind) if ind > 0
-#            uris.unshift(intalio_hostname)
-#          end
-  
+
           mem_quota = stat[:mem_quota]
           disk_quota = stat[:disk_quota]
           mem  = "#{CreateAdmin.pretty_size(mem)} (#{CreateAdmin.pretty_size(mem_quota)})"
@@ -434,7 +427,7 @@ class ::Jobs::StatusJob
           cpu = cpu ? cpu.to_s : 'NA'
           cpu = "#{cpu}% (#{stat[:cores]})"
           if stats.size == 1
-            t << {:health => health, :cpu => cpu, :mem => mem, :disk => disk, :uptime => uptime, :uris => uris}
+            t << {:health => health, :cpu => cpu, :mem => mem, :disk => disk, :uptime => uptime, :uris => stat[:uris]}
           end
         end
       rescue => e

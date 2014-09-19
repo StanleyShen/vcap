@@ -10,12 +10,29 @@ class ScheduledBackup
   include DataService::PostgresSvc
   include ::CreateAdmin::Log
 
-  @@intance = nil  
+  attr_reader :schedule_start_time, :backup_failures, :backup_job_started
+  @@intance = nil
   def self.instance(options = {})
     @@intance = @@intance  || ScheduledBackup.new(options)
   end
+
+  def bootstrap_schedule()
+    setting = get_backup_setting
+    if (setting.nil?)
+      # no system setting ?
+      error("can't find the active system setting")
+      clean()
+      return
+    end
+
+    changed = @backup_setting.nil? || @backup_setting.period != setting.period
+    
+    debug "Backup setting changed => #{changed} with settings #{setting}" if changed
+    
+    reschedule(setting) if changed
+  end
   
-  def check_and_update_backup_settings()
+  def get_backup_setting
     sql = "select extract(epoch from io_backup_period), io_backup_period, io_backup_storage_space_quantity[1] from io_system_setting where io_active='t';"
     
     setting = nil
@@ -26,11 +43,15 @@ class ScheduledBackup
       setting = BackupSetting.new(period, label, storage)
     }
 
-    changed = @backup_setting.nil? || @backup_setting.period != setting.period
-    
-    debug "Backup setting changed => #{changed} with settings #{setting}" if changed
-    
-    reschedule(setting) if changed
+    setting
+  end
+  
+  def flag_failure
+    @backup_failures = @backup_failures + 1
+  end
+  
+  def reset_failure
+    @backup_failures = 0
   end
   
   private
@@ -39,9 +60,11 @@ class ScheduledBackup
     @manifest_path = options['manifest']
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
     @running_threads = []
+    @backup_failures = 0
+    @backup_job_started = false
   end
   
-  def clean(setting)
+  def clean()
     @backup_setting = nil
     @running_threads.each { | thread |
       debug "Killing backup thread #{thread}"
@@ -61,12 +84,14 @@ class ScheduledBackup
   end
   
   def reschedule(setting)
-    clean(setting)
+    clean()
 
     # no schedule
-    return if (setting.period == 0)
+    return if (setting.nil? || setting.period == 0)
 
     @backup_setting = setting
+    @schedule_start_time = Time.now.to_i
+    @backup_job_started = false
     schedule_backup(setting)
 
     Clockwork.every(1.minute, 'Check backup settings', :thread => true) {
@@ -118,12 +143,13 @@ class ScheduledBackup
     job_params = {'manifest' => @manifest_path, 'suffix' => identifier}
 
     debug "Preparing to create backup"
-
+    @backup_job_started = true
+    
     FullBackupJob.create(job_params)
   end
 
   def delete_expired_backups(backups, identifier)
-    lifespan = get_setting("extract(epoch from io_backup_lifespan)", 0)
+    lifespan = sys_setting("extract(epoch from io_backup_lifespan)", 0)
     backups.each { |filename|
       fullapth = "#{@backup_home}/#{filename}"
       time = File.stat(fullapth).mtime.to_i
@@ -155,7 +181,7 @@ class ScheduledBackup
     backups
   end
   
-  def get_setting(name, default)
+  def sys_setting(name, default)
     sql = "select #{name} from io_system_setting where io_active='t';"
     query(sql) {|res|
       setting = res.getvalue(0, 0).to_i || default
@@ -181,7 +207,7 @@ class ScheduledBackup
       total += File.size("#{@backup_home}/#{filename}") if filename =~ /-#{identifier}.zip$/
     }
     # read max from db
-    max = get_setting('io_backup_storage_space_quantity[1]', -1)
+    max = sys_setting('io_backup_storage_space_quantity[1]', -1)
     debug "Current total backup space used #{(total/1024)/1024} Mb. Max allowed #{max} Mb"
     total > (max * 1024 * 1024)
   end

@@ -12,7 +12,7 @@ end
 class Jobs::Job
   include ::CreateAdmin::Log
 
-  attr_accessor :requester, :admin_instance
+  attr_reader :requester, :admin_instance
 
   JOB_STATES = { :queued => 'queued',
                  :working => 'working',

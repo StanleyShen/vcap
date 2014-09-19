@@ -74,7 +74,7 @@ class ::CreateAdmin::Agent
     end
 
     # start schedule backup job
-    ScheduledBackup.instance.check_and_update_backup_settings
+    ScheduledBackup.instance.bootstrap_schedule
 
     start_server()
   end
