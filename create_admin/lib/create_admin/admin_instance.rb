@@ -2,6 +2,8 @@ require 'rubygems'
 require 'vmc_knife'
 require 'vmc_knife/commands/knife_cmds'
 
+require 'singleton'
+
 require "create_admin/log"
 
 module CreateAdmin
@@ -10,10 +12,9 @@ module CreateAdmin
 end
 
 class ::CreateAdmin::AdminInstance
+  include Singleton
   include ::CreateAdmin::Log
   include VMC::KNIFE::Cli
-
-  @@instance = nil  
 
   def app_info(app, parse_env = true, manifest_path = nil)
     client = vmc_client(false, manifest_path)
@@ -102,10 +103,6 @@ class ::CreateAdmin::AdminInstance
   
   def backup_home
     "#{ENV['HOME']}/cloudfoundry/backup"
-  end
-
-  def self.instance
-   @@instance =  @@instance || ::CreateAdmin::AdminInstance.new
   end
 
   # instance cache  

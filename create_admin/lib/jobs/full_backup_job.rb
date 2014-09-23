@@ -43,7 +43,7 @@ class ::Jobs::FullBackupJob
       client = @admin_instance.vmc_client(false, @manifest_path)
 
       at(0, 1, "Preparing to backup")
-      filename = "backup#{@backup_ext}"      
+      filename = "backup#{@backup_ext}"
 
       backup_ext = '.tar.gz'
       FileUtils.mkpath(@tmp_dir) unless File.directory?(@tmp_dir)

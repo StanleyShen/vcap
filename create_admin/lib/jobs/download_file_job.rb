@@ -15,13 +15,12 @@ class ::Jobs::DownloadFile
 
   def run
     meta_data = CreateAdmin.file_metadata(@path)
-#    send_data("#{meta_data.to_json}\r\n")
     send_data(meta_data)
 
     streamer = EventMachine::FileStreamer.new(@requester, @path)
     streamer.callback{
       # file was sent successfully
-      error "[DownloadFile] file is sent successfully."
+      debug "File is sent successfully with path #{@path}."
       @requester.close
     }
   end

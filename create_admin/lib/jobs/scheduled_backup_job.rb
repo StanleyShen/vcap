@@ -1,20 +1,19 @@
 require 'rubygems'
 require 'clockwork'
 
+require 'singleton'
+
 require "create_admin/log"
 require "create_admin/util"
 require 'jobs/full_backup_job'
 require 'dataservice/postgres_ds'
 
 class ScheduledBackup
+  include Singleton
   include DataService::PostgresSvc
   include ::CreateAdmin::Log
 
   attr_reader :schedule_start_time, :backup_failures, :backup_job_started
-  @@intance = nil
-  def self.instance(options = {})
-    @@intance = @@intance  || ScheduledBackup.new(options)
-  end
 
   def bootstrap_schedule()
     setting = get_backup_setting
@@ -86,6 +85,10 @@ class ScheduledBackup
   def reschedule(setting)
     clean()
 
+    Clockwork.every(1.minute, 'Check backup settings', :thread => true) {
+      bootstrap_schedule()
+    }
+
     # no schedule
     return if (setting.nil? || setting.period == 0)
 
@@ -93,10 +96,6 @@ class ScheduledBackup
     @schedule_start_time = Time.now.to_i
     @backup_job_started = false
     schedule_backup(setting)
-
-    Clockwork.every(1.minute, 'Check backup settings', :thread => true) {
-      check_and_update_backup_settings()
-    }
 
     @running_threads << start_clockwork_thread()
   end
@@ -144,7 +143,7 @@ class ScheduledBackup
     debug "Preparing to create backup"
     @backup_job_started = true
     
-    FullBackupJob.create(job_params)
+    BackendBackupJob.new(job_params).run
   end
 
   def delete_expired_backups(backups, identifier)
@@ -211,6 +210,17 @@ class ScheduledBackup
     total > (max * 1024 * 1024)
   end
 
+end
+
+class BackendBackupJob < ::Jobs::FullBackupJob
+  include ::CreateAdmin::Log
+  def initialize(options)
+    super(options)
+    @admin_instance = CreateAdmin.instance
+  end
+  def send_data(data, end_request = false)
+    debug("[ScheduleBackup] >>> #{data}")
+  end
 end
 
 class BackupSetting
