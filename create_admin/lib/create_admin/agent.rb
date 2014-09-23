@@ -13,23 +13,23 @@ end
 
 module CreateAdmin  
   JOBS = {
-    'upgrade' => 'Jobs::UpgradeJob',
-    'backup' => 'Jobs::BackupJob',
-    'dns_update' => 'Jobs::DNSUpdateJob',
-    'update_license' => 'Jobs::UpdateLicenseJob',
-    'license_status' => 'Jobs::LicenseStatusJob',
-    'ip_map' => 'Jobs::IPMapJob',
-    'full_backup' => 'Jobs::FullBackupJob',
-    'restore' => 'Jobs::RestoreJob',
-    'full_restore' => 'Jobs::FullRestoreJob',
-    'status' => 'Jobs::StatusJob',
-    'download' => 'Jobs::DownloadFile',
-    'upload' => 'Jobs::UploadFile',
-    'list_files' => 'Jobs::ListFilesJob',
-    'delete_file' => 'Jobs::DeleteFileJob',
-    'stop_app' => 'Jobs::StopAppJob',
-    'start_app' => 'Jobs::StartAppJob',
-    'app_file' => 'Jobs::AppFileJob'
+    'upgrade' => Jobs::UpgradeJob,
+    'backup' => Jobs::BackupJob,
+    'dns_update' => Jobs::DNSUpdateJob,
+    'update_license' => Jobs::UpdateLicenseJob,
+    'license_status' => Jobs::LicenseStatusJob,
+    'ip_map' => Jobs::IPMapJob,
+    'full_backup' => Jobs::FullBackupJob,
+    'restore' => Jobs::RestoreJob,
+    'full_restore' => Jobs::FullRestoreJob,
+    'status' => Jobs::StatusJob,
+    'download' => Jobs::DownloadFile,
+    'upload' => Jobs::UploadFile,
+    'list_files' => Jobs::ListFilesJob,
+    'delete_file' => Jobs::DeleteFileJob,
+    'stop_app' => Jobs::StopAppJob,
+    'start_app' => Jobs::StartAppJob,
+    'app_file' => Jobs::AppFileJob
   }
   class ::CreateAdmin::ConnetionClosedFlag
     def bytesize
@@ -190,10 +190,9 @@ class ::CreateAdmin::ConnectionHandler
   end
   
   def find_job(job_type, paras)
-    job_cf = CreateAdmin::JOBS[job_type]
-    return if job_cf.nil?
+    job_klass = CreateAdmin::JOBS[job_type]
+    return if job_klass.nil?
 
-    klass = job_cf.split('::').inject(Object) {|o,c| o.const_get c}
     parsed_paras = if paras.nil? || paras.empty?
       nil
     else
@@ -205,7 +204,7 @@ class ::CreateAdmin::ConnectionHandler
       end
     end
 
-    klass.new(parsed_paras)
+    job_klass.new(parsed_paras)
   end
 
 end

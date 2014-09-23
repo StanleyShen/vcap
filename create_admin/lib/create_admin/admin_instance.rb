@@ -16,6 +16,37 @@ class ::CreateAdmin::AdminInstance
   include ::CreateAdmin::Log
   include VMC::KNIFE::Cli
 
+  @running_job_instances = {}
+  @running_jobs_lock = Mutex.new
+  
+  def accept_job?(job_type)
+    klass = CreateAdmin::JOBS(job_type)
+
+    @running_jobs_lock.synchronize{
+      @running_job_instances.each{|running_job, instance_num|
+        next if instance_num == 0
+
+        running_klass = CreateAdmin::JOBS(running_job)
+        unless running_klass.accept?(job_type, klass)
+          return {:accept => false, :message => "Can't execute #{klass.job_name} because #{running_klass.job_name} is running."}
+        end
+      }
+      @running_job_instances[job_type] = (@running_job_instances[job_type] || 0) + 1
+    }
+
+    {:accept => true}
+  end
+  
+  def remove_running_instance(job_type)
+    @running_jobs_lock.synchronize{
+      @running_job_instances[job_type] = (@running_job_instances[job_type] || 0) - 1
+      if (@running_job_instances[job_type] < 0)
+        warn("#{job_type} instance number isn't removed correctly, the current instances are #{@running_job_instances[job_type]}")
+        @running_job_instances[job_type] = 0
+      end
+    }
+  end 
+  
   def app_info(app, parse_env = true, manifest_path = nil)
     client = vmc_client(false, manifest_path)
     app_info = client.app_info(app)

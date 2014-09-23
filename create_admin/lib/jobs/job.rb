@@ -20,6 +20,14 @@ class Jobs::Job
                  :completed => 'completed',
                  :killed => 'killed' }
 
+  def self.job_name
+    name
+  end
+
+  def self.accept?(job_type, klass)
+    true
+  end
+               
   def run()
     raise 'Subclass needs to implement this run method.'
   end

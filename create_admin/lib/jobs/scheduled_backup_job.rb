@@ -20,15 +20,16 @@ class ScheduledBackup
     if (setting.nil?)
       # no system setting ?
       error("can't find the active system setting")
-      clean()
+      reset()
       return
     end
 
     changed = @backup_setting.nil? || @backup_setting.period != setting.period
-    
-    debug "Backup setting changed => #{changed} with settings #{setting}" if changed
-    
-    reschedule(setting) if changed
+
+    if changed
+      debug "Backup setting changed with period #{setting.period}"    
+      reschedule(setting)
+    end
   end
   
   def get_backup_setting
@@ -63,8 +64,7 @@ class ScheduledBackup
     @backup_job_started = false
   end
   
-  def clean()
-    @backup_setting = nil
+  def reset(setting)
     @running_threads.each { | thread |
       debug "Killing backup thread #{thread}"
       thread.exit
@@ -77,29 +77,31 @@ class ScheduledBackup
       debug "Backup thread stopped #{thread.stop?}"
     }    
     @running_threads.clear
-    
+
+    @backup_setting = setting
+
     # clear all clockwork events
     Clockwork.clear!
-  end
-  
-  def reschedule(setting)
-    clean()
-
+    
+    # run clockwork again
+    @running_threads << start_clockwork_thread()
     Clockwork.every(1.minute, 'Check backup settings', :thread => true) {
       bootstrap_schedule()
     }
+  end
+  
+  def reschedule(setting)
+    reset(setting)
 
     # no schedule
-    return if (setting.nil? || setting.period == 0)
+    return if (setting.nil? ||  setting.period == 0)
 
     @backup_setting = setting
     @schedule_start_time = Time.now.to_i
     @backup_job_started = false
     schedule_backup(setting)
-
-    @running_threads << start_clockwork_thread()
   end
-  
+
   def start_clockwork_thread
     retry_count = 3
     th = Thread.new do
