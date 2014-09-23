@@ -146,7 +146,6 @@ class ::CreateAdmin::ConnectionHandler
   end
 
   def message(data)
-    puts "[send data] data is .... #{data}"
     if @marshal
       send_object(data)
     else
@@ -177,7 +176,7 @@ class ::CreateAdmin::ConnectionHandler
     @debug_str = "#{job_type}:#{paras}"     
     job = find_job(job_type, paras)
 
-    raise "Failed to parse the command: #{@debug_str}" if job.nil?
+    raise "Failed to parse the command: #{@debug_str}, can not find the job." if job.nil?
 
     info("Command is  >>>  #{@debug_str}")
 
@@ -192,7 +191,6 @@ class ::CreateAdmin::ConnectionHandler
   
   def find_job(job_type, paras)
     job_cf = CreateAdmin::JOBS[job_type]
-info("job_type is  >>>  #{job_type}, and found the job...#{job_cf}")
     return if job_cf.nil?
 
     klass = job_cf.split('::').inject(Object) {|o,c| o.const_get c}

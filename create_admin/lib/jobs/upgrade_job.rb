@@ -41,11 +41,11 @@ class ::Jobs::UpgradeJob
 
     begin
       at(num , total, 'Downloading...')
-#      do_download()
+      do_download()
 
       num = num + 1
       at(num + 1 , total, 'Unziping...')
-#      do_unzip()
+      do_unzip()
       
       num = num + 1
       at(num , total, 'Updating...')

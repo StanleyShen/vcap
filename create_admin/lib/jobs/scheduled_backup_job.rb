@@ -118,7 +118,6 @@ class ScheduledBackup
   end
 
   def schedule_backup(setting)
-    error "backup setting is .... #{setting}"
     period = setting.period
     at = setting.at
     options = {}

@@ -87,7 +87,7 @@ class ::Jobs::StopAppJob
     total_ticks = stop_total_ticks
     iteration = 0
 
-    puts "[do_stop] tick to stop it now......"
+    debug "[do_stop] tick to stop it now......"
     at(0, total_ticks, "Stopping the application #{app_name}")
     app[:state] = 'STOPPED'
     update_app(app_name, app)
@@ -112,7 +112,6 @@ class ::Jobs::StopAppJob
   end
   
   def update_app(app_name, app)
-    puts "[update_app] ..... for #{app_name}"
     begin
       client = @admin_instance.vmc_client(false)
       client.update_app(app_name, app)

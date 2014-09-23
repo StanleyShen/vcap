@@ -41,11 +41,8 @@ class ::Jobs::StatusJob
     rescue VMC::Client::TargetError => e
       return { "error" => "cloudfoundry is down", "message" => e.message, "exception" => e }.to_json
     end
-    
-    info("client_info is ...... #{client_info}")
-    
-    status = {}
 
+    status = {}
     published_ip = @manifest['dns_provider']['dns_published_ip']
     status[:server_ip] = published_ip != "" ? published_ip: CreateAdmin.get_local_ipv4
     if usage = client_info[:usage] and limits = client_info[:limits]
@@ -73,15 +70,13 @@ class ::Jobs::StatusJob
       apps_stats[appname.to_sym] = get_app_health(@client, cli_client, appname)
     end
 
-  info("apps_stats is .... #{apps_stats}")
-
     begin
       intalio_health = apps_stats[@app_name_intalio.to_sym][:health]
       status[:intalio_master_test] = get_intalio_status(intalio_health)
       status[:available_update] = get_update_version_info(get_repo_url, intalio_health)
     rescue => e
       error "system error when querying the master test: #{e.message}"
-      error e.backtrace
+      error e
       status[:intalio_master_test] = {:colored_status => "red",
                                       :message => "system error when querying the master test: #{e.message}",
                                       :exception => e.backtrace}
@@ -112,11 +107,10 @@ class ::Jobs::StatusJob
   
   def download_update_version_info(repo_url)
     download_url = URI::join(repo_url, 'version_built.properties').to_s
-    puts "Checking download repo #{download_url}"
+    debug "Checking download repo #{download_url}"
   
     begin
       version = http_get(download_url)
-      puts "version is ...... #{version}"
       if version.code != "200"
         return { :success => false, :message => "could not read the available version from #{download_url}: http status code #{version.code}",
                :body => version.body }
@@ -195,20 +189,7 @@ class ::Jobs::StatusJob
   end
   
   def get_intalio_status(intalio_health)  
-#    jobs = get_app_jobs_info(@app_name_intalio)
-#    debug "Current job #{jobs}"
-#  
     backup_info = get_backup_dates()
-  
-#    if jobs.nil?
-#      jobs = {}
-#    elsif jobs[:status] != 'completed' && jobs[:status] != 'failed'
-#      #we report the last jobs statuses that took place.
-#      #so if all the report
-#      return { :colored_status => "orange", :status => "jobs going on",
-#             :message => "Application #{@app_name_intalio} has some jobs going on",
-#             :jobs => jobs, :backups => backup_info }
-#    end
   
     # get the uri of the intalio application
     stale_license = @admin_instance.get_cache('license_terms') || ''
@@ -217,7 +198,6 @@ class ::Jobs::StatusJob
     if (app_stats.nil? || app_stats.empty?) && intalio_health == 'STOPPED'
       return { :colored_status => "red",
                :message => "Application #{@app_name_intalio} not running",
-#               :jobs => jobs,
                :backups => backup_info,
                :license => stale_license}
     end
@@ -225,7 +205,6 @@ class ::Jobs::StatusJob
     running_instance = app_stats.select{|state| state[:state] == :RUNNING}.first  
     return { :colored_status => "orange", :status => "no-stats",
              :message => "No stats available for application #{@app_name_intalio} yet",
-#             :jobs => jobs,
              :backups => backup_info,
              :license => stale_license } if running_instance.nil?
   
@@ -233,18 +212,14 @@ class ::Jobs::StatusJob
     # This may be some CF error, set to orange and try again
     return { :colored_status => "orange", :status => "no-public-uri",
              :message => "Application #{@app_name_intalio} is not mapped to a public URI",
-#             :jobs => jobs,
              :backups => backup_info,
              :license => stale_license } if (stats[:uris].nil? || stats[:uris].empty?)
   
     # find the uri closest to the current one:
-#    intalio_uris_indexed = CreateAdmin.index_urls(stats[:uris])
-#    intalio_hostname = CreateAdmin.get_closest_url(nil,request.host,intalio_uris_indexed)
     intalio_hostname = stats[:uris].first
     uri = "http://#{intalio_hostname}/startup_status"
     
     master_test_response = get_master_test(uri, app_stats)
-#    master_test_response[:jobs] = jobs
     master_test_response[:backups ] = backup_info
     master_test_response[:license] = get_license(intalio_hostname, master_test_response[:colored_status] != 'green')
 
