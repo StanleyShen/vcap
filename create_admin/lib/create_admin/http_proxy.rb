@@ -1,6 +1,6 @@
 require 'uri'
 require 'net/http'
- 
+
 module HttpProxy
   def http_get(url_in)
     if ENV['http_proxy']
@@ -12,6 +12,7 @@ module HttpProxy
 
     http = Net::HTTP.new(url.host, url.port, proxy_host, proxy_port, proxy_user, proxy_password)
     http.use_ssl = url.scheme == "https"
+    http.read_timeout = 3600 # 1 hour for timeout, should be enough
 
     req = Net::HTTP::Get.new(url.path)
     if url.userinfo

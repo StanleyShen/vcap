@@ -2,6 +2,8 @@ require 'rubygems'
 require 'wrest'
 require 'sys/filesystem'
 
+require 'uri'
+
 require "create_admin/util"
 require "create_admin/http_proxy"
 require "vmc/vmcapphelpers"
@@ -22,8 +24,7 @@ class ::Jobs::StatusJob
     options = options || {}
 
     @manifest_path = options['manifest']
-
-    @version_file = options['INTALIO_VERSION_FILE']     
+    @version_file = ENV['INTALIO_VERSION_FILE'] || 'app/version_built.properties'
     @app_name_intalio = options['intalio_app']  || 'intalio'
     @app_status = {}
   end
@@ -72,11 +73,12 @@ class ::Jobs::StatusJob
       apps_stats[appname.to_sym] = get_app_health(@client, cli_client, appname)
     end
 
-    def_download_url = @admin_env['DEFAULT_DOWNLOAD_URL']
+  info("apps_stats is .... #{apps_stats}")
+
     begin
       intalio_health = apps_stats[@app_name_intalio.to_sym][:health]
-      status[:intalio_master_test] = get_intalio_status(intalo_health)
-      status[:available_update] = get_update_version_info(CreateAdmin.get_download_url(def_download_url), intalio_health)
+      status[:intalio_master_test] = get_intalio_status(intalio_health)
+      status[:available_update] = get_update_version_info(get_repo_url, intalio_health)
     rescue => e
       error "system error when querying the master test: #{e.message}"
       error e.backtrace
@@ -85,12 +87,18 @@ class ::Jobs::StatusJob
                                       :exception => e.backtrace}
     end
 
-    # TODO:......
-    status[:admin_version] = 10#ADMIN_VERSION
     send_data(status, true)
   end
   
   private
+  
+  def get_repo_url
+    url = CreateAdmin.get_repository_url
+    return url if url && !url.empty?
+    
+    def_url = @admin_env['DEFAULT_DOWNLOAD_URL']
+    return CreateAdmin.get_base_url(def_url)
+  end
   
   def get_free_disk_space
     begin
@@ -102,8 +110,8 @@ class ::Jobs::StatusJob
     end    
   end
   
-  def download_update_version_info(download_url)
-    download_url = download_url.sub(/([^\/]*\.tar\.gz)/, "version_built.properties")
+  def download_update_version_info(repo_url)
+    download_url = URI::join(repo_url, 'version_built.properties').to_s
     puts "Checking download repo #{download_url}"
   
     begin
@@ -144,19 +152,17 @@ class ::Jobs::StatusJob
   end
   
   # Parse the version.xml next to the intalio.war and returns the timestamp and version extracted out of it.
-  def get_update_version_info(download_url, intalio_health)
+  def get_update_version_info(repo_url, intalio_health)
     unless intalio_health == 'RUNNING'
       debug "Intalio is not running"
-      version_info = @app_status['version_info'] || {}
+      version_info = @admin_instance.get_cache('version_info') || {}
       return { :success => true, :message => "Application is not running. Using cached version info"}.merge!(version_info)
     end
   
     begin
-      cli_client = VMC::Cli::Command::AppsExt.new
-      cli_client.client = @client
-      manifest = cli_client.__files(@app_name_intalio, @version_file)
+      manifest = @admin_instance.app_files(@app_name_intalio, @version_file)
       debug "App manifest #{manifest}"
-  
+
       version = 0
       unless(manifest.nil?)
         infos = manifest.split(%r{\n})
@@ -165,7 +171,7 @@ class ::Jobs::StatusJob
         release_date = get_app_info(infos, 'built=')
         debug "Current version #{version}"
   
-        latest_version = download_update_version_info(download_url)
+        latest_version = download_update_version_info(repo_url)
         puts "latest_version is .... #{latest_version}"
 
         next_build = latest_version[:build_number] unless latest_version.nil?
@@ -174,15 +180,15 @@ class ::Jobs::StatusJob
         has_next_build = false
         has_next_build = next_build.to_s > version.to_s if next_build
   
-        @app_status['version_info'] = { :build_number => version, :release_date => release_date, :next_version => has_next_build, :next_build => latest_version }
-        return @app_status['version_info']
+        res = { :build_number => version, :release_date => release_date, :next_version => has_next_build, :next_build => latest_version }
+        return @admin_instance.put_cache('version_info', res)
       else
         return { :success => false, :message => "No version info available from #{version_file}", :build_number => version}
       end
     rescue => e
-      error "Encountered some VMC client error while querying #{version_file} => #{e.message}"
+      error "Encountered some VMC client error while querying #{@version_file} => #{e.message}"
       error e.backtrace
-      return { :success => false, :message => "could not read the available version from #{version_file}",
+      return { :success => false, :message => "could not read the available version from #{@version_file}",
              :exception => e.message, :build_number => version}
     end
   
@@ -205,46 +211,44 @@ class ::Jobs::StatusJob
 #    end
   
     # get the uri of the intalio application
+    stale_license = @admin_instance.get_cache('license_terms') || ''
     app_stats = @client.app_stats(@app_name_intalio)
+
+    if (app_stats.nil? || app_stats.empty?) && intalio_health == 'STOPPED'
+      return { :colored_status => "red",
+               :message => "Application #{@app_name_intalio} not running",
+#               :jobs => jobs,
+               :backups => backup_info,
+               :license => stale_license}
+    end
   
-    #debug "App stats #{app_stats}"
-    license = @app_status['license'] || ''
-  
-    return { :colored_status => "red",
-             :message => "Application #{@app_name_intalio} not running",
-             :jobs => jobs,
-             :backups => backup_info,
-             :license => license } if (app_stats.nil? || app_stats.empty?) && intalio_health == 'STOPPED'
-  
-    instance = app_stats.first
-  
+    running_instance = app_stats.select{|state| state[:state] == :RUNNING}.first  
     return { :colored_status => "orange", :status => "no-stats",
              :message => "No stats available for application #{@app_name_intalio} yet",
-             :jobs => jobs,
+#             :jobs => jobs,
              :backups => backup_info,
-             :license => license } if instance.nil?
+             :license => stale_license } if running_instance.nil?
   
-    stats = instance[:stats]
-  
+    stats = running_instance[:stats]
     # This may be some CF error, set to orange and try again
     return { :colored_status => "orange", :status => "no-public-uri",
              :message => "Application #{@app_name_intalio} is not mapped to a public URI",
-             :jobs => jobs,
+#             :jobs => jobs,
              :backups => backup_info,
-             :license => license } if stats[:uris].nil?
+             :license => stale_license } if (stats[:uris].nil? || stats[:uris].empty?)
   
     # find the uri closest to the current one:
-    intalio_uris_indexed = CreateAdmin.index_urls(stats[:uris])
-    intalio_hostname = CreateAdmin.get_closest_url(nil,request.host,intalio_uris_indexed)
+#    intalio_uris_indexed = CreateAdmin.index_urls(stats[:uris])
+#    intalio_hostname = CreateAdmin.get_closest_url(nil,request.host,intalio_uris_indexed)
+    intalio_hostname = stats[:uris].first
     uri = "http://#{intalio_hostname}/startup_status"
-  
+    
     master_test_response = get_master_test(uri, app_stats)
-    master_test_response[:jobs] = jobs
+#    master_test_response[:jobs] = jobs
     master_test_response[:backups ] = backup_info
-    master_test_response[:license] = get_license(intalio_hostname) if master_test_response[:colored_status] == 'green'
-    master_test_response[:license] ||= @app_status['license']
-    return master_test_response
-  
+    master_test_response[:license] = get_license(intalio_hostname, master_test_response[:colored_status] != 'green')
+
+    master_test_response  
   end
   
   def get_backup_dates
@@ -258,21 +262,25 @@ class ::Jobs::StatusJob
       period = setting.nil? ? setting.period : 0
       debug "Got backup period #{period}"
   
-      base_dir = ENV['BACKUP_HOME']
-      backups = Dir.entries(base_dir).select { |f|
-        f =~ /.zip/
-      }.sort {|a,b|
-        File.stat("#{base_dir}/#{b}").mtime <=> File.stat("#{base_dir}/#{a}").mtime
-      }
+      last_scheduled_backup = -1
+      base_dir = CreateAdmin.instance.backup_home
 
-      if(backups.size > 0)
-        # calculate last backup only against scheduled ones
-        last_backup = File.stat("#{base_dir}/#{backups[0]}").mtime.to_i * 1000
-  
-        backups.select! {|f|
-          f =~ /^\w+-\d+-\w+-\d+-\d+-s.zip/
-        }
-        last_scheduled_backup = File.stat("#{base_dir}/#{backups[0]}").mtime.to_i * 1000 if(backups.size > 0)
+      if File.directory?(base_dir)
+        backups = Dir.entries(base_dir).select { |f|
+          f =~ /.zip/
+        }.sort {|a,b|
+          File.stat("#{base_dir}/#{b}").mtime <=> File.stat("#{base_dir}/#{a}").mtime
+        }    
+
+        if(backups.size > 0)
+          # calculate last backup only against scheduled ones
+          last_backup = File.stat("#{base_dir}/#{backups[0]}").mtime.to_i * 1000
+    
+          backups.select! {|f|
+            f =~ /^\w+-\d+-\w+-\d+-\d+-s.zip/
+          }
+          last_scheduled_backup = File.stat("#{base_dir}/#{backups[0]}").mtime.to_i * 1000 if(backups.size > 0)
+        end
       end
   
       round_backup = proc { | backup_time, period |
@@ -309,17 +317,19 @@ class ::Jobs::StatusJob
       debug e.backtrace
     end
   
-    info = { :last_backup => last_backup, :next_backup => next_backup, :backup_failure => last_failure}
+    info = {:last_backup => last_backup, :next_backup => next_backup, :backup_failure => last_failure}
     debug "Backup info #{info}"
     return info
   end
   
-  def get_license(intalio_hostname)
+  def get_license(intalio_hostname, from_cache)
+    return @admin_instance.get_cache('license_terms') if from_cache
+
     uri = "http://#{intalio_hostname}/instance/get_license_terms"
     debug "getting license from #{uri}"
     begin
       response = uri.to_uri(:timeout => 50).get()
-      @app_status['license'] = JSON.parse(response.body) if response.ok?
+      @admin_instance.put_cache('license_terms', JSON.parse(response.body)) if response.ok?
     rescue Exception => e
       warn "Unable to get license #{e.message}"
       return ""

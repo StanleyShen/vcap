@@ -58,7 +58,7 @@ class ScheduledBackup
   
   def initialize(options = {})
     @manifest_path = options['manifest']
-    @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
+    @backup_home = CreateAdmin.instance.backup_home
     @running_threads = []
     @backup_failures = 0
     @backup_job_started = false

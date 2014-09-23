@@ -4,17 +4,15 @@ require 'vmc_knife'
 require "dataservice/postgres_ds"
 require "create_admin/log"
 
-
 module CreateAdmin
-  include ::DataService::PostgresSvc
-  include ::CreateAdmin::Log
+  extend ::DataService::PostgresSvc
   
   def self.normalize_file_path(path)
     # absolute path
     return path if (path.start_with?(File::SEPARATOR))
     File.join(ENV['HOME'], path)
   end
-  
+
   def self.file_metadata(file_path)
     name = File.basename(file_path)
     size = File.size(file_path)
@@ -59,6 +57,29 @@ module CreateAdmin
     }    
   end
 
+  def self.get_repository_url
+    sql = "select io_repository_url from io_system_setting where io_active='t';"
+    begin
+      url = nil
+      query(sql) {|res|
+        url = res.getvalue(0, 0)
+      }
+      return if url.nil?
+
+      url = url + '/' unless url.end_with?('/')
+      url
+    rescue => e
+      CreateAdmin::Log.warn('can not get the repository url, the active system setting may not available.')
+      CreateAdmin::Log.warn(e)
+    end
+  end
+
+  def self.get_base_url(url)
+    return if url.nil? || url.empty?
+    return url if url.end_with?('/')
+    url.sub(/([^\/]*$)/, '')
+  end
+  
   # Index the urls
   # @param app_urls The list of app_urls either as an array either a string with commas.
   def self.index_urls(app_urls)

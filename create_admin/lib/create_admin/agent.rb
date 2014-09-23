@@ -184,7 +184,7 @@ class ::CreateAdmin::ConnectionHandler
     job.requester = self
     job.admin_instance = CreateAdmin.instance
     job.run()
-    
+
     # should process the more data? 
     job.process_non_cmd_data(more_data) if more_data && !more_data.empty? && job.respond_to?(:process_non_cmd_data)
     job

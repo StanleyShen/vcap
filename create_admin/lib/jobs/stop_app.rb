@@ -96,11 +96,11 @@ class ::Jobs::StopAppJob
     begin
       at(iteration, total_ticks, "Stopping the application #{app_name}")
 
+      iteration = iteration + 1
       # get current app info again
       app = @admin_instance.app_info(app_name, false)
       return true if app[:state] == 'STOPPED'
 
-      iteration = iteration + 1
       sleep(@vmc_app_query_interval)
     end while timeout_at >= Time.now.to_i
 

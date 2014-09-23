@@ -15,22 +15,31 @@ class ::Jobs::AppFileJob
   end
   
   def run
-    client = @admin_instance.vmc_client
-    app_infos = client.app_instances(@app_name)
-
-    # send an empty string to client 
-    return @requester.close if app_infos.is_a?(Array)
-
-    instances = app_infos[:instances] || []
-    instances.each do |instance|
-      begin
-        content = client.app_files(@app_name, @path, instance[:index])
+    begin
+      @admin_instance.app_files(@app_name, @path, true) {|content|
         send_data(content, false)
-      rescue VMC::Client::TargetError => e
-        error(e.message)
-      end      
+      }
+    rescue VMC::Client::TargetError => e
+      error(e.message)
     end
-
     @requester.close
+#    
+#    client = @admin_instance.vmc_client
+#    app_infos = client.app_instances(@app_name)
+#
+#    # send an empty string to client 
+#    return @requester.close if app_infos.is_a?(Array)
+#
+#    instances = app_infos[:instances] || []
+#    instances.each do |instance|
+#      begin
+#        content = client.app_files(@app_name, @path, instance[:index])
+#        send_data(content, false)
+#      rescue VMC::Client::TargetError => e
+#        error(e.message)
+#      end      
+#    end
+#
+#    @requester.close
   end
 end
