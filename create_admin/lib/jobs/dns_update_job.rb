@@ -13,6 +13,10 @@ end
 class ::Jobs::DNSUpdateJob
   include Wrest
 
+  def self.job_name
+    'DNS update'
+  end
+
   def initialize(options)
     @manifest_path = options['manifest']
     @auth_headers = options['oauth_access_headers']

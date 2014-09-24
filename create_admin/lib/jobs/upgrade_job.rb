@@ -18,6 +18,10 @@ end
 class ::Jobs::UpgradeJob
   include HttpProxy
 
+  def self.job_name
+    'Upgrade'
+  end
+  
   def initialize(options)
     options = options || {}
 

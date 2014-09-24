@@ -12,6 +12,10 @@ end
 class ::Jobs::UpdateLicenseJob
   include CreateAdmin::LicenseManager
 
+  def self.job_name
+    'Update License'
+  end
+  
   def initialize(options)
     @user = options['user']
     raise 'No user provided.' if (@user.nil? || @user.empty?)

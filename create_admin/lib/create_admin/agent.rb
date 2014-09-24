@@ -1,26 +1,23 @@
 require 'rubygems'
 require 'json/pure'
 require 'eventmachine'
-
 require "create_admin/log"
 require "create_admin/admin_instance"
 require "common/pid_file"
 require 'em/protocols/object_protocol'
 
-Dir[File.dirname(__FILE__) + '/../jobs/*.rb'].each do |file| 
+Dir[File.dirname(__FILE__) + '/../jobs/*.rb'].each do |file|
   require file
 end
 
-module CreateAdmin  
+module CreateAdmin
   JOBS = {
     'upgrade' => Jobs::UpgradeJob,
-    'backup' => Jobs::BackupJob,
     'dns_update' => Jobs::DNSUpdateJob,
     'update_license' => Jobs::UpdateLicenseJob,
     'license_status' => Jobs::LicenseStatusJob,
     'ip_map' => Jobs::IPMapJob,
     'full_backup' => Jobs::FullBackupJob,
-    'restore' => Jobs::RestoreJob,
     'full_restore' => Jobs::FullRestoreJob,
     'status' => Jobs::StatusJob,
     'download' => Jobs::DownloadFile,
@@ -29,18 +26,33 @@ module CreateAdmin
     'delete_file' => Jobs::DeleteFileJob,
     'stop_app' => Jobs::StopAppJob,
     'start_app' => Jobs::StartAppJob,
-    'app_file' => Jobs::AppFileJob
+    'app_file' => Jobs::AppFileJob,
+    'generate_instance_id' => Jobs::GenJobInstanceId,
+    'job_status' => Jobs::JobStatus
   }
+  EXCLUSIVE_JOBS = {
+    'upgrade' => ['upgrade', 'dns_update', 'full_backup', 'full_restore', 'stop_app', 'start_app', 'app_file'],
+    'dns_update' => ['upgrade', 'stop_app', 'start_app', 'full_backup', 'full_restore'],
+    'update_license' => ['upgrade', 'stop_app', 'start_app', 'full_backup', 'full_restore'],
+    'full_backup' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
+    'full_restore' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
+    'stop_app' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
+    'start_app' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app']
+  }
+
   class ::CreateAdmin::ConnetionClosedFlag
     def bytesize
       0
     end
+
     def size
       0
     end
+
     def to_s
       ''
     end
+
     def to_str
       ''
     end
@@ -53,15 +65,13 @@ module CreateAdmin
     ::CreateAdmin::AdminInstance.instance
   end
 
-  class Agent
-  end
-  class ConnectionHandler < EM::Connection
-  end
+  class Agent; end
+  class ConnectionHandler < EM::Connection; end
+  class JobFailedPassError < StandardError; end
 end
 
 class ::CreateAdmin::Agent
   include ::CreateAdmin::Log
-
   def initialize(options)
     @options = options
 
@@ -81,7 +91,7 @@ class ::CreateAdmin::Agent
 
   def start_server()
     port = @options['port'] || 59080
-    EM.run do    
+    EM.run do
       EM.start_server('0.0.0.0', port, ::CreateAdmin::ConnectionHandler){|dispather|
         dispather.options = @options
       }
@@ -98,51 +108,58 @@ class ::CreateAdmin::ConnectionHandler
 
   # max length for the command string(it must be enough)
   MAX_COMMAND_SIZE = 16 * 1024
-  
   def initialize
     @closed = false
     @marshal = true
+    @queue_data = nil
+    @queue_processed = false
   end
 
   # if the command starts with underscore, the command string won't be deserializer, it is for debug purpose
   # for example: _delete_file:{"path": "/path/of/file"}
   def receive_data(data)
-    if @job.nil?
-      @marshal = false if (data.start_with?('_'))
-      
-      if @marshal
-        (@buf ||= '') << data
-        while (@buf.size >= 4 && @job.nil?)
-          size = @buf.unpack('N').first
-          if @buf.size >= (4 + size)
-            @buf.slice!(0,4)
-            @job = parse_command(serializer.load(@buf.slice!(0,size)), @buf)
-            @buf = nil
+    begin
+      if @job.nil?
+        @marshal = false if (data.start_with?('_'))
+
+        if @marshal
+          (@buf ||= '') << data
+          while (@buf.size >= 4 && @job.nil?)
+            size = @buf.unpack('N').first
+            if @buf.size >= (4 + size)
+              @buf.slice!(0,4)
+              run_command(serializer.load(@buf.slice!(0,size)), @buf)
+              @buf = nil
+            end
+            break
           end
-          break
+        else
+          command = data[1..-1]
+          run_unserialize_command(command)
         end
       else
-        command = data[1..-1]
-        @job = parse_unserialize_command(command)
+        process_queue_data(data)
       end
-    elsif @job.respond_to?(:process_non_cmd_data)
-      @job.process_non_cmd_data(data)
+    rescue CreateAdmin::JobFailedPassError => e
+      error(e.message)
+      close({:status => 'failed', 'message' => e.message})
+    rescue => e
+      error("Failed to execute command #{@debug_str}")
+      error(e)
+      close("Failed to execute command #{@debug_str}, message: #{e.message}")
     end
-  rescue => e
-    error("Failed to execute command #{@debug_str}")
-    error(e)
-    close("Failed to execute command #{@debug_str}, message: #{e.message}")
   end
 
   def unbind
-    EM::next_tick {
-      begin
-        @job.process_non_cmd_data(::CreateAdmin::CONNECTION_EOF) if @job.respond_to?(:process_non_cmd_data)
-      rescue => e
-        error("Encount exception when sent the connecton EOF flag.")
-        error(e)
-      end
-    }        
+    begin
+      process_queue_data(CreateAdmin::CONNECTION_EOF)
+    rescue => e
+      error("Encount exception when sent the connecton EOF flag.")
+      error(e)
+    end
+    if @job && @instance_id
+      CreateAdmin.instance.complete_instance(@job_type, @instance_id)
+    end
   end
 
   def message(data)
@@ -165,33 +182,61 @@ class ::CreateAdmin::ConnectionHandler
 
   private
   
-  def parse_unserialize_command(command)
-    vals = command.split("\r\n", 2)
-    parse_command(vals[0], vals[1])
+  def process_queue_data(data, run_in_defer = true)
+    return unless @job.respond_to?(:process_non_cmd_data)
+    @queue_data = @queue_data || Queue.new
+    @queue_data.push(data) if data
+
+    return if @queue_processed
+    @queue_processed = true
+
+    process_data = proc{
+      begin
+        @job.process_non_cmd_data(@queue_data)
+      rescue =>e
+        error("Encount exception when process the non-command data.")
+        error e
+        close("Encount exception when process the non-command data, message: #{e.message}")
+      end
+    }
+    
+    if run_in_defer      
+      EM.defer process_data
+    else
+      process_data.call
+    end
   end
 
-  def parse_command(command, more_data)
+  def run_unserialize_command(command)
+    vals = command.split("\r\n", 2)
+    run_command(vals[0], vals[1])
+  end
+
+  def run_command(command, more_data)
     job_type, paras = command.split(':', 2)
 
-    @debug_str = "#{job_type}:#{paras}"     
-    job = find_job(job_type, paras)
-
-    raise "Failed to parse the command: #{@debug_str}, can not find the job." if job.nil?
+    @debug_str = "#{job_type}:#{paras}"
+    @job = find_job(job_type, paras)
 
     info("Command is  >>>  #{@debug_str}")
 
-    job.requester = self
-    job.admin_instance = CreateAdmin.instance
-    job.run()
+    @job.requester = self
+    @job.admin_instance = CreateAdmin.instance
 
-    # should process the more data? 
-    job.process_non_cmd_data(more_data) if more_data && !more_data.empty? && job.respond_to?(:process_non_cmd_data)
-    job
+    if more_data && !more_data.empty?
+      @queue_data = @queue_data || Queue.new
+      @queue_data.push(more_data)     
+    end
+
+    EM.defer {
+      @job.run()
+      process_queue_data(nil, false) if more_data && !more_data.empty?
+    }    
   end
-  
+
   def find_job(job_type, paras)
     job_klass = CreateAdmin::JOBS[job_type]
-    return if job_klass.nil?
+    raise "Failed to parse the command: #{@debug_str}, can not find the job." if job_klass.nil?
 
     parsed_paras = if paras.nil? || paras.empty?
       nil
@@ -204,7 +249,14 @@ class ::CreateAdmin::ConnectionHandler
       end
     end
 
+    @job_type = job_type
+    @instance_id = parsed_paras['instance'] if parsed_paras
+    if (@instance_id)
+      # we only monitor the job if the job has instance
+      accept = CreateAdmin.instance.accept_job?(@job_type, @instance_id)
+      raise CreateAdmin::JobFailedPassError.new(accept[:message]) unless accept[:accept]
+    end
+
     job_klass.new(parsed_paras)
   end
-
 end

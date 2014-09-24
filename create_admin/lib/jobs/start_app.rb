@@ -11,6 +11,14 @@ module Jobs
 end
 
 class ::Jobs::StartAppJob
+  def self.job_name
+    'Start Application'
+  end
+
+  def self.accept?(job_type, klass)
+    
+  end
+  
   def initialize(options)
     super(options)
 

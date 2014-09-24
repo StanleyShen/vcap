@@ -20,6 +20,10 @@ end
 
 class ::Jobs::FullBackupJob
 
+  def self.job_name
+    'Backup'
+  end
+  
   def initialize(options)
     options = options || {}
 
@@ -28,6 +32,7 @@ class ::Jobs::FullBackupJob
     @backup_ext = options['backup_ext'] || '.zip'
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
     @tmp_dir = "#{@backup_home}/tmp"
+    @is_backend_job = options['backend_job'] == true
 
     if options['suffix'].nil?
       @file_suffix = ''
@@ -37,7 +42,8 @@ class ::Jobs::FullBackupJob
   end
 
   def run
-    @backup_instance = ScheduledBackup.instance
+    @schedule_instance = ScheduledBackup.instance
+
     begin
       manifest = @admin_instance.manifest(false, @manifest_path)
       client = @admin_instance.vmc_client(false, @manifest_path)
@@ -107,10 +113,10 @@ class ::Jobs::FullBackupJob
 
       call_extensible_backup(client, archive)
 
-      @backup_instance.reset_failure
+      @schedule_instance.reset_failure if @is_backend_job
       completed
     rescue => e
-      @backup_instance.flag_failure
+      @schedule_instance.flag_failure if @is_backend_job
       
       error "Got exception #{e.message}"
       error e.backtrace
@@ -121,7 +127,6 @@ class ::Jobs::FullBackupJob
     ensure
       FileUtils.remove_dir(@tmp_dir, true)
     end
-
   end
 
   private
@@ -155,7 +160,7 @@ class ::Jobs::FullBackupJob
       end
     else
       warn "Intalio may not be up. Not calling extensible backup" if instance.nil?
-      warn "In scheduling backup mode. No credentials available to call extensible backup" if @auth_headers.nil?
+      warn "In scheduling backup mode. No credentials available to call extensible backup" if @is_backend_job
     end
 
   end

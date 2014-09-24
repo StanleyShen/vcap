@@ -217,7 +217,7 @@ end
 class BackendBackupJob < ::Jobs::FullBackupJob
   include ::CreateAdmin::Log
   def initialize(options)
-    super(options)
+    super((options || {}).merge!({'backend_job' => true}))
     @admin_instance = CreateAdmin.instance
   end
   def send_data(data, end_request = false)

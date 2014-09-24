@@ -19,21 +19,29 @@ class ::Jobs::UploadFile
   def run()
   end
 
-  def process_non_cmd_data(data)
+  def process_non_cmd_data(queue)
     return if @upload_done
-    if (data == ::CreateAdmin::CONNECTION_EOF)
-      if @received_size != @size
-        error "The upload file isn't integrity, expected size: #{@size} bytes, but received: #{@received_size} bytes"
-        @tmp_file.unlink if @tmp_file
-      else
-        upload_finised
+    
+    loop do
+      data = queue.pop
+      if (data == ::CreateAdmin::CONNECTION_EOF)
+        if @received_size != @size
+          error "The upload file isn't integrity, expected size: #{@size} bytes, but received: #{@received_size} bytes"
+          @tmp_file.unlink if @tmp_file
+        else
+          upload_finised
+        end
+        break
       end
-      return
+  
+      @tmp_file.write(data)
+      @received_size = @received_size + data.bytesize
+      
+      if (@received_size == @size)
+        upload_finised
+        break
+      end
     end
-
-    @tmp_file.write(data)
-    @received_size = @received_size + data.bytesize
-    upload_finised if (@received_size == @size)
   end
 
   private
@@ -47,7 +55,7 @@ class ::Jobs::UploadFile
       FileUtils.rm(backup_path) if File.file?(backup_path)
       FileUtils.mv(@output_path, backup_path) if File.file?(@output_path)
   
-      FileUtils.mv(@tmp_file, @output_path)
+      FileUtils.cp(@tmp_file, @output_path)
     ensure
       @requester.close
     end

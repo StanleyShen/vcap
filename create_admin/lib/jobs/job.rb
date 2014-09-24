@@ -24,10 +24,15 @@ class Jobs::Job
     name
   end
 
-  def self.accept?(job_type, klass)
+  def self.accept?(my_type, job_type)
+    exclusive_jobs = CreateAdmin::EXCLUSIVE_JOBS[my_type]
+    return false if exclusive_jobs && exclusive_jobs.include?(job_type)
     true
   end
-               
+
+  def initialize(options = nil)
+  end
+  
   def run()
     raise 'Subclass needs to implement this run method.'
   end

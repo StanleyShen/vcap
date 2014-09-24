@@ -10,6 +10,10 @@ module Jobs
 end
 
 class ::Jobs::StopAppJob
+  def self.job_name
+    'Stop Application'
+  end
+  
   def initialize(options)
     options = options || {}
 

@@ -3,6 +3,8 @@ require 'vmc_knife'
 require 'vmc_knife/commands/knife_cmds'
 
 require 'singleton'
+require 'securerandom'
+require 'thread'
 
 require "create_admin/log"
 
@@ -15,38 +17,57 @@ class ::CreateAdmin::AdminInstance
   include Singleton
   include ::CreateAdmin::Log
   include VMC::KNIFE::Cli
-
-  @running_job_instances = {}
-  @running_jobs_lock = Mutex.new
   
-  def accept_job?(job_type)
-    klass = CreateAdmin::JOBS(job_type)
+  def accept_job?(job_type, instance_id)
+    klass = CreateAdmin::JOBS[job_type]
+    return {:accept => false, :message => "Can't find the job class with type: #{job_type}."} if klass.nil?
 
     @running_jobs_lock.synchronize{
-      @running_job_instances.each{|running_job, instance_num|
+      @running_instance_nums.each{|running_job, instance_num|
         next if instance_num == 0
 
-        running_klass = CreateAdmin::JOBS(running_job)
-        unless running_klass.accept?(job_type, klass)
+        running_klass = CreateAdmin::JOBS[running_job]
+        unless running_klass.accept?(running_job, job_type)
           return {:accept => false, :message => "Can't execute #{klass.job_name} because #{running_klass.job_name} is running."}
         end
       }
-      @running_job_instances[job_type] = (@running_job_instances[job_type] || 0) + 1
+      @running_instance_nums[job_type] = (@running_instance_nums[job_type] || 0) + 1 
+      @job_instances[instance_id] = JobInstance.new(job_type, instance_id)
     }
 
     {:accept => true}
   end
-  
-  def remove_running_instance(job_type)
+
+  def complete_instance(job_type, instance_id)
     @running_jobs_lock.synchronize{
-      @running_job_instances[job_type] = (@running_job_instances[job_type] || 0) - 1
-      if (@running_job_instances[job_type] < 0)
-        warn("#{job_type} instance number isn't removed correctly, the current instances are #{@running_job_instances[job_type]}")
-        @running_job_instances[job_type] = 0
+      @running_instance_nums[job_type] = (@running_instance_nums[job_type] || 0) - 1
+      if (@running_instance_nums[job_type] < 0)
+        warn("#{job_type} instance number isn't removed correctly, the instances number is #{@running_instance_nums[job_type]}")
+        @running_instance_nums[job_type] = 0
       end
+
+      instance = @job_instances[instance_id]
+      warn("The instance #{instance_id} doesn't exist for type: #{job_type}.") if instance.nil?
+      instance.completed if instance
     }
-  end 
+  end
   
+  def job_status(instance_id)
+    instance = @job_instances[instance_id]
+    raise "The instance #{instance_id} doesn't exist."
+    instance.status
+  end
+  
+  def get_safe_instance_id()
+    @running_jobs_lock.synchronize{
+      new_id = SecureRandom.base64
+      while @job_instances.has_key?(new_id)
+        new_id = SecureRandom.base64
+      end
+      return new_id
+    }
+  end
+
   def app_info(app, parse_env = true, manifest_path = nil)
     client = vmc_client(false, manifest_path)
     app_info = client.app_info(app)
@@ -158,6 +179,26 @@ class ::CreateAdmin::AdminInstance
 
   def initialize
     @instance_cache = {}
+    # it is to maintain the instance number per job type.
+    @running_instance_nums = {}
+    # it is to maintain the running job instanceid
+    @job_instances = {}
+    @running_jobs_lock = Mutex.new
+
+    # thread is used to clean expired job instance
+    Thread.new{
+      loop do
+        # check in every 10 minutes
+        sleep (600)
+        # remove all the expired instance
+        @running_jobs_lock.synchronize{
+          all_instances = @job_instances.values
+          all_instances.each{|t|
+            @job_instances.delete(t.instance_id) if t.is_expired?
+          }
+        }
+      end
+    }
   end
 
   def refresh_manifest(manifest_path = nil)
@@ -165,5 +206,28 @@ class ::CreateAdmin::AdminInstance
 
     manifest = manifest_path || ENV['VMC_KNIFE_DEFAULT_RECIPE']
     @manifest = load_manifest(manifest_path)
+  end
+  
+  class JobInstance
+    COMPLETED = :completed
+    RUNNING = :running
+    TIMEOUT = 3600 # will keep the completed instance in one hour
+  
+    attr_accessor :job_type, :instance_id, :status, :completed_time
+    def initialize(job_type, instance_id)
+      @status = RUNNING
+      @job_type = job_type
+      @instance_id = instance_id
+    end
+    
+    def completed
+      @status = COMPLETED
+      @completed_time = Time.new.to_i
+    end
+    
+    def is_expired?
+      return true if (@status == COMPLETED) && ((Time.new.to_i - @completed_time) >= TIMEOUT)
+      false
+    end
   end
 end

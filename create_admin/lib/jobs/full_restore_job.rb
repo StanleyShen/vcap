@@ -16,6 +16,10 @@ module Jobs
 end
 class ::Jobs::FullRestoreJob
 
+  def self.job_name
+    'Restore'
+  end
+  
   def initialize(options)
     @backup = options['backup']
     raise "No backup provided" if (@backup.nil? || @backup.empty?)
