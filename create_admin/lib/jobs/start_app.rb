@@ -15,10 +15,6 @@ class ::Jobs::StartAppJob
     'Start Application'
   end
 
-  def self.accept?(job_type, klass)
-    
-  end
-  
   def initialize(options)
     super(options)
 
