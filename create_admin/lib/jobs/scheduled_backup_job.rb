@@ -20,7 +20,7 @@ class ScheduledBackup
     if (setting.nil?)
       # no system setting ?
       error("can't find the active system setting")
-      reset()
+      reset(nil)
       return
     end
 
