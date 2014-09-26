@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler'
+
+home = File.join(File.dirname(__FILE__), '/..')
+ENV['BUNDLE_GEMFILE'] = "#{home}/Gemfile"
+
+Bundler.setup
+
+require File.join(home, 'lib/create_admin')
