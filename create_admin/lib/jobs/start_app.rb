@@ -40,22 +40,20 @@ class ::Jobs::StartAppJob
           health = ext_client.__health(app)
   
           if (health != 'RUNNING')
-            res[app_name.to_sym] = "starting #{app_name}"
+            res[app_name] = "starting #{app_name}"
           else
-            res[app_name.to_sym] = "started already"
+            res[app_name] = "started already"
           end
         rescue => e
           error("failed to start #{app_name}")
           error(e)
-          res[app_name.to_sym] = e.message
+          res[app_name] = e.message
         end
       else
         res[app_name.to_sym] = "started already"
       end
     end
-    res['success'] = true
-
-    send_data(res, true)
+    completed(res)
   end
   
   private
@@ -118,7 +116,7 @@ class ::Jobs::StartAppJob
     app = @admin_instance.app_info(app_name, false)
     unless ext_client.__health(app) == 'RUNNING'
       failed( {'message' => "Timeout: the application #{app_name} did not start in time.",
-               'start' => 'failed', 'exception' => e.backtrace, 'reason' => 'timeout' }, false)
+               'start' => 'failed', 'reason' => 'timeout' }, false)
       return false
     end
     true

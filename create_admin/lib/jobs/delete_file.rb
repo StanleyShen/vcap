@@ -16,7 +16,7 @@ class ::Jobs::DeleteFileJob
     return failed("File #{@file} isn't one file!") unless File.file?(@file)
     
     File.delete(@file)
-    completed("File #{@file} deleted successfully.")
+    completed("File #{@file} is deleted successfully.")
   end
 
 end

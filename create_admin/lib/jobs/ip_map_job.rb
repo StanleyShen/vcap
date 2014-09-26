@@ -13,12 +13,10 @@ class ::Jobs::IPMapJob
   def initialize(options)
     @ip = options['ip']
     raise "No ip provided" if (@ip.nil? || @ip.empty?)
-
-    @manifest_path = options['manifest']
   end
   
   def run
-    @manifest_path = @admin_instance.manifest_path(@manifest_path)
+    @manifest_path = @admin_instance.manifest_path()
 
     total = 2
     at(0, total, "Preparing to update IP mapping")
@@ -47,8 +45,9 @@ class ::Jobs::IPMapJob
       
   rescue => e
     error "Got exception #{e.message}"
-    failed( {'message' => "IP mapping update failed: #{e.message}",
-             'ip_map' => 'failed', 'exception' => e.backtrace })
+    error e
+    failed({'message' => "IP mapping update failed: #{e.message}",
+             'ip_map' => 'failed'})
   end
   
   private

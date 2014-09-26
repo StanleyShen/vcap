@@ -5,11 +5,6 @@ require 'vmc_knife/commands/knife_cmds'
 
 require 'fileutils'
 
-#
-# Job responsible for updating the hostnames for all the applications
-# running on the cloudfoundry instance
-#
-#
 module Jobs
   class FullRestoreJob < Job
   end
@@ -24,7 +19,6 @@ class ::Jobs::FullRestoreJob
     @backup = options['backup']
     raise "No backup provided" if (@backup.nil? || @backup.empty?)
 
-    @manifest_path = options['manifest']
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
     @tmp_dir = "#{@backup_home}/tmp"
     @current_tmp_dir = "#{@backup_home}/current"
@@ -36,7 +30,7 @@ class ::Jobs::FullRestoreJob
       at(0, 1, "Preparing to restore")
       remove_vmc_knife_data_dir()
 
-      manifest = @admin_instance.manifest(false, @manifest_path)
+      manifest = @admin_instance.manifest(false)
 
       unless File.directory?(@current_tmp_dir)
         FileUtils.mkpath(@current_tmp_dir)
@@ -47,7 +41,7 @@ class ::Jobs::FullRestoreJob
         @num = 0
         total = (data_services.size * 2)+1
         backup_ext = '.tar.gz'
-        client = @admin_instance.vmc_client(false, @manifest_path)
+        client = @admin_instance.vmc_client(false)
 
         data_services.each { | name, attributes |
           dir = attributes['director']
@@ -147,8 +141,9 @@ class ::Jobs::FullRestoreJob
       end
     rescue => e
       error "Got exception #{e.message}"
+      error e
       failed( {'message' => "Restore failed: #{e.message}",
-               'restore' => 'failed', 'exception' => e.backtrace })
+        'restore' => 'failed'})
     ensure
       FileUtils.remove_dir(@tmp_dir, true)
       # Also remove the data dir created by vmc_knife

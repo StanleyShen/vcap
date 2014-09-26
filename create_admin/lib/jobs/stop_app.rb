@@ -36,22 +36,21 @@ class ::Jobs::StopAppJob
           # try to get the latest status again 
           app = @admin_instance.app_info(app_name, false)
           if app[:state] != 'STOPPED'
-            res[app_name.to_sym] = 'stopping'
+            res[app_name] = 'stopping'
           else
-            res[app_name.to_sym] = 'stopped'
+            res[app_name] = 'stopped'
           end
         rescue => e
           error("failed to stop #{app_name}")
           error(e)
-          res[app_name.to_sym] = e.message
+          res[app_name] = e.message
         end
       else
-        res[app_name.to_sym] = 'stopped'
+        res[app_name] = 'stopped'
       end
     end
-    res['success'] = true
 
-    send_data(res, true)
+    completed(res)
   end
 
   def stop_app(app_name, app)
@@ -91,7 +90,6 @@ class ::Jobs::StopAppJob
     total_ticks = stop_total_ticks
     iteration = 0
 
-    debug "[do_stop] tick to stop it now......"
     at(0, total_ticks, "Stopping the application #{app_name}")
     app[:state] = 'STOPPED'
     update_app(app_name, app)

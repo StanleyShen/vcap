@@ -11,14 +11,7 @@ end
 
 class Jobs::Job
   include ::CreateAdmin::Log
-
-  attr_accessor :requester, :admin_instance
-
-  JOB_STATES = { :queued => 'queued',
-                 :working => 'working',
-                 :failed => 'failed',
-                 :completed => 'completed',
-                 :killed => 'killed' }
+  attr_accessor :requester, :admin_instance, :instance_id
 
   def self.job_name
     name
@@ -37,19 +30,26 @@ class Jobs::Job
     raise 'Subclass needs to implement this run method.'
   end
 
+  # it is to update the execution result directly
+  def update_execution_result(res)
+    return if @instance_id.nil?
+    @admin_instance.update_instance_execution_result(@instance_id, res)
+  end
+  
   def at(num, total, messages)
-    send_status({:status => JOB_STATES[:working], :num => num, :total => total}, false, messages)
+    send_status({'_status' => CreateAdmin::JOB_STATES['working'], 'num' => num, 'total' => total}, false, messages)
   end
 
   def completed(messages = nil, end_request = true)
-    send_status({:status => JOB_STATES[:completed]}, end_request, messages)
+    send_status({'_status' => CreateAdmin::JOB_STATES['success']}, end_request, messages)
   end
 
   def failed(messages = nil, end_request = true)
-    send_status({:status => JOB_STATES[:failed]}, end_request, messages)
+    send_status({'_status' => CreateAdmin::JOB_STATES['failed']}, end_request, messages)
   end
   
   def send_data(data, end_request = false)
+    # update the execution result
     if end_request
       @requester.close(data)
     else
@@ -60,13 +60,14 @@ class Jobs::Job
   def send_status(status, end_request, message = nil)
     if message
       if message.is_a?(String)
-        status[:message] = message
+        status['message'] = message
       elsif message.is_a?(Hash)
-        message.each{|k,v|
-          k = k.to_sym() if k.is_a?(String)
-          status[k] = v
-        }
+        status = message.merge(status)
       end
+    end
+
+    if end_request && @instance_id
+      @admin_instance.update_instance_execution_result(@instance_id, data)
     end
 
     send_data(status, end_request)

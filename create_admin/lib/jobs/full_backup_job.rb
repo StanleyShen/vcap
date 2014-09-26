@@ -7,12 +7,6 @@ require 'jobs/job'
 require 'jobs/scheduled_backup_job'
 require 'fileutils'
 
-#
-# Job responsible for updating the hostnames for all the applications
-# running on the cloudfoundry instance
-#
-#
-
 module Jobs
   class FullBackupJob < Job
   end
@@ -26,8 +20,6 @@ class ::Jobs::FullBackupJob
   
   def initialize(options)
     options = options || {}
-
-    @manifest_path = options['manifest']
     @auth_headers= options['oauth_access_headers']
     @backup_ext = options['backup_ext'] || '.zip'
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"
@@ -45,8 +37,8 @@ class ::Jobs::FullBackupJob
     @schedule_instance = ScheduledBackup.instance
 
     begin
-      manifest = @admin_instance.manifest(false, @manifest_path)
-      client = @admin_instance.vmc_client(false, @manifest_path)
+      manifest = @admin_instance.manifest(false)
+      client = @admin_instance.vmc_client(false)
 
       at(0, 1, "Preparing to backup")
       filename = "backup#{@backup_ext}"
@@ -119,11 +111,10 @@ class ::Jobs::FullBackupJob
       @schedule_instance.flag_failure if @is_backend_job
       
       error "Got exception #{e.message}"
-      error e.backtrace
-      debug "Rolling back if applicable"
+      error e
       rollback(archive)
-      failed( {'message' => "Backup failed: #{e.message}",
-               'backup' => 'failed', 'exception' => e.backtrace })
+      failed({'message' => "Backup failed: #{e.message}",
+        'backup' => 'failed'})
     ensure
       FileUtils.remove_dir(@tmp_dir, true)
     end

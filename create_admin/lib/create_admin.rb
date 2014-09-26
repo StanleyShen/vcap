@@ -41,4 +41,13 @@ config['config_file'] = File.expand_path(config['config_file'])
 VCAP::Logging.setup_from_config(config['logging'])
 CreateAdmin::Log.logger = VCAP::Logging.logger('create_admin')
 
+require 'wrest'
+require 'wrest/native/connection_factory'
+require 'rest_client'
+
+require 'patch/connection_factory_proxy_patch'
+require 'patch/restclient_add_timeout'
+
+require 'create_admin/constants'
+
 agent = ::CreateAdmin::Agent.new(config)

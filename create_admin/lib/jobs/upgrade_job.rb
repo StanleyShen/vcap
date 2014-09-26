@@ -58,8 +58,9 @@ class ::Jobs::UpgradeJob
       completed('successfully upgraded.')
     rescue Exception => e
       msg = "Failed to upgrade app: #{e.message}"
+      error msg
       error e
-      failed( {'message' => msg, 'upgrade' => 'failed' })
+      failed({'message' => msg, 'upgrade' => 'failed'})
     end
   end
 

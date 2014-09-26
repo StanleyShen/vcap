@@ -59,6 +59,8 @@ class ::Jobs::UploadFile
     ensure
       @requester.close
     end
+
+    update_execution_result({'_status' => CreateAdmin::JOB_STATES['success']})
   end
 
   def parse_metadata(meta)

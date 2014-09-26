@@ -1,66 +1,15 @@
 require 'rubygems'
 require 'json/pure'
 require 'eventmachine'
-require "create_admin/log"
-require "create_admin/admin_instance"
-require "common/pid_file"
+
 require 'em/protocols/object_protocol'
 
-Dir[File.dirname(__FILE__) + '/../jobs/*.rb'].each do |file|
-  require file
-end
+require 'create_admin/constants'
+require "create_admin/log"
+require "common/pid_file"
+require "create_admin/admin_instance"
 
 module CreateAdmin
-  JOBS = {
-    'upgrade' => Jobs::UpgradeJob,
-    'dns_update' => Jobs::DNSUpdateJob,
-    'update_license' => Jobs::UpdateLicenseJob,
-    'license_status' => Jobs::LicenseStatusJob,
-    'ip_map' => Jobs::IPMapJob,
-    'full_backup' => Jobs::FullBackupJob,
-    'full_restore' => Jobs::FullRestoreJob,
-    'status' => Jobs::StatusJob,
-    'download' => Jobs::DownloadFile,
-    'upload' => Jobs::UploadFile,
-    'list_files' => Jobs::ListFilesJob,
-    'delete_file' => Jobs::DeleteFileJob,
-    'stop_app' => Jobs::StopAppJob,
-    'start_app' => Jobs::StartAppJob,
-    'app_file' => Jobs::AppFileJob,
-    'generate_instance_id' => Jobs::GenJobInstanceId,
-    'job_status' => Jobs::JobStatus
-  }
-  EXCLUSIVE_JOBS = {
-    'upgrade' => ['upgrade', 'dns_update', 'full_backup', 'full_restore', 'stop_app', 'start_app', 'app_file'],
-    'dns_update' => ['upgrade', 'stop_app', 'start_app', 'full_backup', 'full_restore'],
-    'update_license' => ['upgrade', 'stop_app', 'start_app', 'full_backup', 'full_restore'],
-    'full_backup' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
-    'full_restore' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
-    'stop_app' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
-    'start_app' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app']
-  }
-
-  class ::CreateAdmin::ConnetionClosedFlag
-    def bytesize
-      0
-    end
-
-    def size
-      0
-    end
-
-    def to_s
-      ''
-    end
-
-    def to_str
-      ''
-    end
-  end
-
-  # constand to indicate the connection is closed
-  CONNECTION_EOF = ::CreateAdmin::ConnetionClosedFlag.new
-
   def self.instance
     ::CreateAdmin::AdminInstance.instance
   end
@@ -142,11 +91,11 @@ class ::CreateAdmin::ConnectionHandler
       end
     rescue CreateAdmin::JobFailedPassError => e
       error(e.message)
-      close({:status => 'failed', 'message' => e.message})
+      failed(e.message)
     rescue => e
       error("Failed to execute command #{@debug_str}")
       error(e)
-      close("Failed to execute command #{@debug_str}, message: #{e.message}")
+      failed("Failed to execute command #{@debug_str}, message: #{e.message}")
     end
   end
 
@@ -168,6 +117,10 @@ class ::CreateAdmin::ConnectionHandler
     else
       send_data(data)
     end
+  end
+  
+  def failed(message)
+    close({'_status' => CreateAdmin::JOB_STATES['failed']}, 'message' => message)
   end
 
   def close(data = nil)
@@ -196,7 +149,7 @@ class ::CreateAdmin::ConnectionHandler
       rescue =>e
         error("Encount exception when process the non-command data.")
         error e
-        close("Encount exception when process the non-command data, message: #{e.message}")
+        failed("Encount exception when process the non-command data, message: #{e.message}")
       end
     }
     
@@ -222,6 +175,7 @@ class ::CreateAdmin::ConnectionHandler
 
     @job.requester = self
     @job.admin_instance = CreateAdmin.instance
+    @job.instance_id = @instance_id
 
     if more_data && !more_data.empty?
       @queue_data = @queue_data || Queue.new
@@ -229,8 +183,14 @@ class ::CreateAdmin::ConnectionHandler
     end
 
     EM.defer {
-      @job.run()
-      process_queue_data(nil, false) if more_data && !more_data.empty?
+      begin
+        @job.run()
+        process_queue_data(nil, false) if more_data && !more_data.empty?
+      rescue =>e
+        error("Encount exception when runing the job: #{@debug_str}.")
+        error e
+        failed("Encount exception when runing the job: #{@debug_str}, message: #{e.message}")
+      end
     }    
   end
 
@@ -250,9 +210,9 @@ class ::CreateAdmin::ConnectionHandler
     end
 
     @job_type = job_type
-    @instance_id = parsed_paras['instance'] if parsed_paras
+    @instance_id = parsed_paras['_instance'] if parsed_paras 
     if (@instance_id)
-      # we only monitor the job if the job has instance
+      # we only monitor the job if the parameter has _instance.
       accept = CreateAdmin.instance.accept_job?(@job_type, @instance_id)
       raise CreateAdmin::JobFailedPassError.new(accept[:message]) unless accept[:accept]
     end

@@ -23,15 +23,13 @@ class ::Jobs::UpdateLicenseJob
     @access_token = options['access_token']
     @success_msg = options['success_message'] || 'License has been updated.'
     raise "No access_token provided" if (@access_token.nil? || @access_token.empty?)
-
-    @manifest_path = options['manifest']
   end
 
   def run
     total = 2
     at(0, total, "Preparing to update license")
 
-    creds = get_license_credentials(@manifest_path)
+    creds = get_license_credentials()
 
     license = get_new_license(creds[:gateway_url], creds[:vm_id], creds[:token], creds[:password])
     at(1, total, "Got updated license")
@@ -45,8 +43,9 @@ class ::Jobs::UpdateLicenseJob
     completed('message' => @success_msg)
   rescue Exception => e
     error "Got exception #{e.message}"
-    failed( {'message' => "License update failed: #{e.message}",
-             'license_update' => 'failed', 'exception' => e.backtrace })
+    error e
+    failed({'message' => "License update failed: #{e.message}",
+      'license_update' => 'failed'})
   end
 
 end
