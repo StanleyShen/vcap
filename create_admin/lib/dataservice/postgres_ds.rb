@@ -21,7 +21,7 @@ module DataService
     def query(sql, pg_cred = nil)
       begin
         conn = get_postgres_db(pg_cred)
-        raise 'failed to get the pg connetion with cred#{pg_cred}' if conn.nil?
+        raise 'failed to get the pg connetion with cred #{pg_cred}.' if conn.nil?
 
         conn.exec(sql) {|result|
           yield(result)

@@ -59,15 +59,15 @@ class Jobs::Job
 
   def send_status(status, end_request, message = nil)
     if message
-      if message.is_a?(String)
-        status['message'] = message
-      elsif message.is_a?(Hash)
+      if message.is_a?(Hash)
         status = message.merge(status)
+      else
+        status['message']= message
       end
     end
 
-    if end_request && @instance_id
-      @admin_instance.update_instance_execution_result(@instance_id, data)
+    if @instance_id
+      @admin_instance.update_instance_execution_result(@instance_id, status)
     end
 
     send_data(status, end_request)

@@ -16,21 +16,22 @@ module CreateAdmin
     'upload' => Jobs::UploadFile,
     'list_files' => Jobs::ListFilesJob,
     'delete_file' => Jobs::DeleteFileJob,
-    'stop_app' => Jobs::StopAppJob,
-    'start_app' => Jobs::StartAppJob,
+    'stop_apps' => Jobs::StopAppJob,
+    'start_apps' => Jobs::StartAppJob,
     'app_file' => Jobs::AppFileJob,
     'generate_instance_id' => Jobs::GenJobInstanceId,
-    'job_status' => Jobs::JobStatus
+    'job_status' => Jobs::JobStatus,
+    'app_info' => Jobs::AppInfo
   }
 
   EXCLUSIVE_JOBS = {
-    'upgrade' => ['upgrade', 'dns_update', 'full_backup', 'full_restore', 'stop_app', 'start_app', 'app_file'],
-    'dns_update' => ['upgrade', 'stop_app', 'start_app', 'full_backup', 'full_restore'],
-    'update_license' => ['upgrade', 'stop_app', 'start_app', 'full_backup', 'full_restore'],
-    'full_backup' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
-    'full_restore' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
-    'stop_app' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app'],
-    'start_app' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_app', 'start_app']
+    'upgrade' => ['upgrade', 'dns_update', 'full_backup', 'full_restore', 'stop_apps', 'start_apps', 'app_file'],
+    'dns_update' => ['upgrade', 'stop_apps', 'start_apps', 'full_backup', 'full_restore'],
+    'update_license' => ['upgrade', 'stop_apps', 'start_apps', 'full_backup', 'full_restore'],
+    'full_backup' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
+    'full_restore' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
+    'stop_apps' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
+    'start_apps' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps']
   }
 
   # the client only needs to consider: none, working, failed and success.

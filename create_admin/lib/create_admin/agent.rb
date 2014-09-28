@@ -119,10 +119,6 @@ class ::CreateAdmin::ConnectionHandler
     end
   end
   
-  def failed(message)
-    close({'_status' => CreateAdmin::JOB_STATES['failed']}, 'message' => message)
-  end
-
   def close(data = nil)
     return if @closed
     @closed = true
@@ -134,6 +130,14 @@ class ::CreateAdmin::ConnectionHandler
   end
 
   private
+  
+  def failed(message)
+    status = {'_status' => CreateAdmin::JOB_STATES['failed'], 'message' => message}
+    if (@instance_id)
+      CreateAdmin.instance.update_instance_execution_result(@instance_id, status)
+    end    
+    close(status)
+  end
   
   def process_queue_data(data, run_in_defer = true)
     return unless @job.respond_to?(:process_non_cmd_data)
@@ -179,7 +183,7 @@ class ::CreateAdmin::ConnectionHandler
 
     if more_data && !more_data.empty?
       @queue_data = @queue_data || Queue.new
-      @queue_data.push(more_data)     
+      @queue_data.push(more_data)
     end
 
     EM.defer {

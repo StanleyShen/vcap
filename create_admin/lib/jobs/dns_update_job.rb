@@ -28,7 +28,7 @@ class ::Jobs::DNSUpdateJob
     org_hostname = intalio_info[:uris].first
     @manifest_path = @admin_instance.manifest_path()
 
-    total = 5
+    total = 7
     if (org_hostname.nil? || org_hostname.empty?)
       failed "can't get the intalio uri."
       return
@@ -49,17 +49,19 @@ class ::Jobs::DNSUpdateJob
     update_system_setting(org_hostname)    
     sleep(1)
     
+    msg = 'Updating manifest'
+    at(2, total, msg)
     update_manifest()
     sleep(1)
 
     msg = "Configuring hostname"
     debug msg
-    at(2, total, msg)
+    at(3, total, msg)
     configure_app()
     sleep(1)
 
     msg = "Configuring aliases"
-    at(3, total, msg)
+    at(4, total, msg)
     debug msg
     configure_etc_host()
     configure_etc_avahi_aliases()
@@ -67,15 +69,15 @@ class ::Jobs::DNSUpdateJob
 
     msg = "Restarting all"
     debug msg
-    at(4, total, msg)
+    at(5, total, msg)
     sleep(1)
     
     restart_apps()
     msg = "Restart command sent"
-    at(5, total, msg)
+    at(6, total, msg)
     debug msg
     DnsProvider.update_etc_issue("This installation of Intalio|Create is bound to #{@hostname}.")
-    
+
     completed
   rescue => e
     error "Got exception #{e.message}"

@@ -53,7 +53,15 @@ class ::CreateAdmin::AdminInstance
   
   def job_instance_status(instance_id)    
     instance = @job_instances[instance_id]
-    return instance.job_status if instance 
+    if instance
+      if instance.status == CreateAdmin::JOB_STATES['completed']
+        # delete if the instance has completed and it's result has been taken.
+        @running_jobs_lock.synchronize{
+          @job_instances.delete(instance_id)
+        }
+      end
+      return instance.job_status
+    end    
     {'_status' => CreateAdmin::JOB_STATES['none']}
   end
   
@@ -187,6 +195,15 @@ class ::CreateAdmin::AdminInstance
     end
   end
 
+  def stop_app(app_name)
+    app = app_info(app_name, false)
+    return true if app[:state] == 'STOPPED'
+
+    app[:state] = 'STOPPED'
+    vmc_client(false).update_app(app_name, app)
+    app_info(app_name, false)[:state] == 'STOPPED'
+  end
+
   private
 
   def initialize
@@ -236,10 +253,11 @@ class ::CreateAdmin::AdminInstance
     end
 
     def job_status
+      return execution_result unless execution_result.nil?
+      
       if @status == CreateAdmin::JOB_STATES['completed']
         # the client only consider two status here, failed or success
-        return {'_status' => CreateAdmin::JOB_STATES['success']} if execute_result.nil?
-        execute_result
+        {'_status' => CreateAdmin::JOB_STATES['success']}        
       else
         {'_status' => CreateAdmin::JOB_STATES['working']}
       end

@@ -27,17 +27,17 @@ class ::Jobs::UpdateLicenseJob
 
   def run
     total = 2
-    at(0, total, "Preparing to update license")
 
+    at(0, total, "Preparing to update license")
     creds = get_license_credentials()
 
     license = get_new_license(creds[:gateway_url], creds[:vm_id], creds[:token], creds[:password])
-    at(1, total, "Got updated license")
     
+    at(1, total, "Got updated license")    
     url = "http://#{creds[:vm_hostname]}"
     attach_license(url, @user, @access_token, license)
-    at(2, total, "Updated license")
 
+    at(2, total, "Updated license")
     # wait for license to be refreshed
     sleep(60)
     completed('message' => @success_msg)

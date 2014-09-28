@@ -26,6 +26,6 @@ class ::Jobs::DownloadFile
 
       @requester.close
     }
-    
+
   end
 end

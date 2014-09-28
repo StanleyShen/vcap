@@ -27,9 +27,9 @@ class ::Jobs::IPMapJob
     dns_provider_section['static_ip'] = @ip
     File.open(@manifest_path, 'w') {|f| f.write(JSON.pretty_generate(manifest_raw)) }
 
-    at(1, total, "Updating local IP mapping")               
+    at(1, total, "Updating local IP mapping")
     vm_config = DnsProvider::DnsProviderVMConfig.new(@manifest_path)
-    
+
     successful_bind = vm_config.call_dns_gateway
     debug "successful_bind :  #{successful_bind.to_json}"
     
