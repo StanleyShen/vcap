@@ -11,19 +11,14 @@ end
 class ::Jobs::LicenseStatusJob
   include CreateAdmin::LicenseManager
   
-  def initialize(options)
-    options = options || {}
-    @manifest_path = options['manifest']
-  end
-  
   def run
-    creds = get_license_credentials(@manifest_path)
+    creds = get_license_credentials()
     
-    if(creds[:vm_id].nil? or creds[:token].nil? or creds[:password].nil?)
-      return send_data({'status' => 'not_activated'}, true)
+    if(creds[:vm_id].nil? || creds[:token].nil? || creds[:password].nil?)
+      return failed({'reason' => 'not_activated'}, true)
     end
     
     status = get_license_status(creds[:gateway_url], creds[:vm_id], creds[:token], creds[:password])
-    send_data(status, true)
+    completed(status)
   end
 end

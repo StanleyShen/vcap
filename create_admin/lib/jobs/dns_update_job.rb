@@ -18,7 +18,6 @@ class ::Jobs::DNSUpdateJob
   end
 
   def initialize(options)
-    @manifest_path = options['manifest']
     @auth_headers = options['oauth_access_headers']
     @hostname = options['hostname']
   end
@@ -27,9 +26,9 @@ class ::Jobs::DNSUpdateJob
     debug 'Performing hostname update'
     intalio_info = @admin_instance.app_info('intalio', false)
     org_hostname = intalio_info[:uris].first
-    @manifest_path = @admin_instance.manifest_path(@manifest_path)
+    @manifest_path = @admin_instance.manifest_path()
 
-    total = 5
+    total = 7
     if (org_hostname.nil? || org_hostname.empty?)
       failed "can't get the intalio uri."
       return
@@ -38,7 +37,7 @@ class ::Jobs::DNSUpdateJob
     if (@auth_headers.nil? || @auth_headers.empty?)
       failed 'No access token provided'
       return
-    end 
+    end
 
     msg = "Preparing to update dns to #{@hostname}"
     debug msg
@@ -50,17 +49,19 @@ class ::Jobs::DNSUpdateJob
     update_system_setting(org_hostname)    
     sleep(1)
     
+    msg = 'Updating manifest'
+    at(2, total, msg)
     update_manifest()
     sleep(1)
 
     msg = "Configuring hostname"
     debug msg
-    at(2, total, msg)
+    at(3, total, msg)
     configure_app()
     sleep(1)
 
     msg = "Configuring aliases"
-    at(3, total, msg)
+    at(4, total, msg)
     debug msg
     configure_etc_host()
     configure_etc_avahi_aliases()
@@ -68,28 +69,25 @@ class ::Jobs::DNSUpdateJob
 
     msg = "Restarting all"
     debug msg
-    at(4, total, msg)
+    at(5, total, msg)
     sleep(1)
     
     restart_apps()
     msg = "Restart command sent"
-    at(5, total, msg)
+    at(6, total, msg)
     debug msg
     DnsProvider.update_etc_issue("This installation of Intalio|Create is bound to #{@hostname}.")
- 
-    admin_app_info = @admin_instance.app_info('admin', false)
-    
-    info("admin_app_info now is .... #{admin_app_info}")
-    
+
     completed
   rescue => e
     error "Got exception #{e.message}"
+    error e
     failed( {'message' => "Update hostname failed: #{e.message}",
-             'dns_update' => 'failed', 'exception' => e.backtrace })
+             'dns_update' => 'failed'})
   end
   
   private
-  
+
   def update_system_setting(org_hostname)
     # TODO: this hardcoded system setting record id must be a problem for new record or deleted record
     system_settings = ['fd3f4c7d-8903-47c7-99bc-54a6b51c3fee', 'e0914da0-d56f-11e0-9572-0800200c9a66']

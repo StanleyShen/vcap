@@ -29,7 +29,7 @@ class ::Jobs::UpgradeJob
     @data_archive_name = options['data_archive_name']
     @is_dev = options['is_dev'] || false
 
-    @data_archive_name ||= 'data_internal.zip' if @is_dev   
+    @data_archive_name ||= 'data_internal.zip' if @is_dev
     @pre_script_name = options['pre_archive_name']
     @post_script_name = options['post_archive_name']
 
@@ -39,27 +39,18 @@ class ::Jobs::UpgradeJob
 
   def run
     init_variables
-    
-    num = 1
-    total = 3
 
     begin
-      at(num , total, 'Downloading...')
       do_download()
-
-      num = num + 1
-      at(num + 1 , total, 'Unziping...')
       do_unzip()
-      
-      num = num + 1
-      at(num , total, 'Updating...')
       do_update()
 
       completed('successfully upgraded.')
     rescue Exception => e
       msg = "Failed to upgrade app: #{e.message}"
+      error msg
       error e
-      failed( {'message' => msg, 'upgrade' => 'failed' })
+      failed({'message' => msg, 'upgrade' => 'failed'})
     end
   end
 
@@ -82,6 +73,15 @@ class ::Jobs::UpgradeJob
     @post_script_name = @post_script_name || @manifest['post_script_url'] || 'post.zip'
 
     @data_downloaded_path = @manifest['boot_data'] || "#{ENV['HOME']}/intalio/boot_data"
+  
+    # two steps for each app download, two step for data download, four steps for script download, two steps for data unzip, four steps for script unzip, 9 steps for each app update
+    @iteration = 0
+    @total_steps = @apps.size * 2 + 2 + 4 + 2 + 4  + @apps.size * 9
+  end
+  
+  def output_status(message, step = 1)
+     @iteration = @iteration + step
+     at(@iteration, @total_steps, message)
   end
   
   def get_repo_url
@@ -94,8 +94,6 @@ class ::Jobs::UpgradeJob
   
   def do_download()
     begin
-      info "Creating download dir #{@app_download_path}"
-
       # application download path
 #      FileUtils.rm_rf(@app_download_path) it allows to resume downloading for one specific applicaiton
       FileUtils.mkdir_p(@app_download_path)
@@ -104,7 +102,7 @@ class ::Jobs::UpgradeJob
       recipe_apps = @manifest['recipes'].first['applications']
 
       app_status, ver_status, threads = {}, {}, []
-      @apps.each{|app|
+      @apps.each{|app|        
         recipe_app = recipe_apps.values.select{|t| t['name'] == app}.first
         # use create-distrib.tar.gz as default for compatible
         app_repo_url = recipe_app['repository']['url']
@@ -112,7 +110,10 @@ class ::Jobs::UpgradeJob
 
         app_download_url = URI(archieve_name).relative? ? URI::join(repo_url, archieve_name).to_s : archieve_name
         file_path = File.join(@app_download_path, app, app_download_url[/([^\/]*$)/])
-        
+
+        #1
+        output_status("Start to download #{app} from url: #{app_download_url}")
+          
         threads << Thread.new(app, file_path, app_download_url){
           # appliation archive
           app_status[app] = download(file_path, app_download_url)
@@ -121,7 +122,9 @@ class ::Jobs::UpgradeJob
           ver_download_url = URI::join(CreateAdmin.get_base_url(app_download_url), @version_built_name).to_s
           ver_file_path = File.join(@app_download_path, app, @version_built_name)
           ver_status[app] = download(ver_file_path, ver_download_url)
-        }        
+          #2
+          output_status(ver_status[app])
+        }
       }
 
       # waitng all threads done
@@ -129,14 +132,14 @@ class ::Jobs::UpgradeJob
 
       # check the application download status
       raise_exception = false
-      app_status.each{|k, v|        
+      app_status.each{|k, v|
         raise_exception = true if v['downloaded'] == false
         send_data({k => v})
       }
       raise "Download failed, please check the log for details." if raise_exception
-      
+
       # check the version download status
-      ver_status.each{|k, v|        
+      ver_status.each{|k, v|
         raise_exception = true if v['downloaded'] == false
         send_data({k => v})
       }
@@ -146,25 +149,36 @@ class ::Jobs::UpgradeJob
       FileUtils.rm_rf(@data_downloaded_path)
       FileUtils.mkdir_p(@data_downloaded_path)
 
+      #3
       # download the data
       download_url = URI(@data_archive_name).relative? ? URI::join(repo_url, @data_archive_name).to_s : @data_archive_name
       file_path = File.join(@data_downloaded_path, download_url[/([^\/]*$)/])
+      output_status("Start to download data from url: #{download_url}")
       data_status = download(file_path, download_url)
-      send_data(data_status)
       raise "Download failed, please check the log for detail message." if data_status['download'] == false
+      #4
+      output_status(data_status)
 
-      if(@major)
+      if (@major)
         # pre script
         download_url = URI(@pre_script_name).relative? ? URI::join(repo_url, @pre_script_name).to_s : @pre_script_name
         file_path = File.join(@data_downloaded_path, download_url[/([^\/]*$)/])
+        #1
+        output_status("Start to download pre script from url: #{download_url}")
         status = download(file_path, download_url)
-        send_data(status)
+        #2
+        output_status(status)
 
         # post script
         download_url = URI(@post_script_name).relative? ? URI::join(repo_url, @post_script_name).to_s : @post_script_name
         file_path = File.join(@data_downloaded_path, download_url[/([^\/]*$)/])
+        #3
+        output_status("Start to download post script from url: #{download_url}")
         status = download(file_path, download_url)
-        send_data(status)
+        #4
+        output_status(status)
+      else
+        output_status("Script downloading is skipped.", 4)
       end
     rescue Exception => e
       error 'Failed to download apps'
@@ -173,9 +187,11 @@ class ::Jobs::UpgradeJob
   end
 
   def do_unzip()
-    debug 'unzipping the data archive'
+    #1
+    archive_name = @data_archive_name[/([^\/]*$)/]
+    output_status("Start to unzip the archive #{archive_name}")
 
-    data_archive = File.join(@data_downloaded_path, @data_archive_name[/([^\/]*$)/])
+    data_archive = File.join(@data_downloaded_path, archive_name)
     if File.exists?(data_archive)
       Zip::ZipFile.open(data_archive) do |zipfile|
         zipfile.each { |f|
@@ -183,7 +199,9 @@ class ::Jobs::UpgradeJob
         }
       end
     end
-
+    #2
+    output_status("Archive #{archive_name} is unzipped")
+    
     # clean the pre and post script
     pre_target_folder = File.join(@data_downloaded_path, 'pre')
     post_target_folder = File.join(@data_downloaded_path, 'post')
@@ -192,11 +210,15 @@ class ::Jobs::UpgradeJob
     FileUtils.rm_rf(post_target_folder)
     @major = true
     if @major
-      pre_arcive = File.join(@data_downloaded_path, @pre_script_name[/([^\/]*$)/])
-      if File.exists?(pre_arcive)
+      #3
+      archive_name = @pre_script_name[/([^\/]*$)/]
+      output_status("Start to unzip the pre script #{archive_name}")
+
+      pre_archive = File.join(@data_downloaded_path, archive_name)
+      if File.exists?(pre_archive)
         FileUtils.mkdir_p(pre_target_folder)
 
-        Zip::ZipFile.open(pre_arcive) do |zipfile|
+        Zip::ZipFile.open(pre_archive) do |zipfile|
           zipfile.each { |f|
             zipfile.extract(f, "#{pre_target_folder}/#{f.name}") do
               true
@@ -204,12 +226,18 @@ class ::Jobs::UpgradeJob
           }
         end
       end
+      #4
+      output_status("Pre script #{archive_name} is unzipped.")
 
-      post_arcive = File.join(@data_downloaded_path, @post_script_name[/([^\/]*$)/])
-      if File.exists?(post_arcive)
+      #5
+      archive_name = @post_script_name[/([^\/]*$)/]
+      output_status("Start to unzip the post script #{archive_name}")
+
+      post_archive = File.join(@data_downloaded_path, archive_name)
+      if File.exists?(post_archive)
         FileUtils.mkdir_p(post_target_folder)
 
-        Zip::ZipFile.open(post_arcive) do |zipfile|
+        Zip::ZipFile.open(post_archive) do |zipfile|
           zipfile.each { |f|
             zipfile.extract(f, "#{post_target_folder}/#{f.name}") do
               true
@@ -217,6 +245,10 @@ class ::Jobs::UpgradeJob
           }
         end
       end
+      #6
+      output_status("Post script #{archive_name} is unzipped.")
+    else
+      output_status("Skip to unzip the script.", 4)
     end
   end
 
@@ -241,7 +273,8 @@ class ::Jobs::UpgradeJob
     app_downloaded_path = File.join(@app_download_path, app_name)
     debug "Preparing updating #{app_name} from #{app_downloaded_path}"
 
-    res = nil    
+    output_status("Starting to update application #{app_name}.")
+    res = nil
     begin
       upload_file, file = "#{Dir.tmpdir}/#{@appname}.zip", nil
       FileUtils.rm_f(upload_file)
@@ -251,9 +284,12 @@ class ::Jobs::UpgradeJob
 
       Dir.chdir(app_downloaded_path) {
         # Stage the app appropriately and do the appropriate fingerprinting, etc.
+
+        #1
         if war_file = Dir.glob('*.war').first
-          debug "Exploding the war"
           VMC::Cli::ZipUtil.unpack(war_file, explode_dir)
+
+          output_status("Unzipped the war file #{war_file}")
           debug "Done Exploding the war"
         elsif war_file = Dir.glob('*.tar.gz').first
           msg = "Unpacking tar..."
@@ -261,6 +297,7 @@ class ::Jobs::UpgradeJob
           system("tar -xf #{war_file} -C #{explode_dir} --strip 1")
           system("cp #{@version_built_name} #{explode_dir}/")
 
+          output_status("Unzipped the tar file #{war_file}")
           debug "Done Exploding the tar"
         else
           debug "Copying the files"
@@ -269,14 +306,17 @@ class ::Jobs::UpgradeJob
           # Do not process .git files
           files.delete('.git') if files
           FileUtils.cp_r(files, explode_dir)
+          
+          output_status("Copied file.")
           debug "Done copying the files"
         end
 
         # Send the resource list to the cloudcontroller, the response will tell us what it already has..
         fingerprints = []
         total_size = 0
+        
+        #2
         debug "About to compute the fingerprints"
-
         resource_files = Dir.glob("#{explode_dir}/**/*", File::FNM_DOTMATCH)
         resource_files.each do |filename|
           next if (File.directory?(filename) || !File.exists?(filename))
@@ -287,8 +327,9 @@ class ::Jobs::UpgradeJob
           }
           total_size += File.size(filename)
         end
+        output_status("Computed the fingerprints.")
 
-        # 4
+        # 3
         debug "Checking resources fingerprint..."
         # Check to see if the resource check is worth the round trip
         if (total_size > (10*1024)) # 10k for now
@@ -296,9 +337,10 @@ class ::Jobs::UpgradeJob
           debug "Invoking check_resources with the fingerprints"
           appcloud_resources = check_resources(fingerprints, 3)
         end
+        output_status("Checked resources fingerprint.")
 
-        # 5
-        debug"Processing..."
+        # 4
+        debug "Processing..."
         if appcloud_resources
           # We can then delete what we do not need to send.
           appcloud_resources.each do |resource|
@@ -307,8 +349,9 @@ class ::Jobs::UpgradeJob
             resource[:fn].sub!("#{explode_dir}/", '')
           end
         end
+        output_status("Processing.")
 
-        # 6
+        # 5
         debug "Packing the upload bits..."
         # Perform Packing of the upload bits here.
         unless VMC::Cli::ZipUtil.get_files_to_pack(explode_dir).empty?
@@ -323,23 +366,27 @@ class ::Jobs::UpgradeJob
         else
           upload_size = '0K'
         end
+        output_status("Packed the upload bits.")
 
-        # 7
+        # 6
         debug "Prepare to upload"
         unless VMC::Cli::ZipUtil.get_files_to_pack(explode_dir).empty?
           VMC::Cli::Command::FileWithPercentOutput.display_str = upload_str = "Uploading (#{upload_size}): "
           VMC::Cli::Command::FileWithPercentOutput.upload_size = File.size(upload_file);
           file = VMC::Cli::Command::FileWithPercentOutput.open(upload_file, 'rb')
         end
+        output_status("Uploaded the bits.")
 
-        # 8
+        # 7
         debug "Uploading #{app_name}..."
         upload_retry = 3;
         upload_app(app_name, file, appcloud_resources, 3)
+        output_status("Uploaded #{app_name}.")
         
-        # 9
+        # 8
         message = "successfully update the application: #{app_name}"
         debug message
+        output_status("message")
         res = {'updated' => true, 'message' => message}
       }
     rescue Exception => e
@@ -383,15 +430,16 @@ class ::Jobs::UpgradeJob
             end
             info = "Download #{url} successfully"
             downloaded = true
+            debug info
           end
         else
           info = "Failed to download #{url}. Got response code #{resp.code}"
-        end        
+          error info
+        end
       end
     ensure
       file.close()
     end
-    debug info
 
     File.delete(filepath) if(File::exists?(filepath)) && !downloaded
     {'downloaded' => downloaded, 'message' => info}

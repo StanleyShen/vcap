@@ -21,7 +21,11 @@ class ::Jobs::DownloadFile
     streamer.callback{
       # file was sent successfully
       debug "File is sent successfully with path #{@path}."
+
+      update_execution_result({'_status' => CreateAdmin::JOB_STATES['success']})
+
       @requester.close
     }
+
   end
 end

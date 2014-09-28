@@ -13,12 +13,10 @@ class ::Jobs::IPMapJob
   def initialize(options)
     @ip = options['ip']
     raise "No ip provided" if (@ip.nil? || @ip.empty?)
-
-    @manifest_path = options['manifest']
   end
   
   def run
-    @manifest_path = @admin_instance.manifest_path(@manifest_path)
+    @manifest_path = @admin_instance.manifest_path()
 
     total = 2
     at(0, total, "Preparing to update IP mapping")
@@ -29,9 +27,9 @@ class ::Jobs::IPMapJob
     dns_provider_section['static_ip'] = @ip
     File.open(@manifest_path, 'w') {|f| f.write(JSON.pretty_generate(manifest_raw)) }
 
-    at(1, total, "Updating local IP mapping")               
+    at(1, total, "Updating local IP mapping")
     vm_config = DnsProvider::DnsProviderVMConfig.new(@manifest_path)
-    
+
     successful_bind = vm_config.call_dns_gateway
     debug "successful_bind :  #{successful_bind.to_json}"
     
@@ -47,8 +45,9 @@ class ::Jobs::IPMapJob
       
   rescue => e
     error "Got exception #{e.message}"
-    failed( {'message' => "IP mapping update failed: #{e.message}",
-             'ip_map' => 'failed', 'exception' => e.backtrace })
+    error e
+    failed({'message' => "IP mapping update failed: #{e.message}",
+             'ip_map' => 'failed'})
   end
   
   private

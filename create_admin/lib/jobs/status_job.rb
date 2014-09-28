@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'wrest'
 require 'sys/filesystem'
 
 require 'uri'

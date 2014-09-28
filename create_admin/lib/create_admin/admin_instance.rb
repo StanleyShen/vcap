@@ -9,8 +9,7 @@ require 'thread'
 require "create_admin/log"
 
 module CreateAdmin
-  class AdminInstance
-  end
+  class AdminInstance; end
 end
 
 class ::CreateAdmin::AdminInstance
@@ -52,12 +51,26 @@ class ::CreateAdmin::AdminInstance
     }
   end
   
-  def job_status(instance_id)
+  def job_instance_status(instance_id)    
     instance = @job_instances[instance_id]
-    raise "The instance #{instance_id} doesn't exist."
-    instance.status
+    if instance
+      if instance.status == CreateAdmin::JOB_STATES['completed']
+        # delete if the instance has completed and it's result has been taken.
+        @running_jobs_lock.synchronize{
+          @job_instances.delete(instance_id)
+        }
+      end
+      return instance.job_status
+    end    
+    {'_status' => CreateAdmin::JOB_STATES['none']}
   end
   
+  def job_status(job_type)
+    num = @running_instance_nums[job_type]
+    return {'_status' => CreateAdmin::JOB_STATES['working']} if num > 0
+    {'_status' => CreateAdmin::JOB_STATES['none']}
+  end
+
   def get_safe_instance_id()
     @running_jobs_lock.synchronize{
       new_id = SecureRandom.base64
@@ -65,6 +78,13 @@ class ::CreateAdmin::AdminInstance
         new_id = SecureRandom.base64
       end
       return new_id
+    }
+  end
+  
+  def update_instance_execution_result(instance_id, res)
+    @running_jobs_lock.synchronize{
+      instance = @job_instances[instance_id]
+      instance.execution_result = res if instance
     }
   end
 
@@ -175,6 +195,15 @@ class ::CreateAdmin::AdminInstance
     end
   end
 
+  def stop_app(app_name)
+    app = app_info(app_name, false)
+    return true if app[:state] == 'STOPPED'
+
+    app[:state] = 'STOPPED'
+    vmc_client(false).update_app(app_name, app)
+    app_info(app_name, false)[:state] == 'STOPPED'
+  end
+
   private
 
   def initialize
@@ -209,22 +238,31 @@ class ::CreateAdmin::AdminInstance
   end
   
   class JobInstance
-    COMPLETED = :completed
-    RUNNING = :running
     TIMEOUT = 3600 # will keep the completed instance in one hour
   
-    attr_accessor :job_type, :instance_id, :status, :completed_time
+    attr_accessor :job_type, :instance_id, :status, :completed_time, :execution_result
     def initialize(job_type, instance_id)
-      @status = RUNNING
+      @status = CreateAdmin::JOB_STATES['working']
       @job_type = job_type
       @instance_id = instance_id
     end
     
     def completed
-      @status = COMPLETED
+      @status = CreateAdmin::JOB_STATES['completed']
       @completed_time = Time.new.to_i
     end
-    
+
+    def job_status
+      return execution_result unless execution_result.nil?
+      
+      if @status == CreateAdmin::JOB_STATES['completed']
+        # the client only consider two status here, failed or success
+        {'_status' => CreateAdmin::JOB_STATES['success']}        
+      else
+        {'_status' => CreateAdmin::JOB_STATES['working']}
+      end
+    end
+
     def is_expired?
       return true if (@status == COMPLETED) && ((Time.new.to_i - @completed_time) >= TIMEOUT)
       false

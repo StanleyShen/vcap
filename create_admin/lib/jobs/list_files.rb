@@ -21,11 +21,11 @@ class ::Jobs::ListFilesJob
       File.join(@path, '*')
     end
 
-    res = []
-    files = Dir.glob(search_path).each{|f|
-      res << CreateAdmin.file_metadata(f)
+    files = []
+    Dir.glob(search_path).each{|f|
+      files << CreateAdmin.file_metadata(f)
     }
     
-    send_data(res, true)
+    completed({'files' => files})
   end
 end
