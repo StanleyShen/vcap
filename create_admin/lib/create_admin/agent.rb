@@ -32,8 +32,8 @@ class ::CreateAdmin::Agent
       exit 1
     end
 
-    env = options['env']
-    ENV.merge!(env) if env
+    env = options['env']    
+    env.each{|k, v| ENV[k] = v} if env
 
     # start schedule backup job
     ScheduledBackup.instance.bootstrap_schedule
