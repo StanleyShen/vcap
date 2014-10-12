@@ -1,3 +1,5 @@
 port: 58080
+env:
+  SSL_CERT_DIR: /etc/ssl/certs
 logging:
   level: debug

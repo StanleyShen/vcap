@@ -3,14 +3,15 @@ require 'json/pure'
 
 require "create_admin/log"
 require "create_admin/util"
+require "jobs/commons"
 
 module Jobs
-  class Job
-  end
+  class Job;end
 end
 
 class Jobs::Job
   include ::CreateAdmin::Log
+  include ::Jobs::Commons
   attr_accessor :requester, :admin_instance, :instance_id
 
   def self.job_name

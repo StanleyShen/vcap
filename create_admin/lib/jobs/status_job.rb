@@ -11,11 +11,11 @@ require 'jobs/scheduled_backup_job'
 require "route53/dns_gateway_client"
 
 module Jobs
-  class StatusJob < Job
+  class StatusJob2 < Job
   end
 end
 
-class ::Jobs::StatusJob
+class ::Jobs::StatusJob2
   include VMC::KNIFE::Cli
   include HttpProxy
 
