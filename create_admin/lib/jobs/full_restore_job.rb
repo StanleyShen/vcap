@@ -16,7 +16,7 @@ class ::Jobs::FullRestoreJob
   end
   
   def initialize(options)
-    @backup = options['backup']
+    @backup = options['name']
     raise "No backup provided" if (@backup.nil? || @backup.empty?)
 
     @backup_home = options['backup_home'] || "#{ENV['HOME']}/cloudfoundry/backup"

@@ -102,7 +102,7 @@ class ::Jobs::UpgradeJob
       recipe_apps = @manifest['recipes'].first['applications']
 
       app_status, ver_status, threads = {}, {}, []
-      @apps.each{|app|        
+      @apps.each{|app|
         recipe_app = recipe_apps.values.select{|t| t['name'] == app}.first
         # use create-distrib.tar.gz as default for compatible
         app_repo_url = recipe_app['repository']['url']

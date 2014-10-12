@@ -26,8 +26,10 @@ class ::Jobs::DNSUpdateJob
     debug 'Performing hostname update'
     intalio_info = @admin_instance.app_info('intalio', false)
     org_hostname = intalio_info[:uris].first
-    @manifest_path = @admin_instance.manifest_path()
+    # refresh the manifest of memory first
+    @admin_instance.manifest(true)
 
+    @manifest_path = @admin_instance.manifest_path()
     total = 7
     if (org_hostname.nil? || org_hostname.empty?)
       failed "can't get the intalio uri."

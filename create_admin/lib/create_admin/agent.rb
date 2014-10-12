@@ -32,6 +32,9 @@ class ::CreateAdmin::Agent
       exit 1
     end
 
+    env = options['env']
+    ENV.merge!(env) if env
+
     # start schedule backup job
     ScheduledBackup.instance.bootstrap_schedule
 
@@ -195,7 +198,7 @@ class ::CreateAdmin::ConnectionHandler
         error e
         failed("Encount exception when runing the job: #{@debug_str}, message: #{e.message}")
       end
-    }    
+    }
   end
 
   def find_job(job_type, paras)

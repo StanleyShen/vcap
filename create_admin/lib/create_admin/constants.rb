@@ -21,7 +21,11 @@ module CreateAdmin
     'app_file' => Jobs::AppFileJob,
     'generate_instance_id' => Jobs::GenJobInstanceId,
     'job_status' => Jobs::JobStatus,
-    'app_info' => Jobs::AppInfo
+    'app_info' => Jobs::AppInfo,
+    'admin_app_env' => Jobs::AdminApplicationEnv,
+    'app_instances' => Jobs::AppInstances,
+    'change_app_instance' => Jobs::ChangeAppInstance,
+    'apps_version' => Jobs::AppsVersion
   }
 
   EXCLUSIVE_JOBS = {
