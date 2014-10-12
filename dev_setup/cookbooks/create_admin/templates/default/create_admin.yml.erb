@@ -2,5 +2,6 @@ pid: /var/vcap/sys/run/create_admin.pid
 port: <%= node[:create_admin][:port] %>
 env:
   SSL_CERT_DIR: /etc/ssl/certs
+  VMC_KNIFE_DEFAULT_RECIPE: /home/ubuntu/cloudfoundry/intalio_recipe.json
 logging:
   level: debug
