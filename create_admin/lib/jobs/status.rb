@@ -8,6 +8,7 @@ require "create_admin/http_proxy"
 require "vmc/vmcapphelpers"
 require 'jobs/scheduled_backup_job'
 require "route53/dns_gateway_client"
+require "create_admin/license_manager"
 
 module Jobs
   class StatusJob < Job; end
@@ -15,19 +16,19 @@ end
 
 class ::Jobs::StatusJob
   include HttpProxy
+  include CreateAdmin::LicenseManager
 
   def run
     init_variables
 
-    intalio_hostname = host_name
-    license = get_license_terms(intalio_hostname)
+    hostname = intalio_host_name
     
     apps = @manifest['recipes'].first['applications'].values.collect{|v| v['name']}
 
     completed({
       'ip_address' => published_ip,
-      'hostname' => intalio_hostname,
-      'license' => license,
+      'hostname' => hostname,
+      'license' => get_license_terms(hostname),
       'backup_info' => get_backup_info,
       'instances' =>  app_instances(apps),
     })
@@ -48,24 +49,6 @@ class ::Jobs::StatusJob
   def published_ip
     published_ip = @manifest['dns_provider']['dns_published_ip']
     (published_ip.nil? || published_ip.empty?) ? CreateAdmin.get_local_ipv4 : published_ip
-  end
-  
-  def get_license_terms(intalio_hostname)
-    uri = "http://#{intalio_hostname}/instance/get_license_terms"
-    debug "getting license from #{uri}"
-    begin
-      response = uri.to_uri(:timeout => 50).get()
-      if response.ok?
-        terms = JSON.parse(response.body)
-        @admin_instance.put_cache('license_terms', terms)
-      else
-        @admin_instance.delete_cache('license_terms')
-      end
-    rescue Exception => e
-      warn "Unable to get license #{e.message}"      
-    end
-
-    return @admin_instance.get_cache('license_terms') || {}
   end
   
   def get_backup_info

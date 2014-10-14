@@ -8,17 +8,9 @@ module Jobs
   end
 end
 
-class ::Jobs::LicenseStatusJob
-  include CreateAdmin::LicenseManager
-  
+class ::Jobs::LicenseStatusJob  
   def run
-    creds = get_license_credentials()
-    
-    if(creds[:vm_id].nil? || creds[:token].nil? || creds[:password].nil?)
-      return failed({'reason' => 'not_activated'}, true)
-    end
-    
-    status = get_license_status(creds[:gateway_url], creds[:vm_id], creds[:token], creds[:password])
-    completed(status)
+    host_name = intalio_host_name
+    completed({'license' => get_license_terms(host_name)})   
   end
 end

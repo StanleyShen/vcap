@@ -25,7 +25,7 @@ class ::CreateAdmin::AdminInstance
 
     @running_jobs_lock.synchronize{
       @job_instances.values.each{|instance|
-        if instance.is_working
+        if instance.is_working?
           running_klass = CreateAdmin::JOBS[instance.job_type]
           unless running_klass.accept?(instance.job_type, job_type)
             return {:accept => false, :message => "Can't execute #{klass.job_name} because #{running_klass.job_name} is running."}
@@ -101,7 +101,7 @@ class ::CreateAdmin::AdminInstance
     stats.each{|s|
       instance_id = s[:instance]
       inner_stats = s[:stats]
-      usage = inner_stats[:usage]
+      usage = inner_stats[:usage] || {}
 
       instances[instance_id] = {
         'instance' => s[:instance],

@@ -6,7 +6,6 @@ module CreateAdmin
   JOBS = {
     'upgrade' => Jobs::UpgradeJob,
     'dns_update' => Jobs::DNSUpdateJob,
-    'update_license' => Jobs::UpdateLicenseJob,
     'license_status' => Jobs::LicenseStatusJob,
     'ip_map' => Jobs::IPMapJob,
     'full_backup' => Jobs::FullBackupJob,
@@ -25,17 +24,18 @@ module CreateAdmin
     'admin_app_env' => Jobs::AdminApplicationEnv,
     'app_instances' => Jobs::AppInstances,
     'change_app_instance' => Jobs::ChangeAppInstance,
-    'apps_version' => Jobs::AppsVersion
+    'apps_version' => Jobs::AppsVersion,
+    'refresh_license' => ::Jobs::RefreshLicense
   }
 
   EXCLUSIVE_JOBS = {
     'upgrade' => ['upgrade', 'dns_update', 'full_backup', 'full_restore', 'stop_apps', 'start_apps', 'app_file'],
     'dns_update' => ['upgrade', 'stop_apps', 'start_apps', 'full_backup', 'full_restore'],
-    'update_license' => ['upgrade', 'stop_apps', 'start_apps', 'full_backup', 'full_restore'],
-    'full_backup' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
-    'full_restore' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
-    'stop_apps' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
-    'start_apps' => ['upgrade', 'dns_update', 'update_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps']
+    'refresh_license' => ['upgrade', 'stop_apps', 'start_apps', 'full_backup', 'full_restore'],
+    'full_backup' => ['upgrade', 'dns_update', 'refresh_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
+    'full_restore' => ['upgrade', 'dns_update', 'refresh_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
+    'stop_apps' => ['upgrade', 'dns_update', 'refresh_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps'],
+    'start_apps' => ['upgrade', 'dns_update', 'refresh_license', 'full_backup', 'full_restore', 'stop_apps', 'start_apps']
   }
 
   # the client only needs to consider: none, working, failed and success.
