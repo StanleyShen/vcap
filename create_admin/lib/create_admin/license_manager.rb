@@ -10,9 +10,9 @@ module CreateAdmin
   module LicenseManager
     include Wrest
 
-    def get_license_credentials(manifest_path)
+    def get_license_credentials()
       admin_instace = CreateAdmin::AdminInstance.instance
-      manifest = admin_instace.manifest(true, manifest_path)
+      manifest = admin_instace.manifest(true)
 
       dns_provider_section = manifest['dns_provider']
       dns_gateway_url = dns_provider_section['dns_gateway_url']
@@ -60,7 +60,9 @@ module CreateAdmin
 
     def get_license_status(dns_gateway_url, vm_id_or_prefix, token, password)
       res = query(dns_gateway_url, 'get_vm_license_status', vm_id_or_prefix, token, password)
-      return res.body if res.ok?
+      if res.ok?
+        return JSON.parse(res.body)
+      end
 
       raise "Unable to get license. Response code #{res.code}"
     end

@@ -13,9 +13,11 @@ module Jobs::Commons
   VERSION_FILE = 'version_built.properties'
   APP_VERSION_PATH = "app/#{VERSION_FILE}"
   
-  def version_file
+  def intalio_host_name
+    intalio_app = admin_instance.app_info('intalio', false)
+    intalio_app[:uris].first
   end
-  
+
   def app_instances(apps)
     instances = {}
     apps.each{|app|
@@ -74,6 +76,7 @@ module Jobs::Commons
     end
     
     repo_url = get_download_url()
+    raise 'Failed to get the repository url.' if repo_url.nil?
     create_apps = admin_instance.governed_apps
 
     res = {}
