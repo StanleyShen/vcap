@@ -43,8 +43,15 @@ class ::Jobs::RefreshLicense
         update_license(creds)
         return_code = 'license_updated'
       when 'unavailable'
-        # TODO: can't find the license from license server, need to delete the license from the target vm
-        
+        # can't find the license from license server, need to delete the license from the target vm
+        url = "http://#{creds[:vm_hostname]}"
+        response = delete_vm_license(url, @user, @access_token)
+        if response.ok?
+          debug 'license is deleted because of not available from server.'  
+        else
+          debug 'falied to delete license, code #{response.code}'
+        end
+
         return_code = 'unavailable'
       else
         return failed({'_code' => remote_status['status']})
@@ -55,9 +62,6 @@ class ::Jobs::RefreshLicense
   
   private  
   def need_update?(current_license, remote_status)
-    error("current_license is ..... #{current_license}")
-    error("remote_status is .....   #{remote_status}")
-    
     current_ver = current_license['license-version'].to_s
     current_expires_on = DateTime.parse(current_license['expires-on']).to_time.to_s
     current_trial = current_license['trial'].to_s

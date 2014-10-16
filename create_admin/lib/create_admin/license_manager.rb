@@ -57,6 +57,16 @@ module CreateAdmin
 
       raise "Failed to attach license #{res.code}" unless res.ok?
     end
+    
+    def delete_vm_license(url, username, access_token)
+      puts "start to delete the vm license because it isn't available in sever"
+      header = get_access_header(username, access_token)
+
+      target = "#{url}/instance/delete_license"
+      res = target.to_uri(:timeout => 30).post(license,  header)
+  
+      res
+    end
 
     def get_license_status(dns_gateway_url, vm_id_or_prefix, token, password)
       res = query(dns_gateway_url, 'get_vm_license_status', vm_id_or_prefix, token, password)

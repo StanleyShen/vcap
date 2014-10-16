@@ -6,7 +6,6 @@ module CreateAdmin
   JOBS = {
     'upgrade' => Jobs::UpgradeJob,
     'dns_update' => Jobs::DNSUpdateJob,
-    'license_status' => Jobs::LicenseStatusJob,
     'ip_map' => Jobs::IPMapJob,
     'full_backup' => Jobs::FullBackupJob,
     'full_restore' => Jobs::FullRestoreJob,
