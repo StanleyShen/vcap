@@ -4,7 +4,6 @@ require 'vmc_knife'
 require 'vmc_knife/commands/knife_cmds'
 
 require 'jobs/job'
-require 'jobs/scheduled_backup_job'
 require 'fileutils'
 
 module Jobs
