@@ -28,20 +28,16 @@ class ::Jobs::RefreshLicense
     
     intalio_info = @admin_instance.app_info('intalio')
     return failed({'message' => 'No intalio Instance is running.', '_code' => 'intalio_app_not_available'}) if intalio_info[:runningInstances] <= 0
-    
-    # license status of current vm
-#    host_name = intalio_info[:uris].first
-#    current_license = get_license_terms(host_name)
-    
+
     # license from license server
-    return_code = nil
     remote_status = get_license_status(creds[:gateway_url], creds[:vm_id], creds[:token], creds[:password])
+    return_code = remote_status['status']
 
     case remote_status['status']
       when 'available', 'exists'
         # update the license
         update_license(creds)
-        return_code = 'license_updated'
+
       when 'unavailable'
         # can't find the license from license server, need to delete the license from the target vm
         url = "http://#{creds[:vm_hostname]}"
@@ -51,13 +47,11 @@ class ::Jobs::RefreshLicense
         else
           debug 'falied to delete license, code #{response.code}'
         end
-
-        return_code = 'unavailable'
       else
-        return failed({'_code' => remote_status['status']})
     end
 
-    completed({'_code' => return_code})
+    # get the license again
+    completed({'_code' => return_code, 'license' => get_license_terms(intalio_host_name)})
   end
   
   private  
