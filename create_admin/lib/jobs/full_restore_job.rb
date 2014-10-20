@@ -6,11 +6,9 @@ require 'vmc_knife/commands/knife_cmds'
 require 'fileutils'
 
 module Jobs
-  class FullRestoreJob < Job
-  end
+  class FullRestoreJob < Job; end
 end
 class ::Jobs::FullRestoreJob
-
   def self.job_name
     'Restore'
   end
@@ -26,6 +24,48 @@ class ::Jobs::FullRestoreJob
   end
 
   def run
+    verify_backup_version{
+      perform_restore
+    }
+  end
+
+  private
+
+  def inc_step
+    @num += 1
+  end
+
+  def remove_vmc_knife_data_dir
+    FileUtils.remove_dir(@vmc_knife_data_dir, true) if File.directory?(@vmc_knife_data_dir)
+  end
+
+  def verify_backup_version
+    backup_ver = nil
+    match_data = @backup.match(/^\w+-\d+-\w+-\d+-\d+-(\d+\.\d+\.\d+)(-s)*.*$/)
+    if match_data && match_data[1]
+      backup_ver = match_data[1]
+    end
+    
+    if (backup_ver.nil?)
+      info("no version specified from backup: #{@backup}")
+      return yield
+    end
+    
+    cur_ver = CreateAdmin.get_build_number
+    if cur_ver.nil?
+      warn "can't current build version number."
+      return yield
+    end
+
+    backup_ver_nums = backup_ver.split('.')
+    cur_ver_nums = cur_ver.split('.')
+    if backup_ver_nums[0] == cur_ver_nums[0] && backup_ver_nums[1] == cur_ver_nums[1]
+      return yield
+    end
+    failed({'_code' => 'INCOMPATIBLE_VERSION', 'current_version' => cur_ver, 'backup_version' => backup_ver})
+  end
+  
+  def perform_restore
     begin
       at(0, 1, "Preparing to restore")
       remove_vmc_knife_data_dir()
@@ -149,17 +189,5 @@ class ::Jobs::FullRestoreJob
       # Also remove the data dir created by vmc_knife
       remove_vmc_knife_data_dir()
     end
-
   end
-
-  private
-
-  def inc_step
-    @num += 1
-  end
-
-  def remove_vmc_knife_data_dir
-    FileUtils.remove_dir(@vmc_knife_data_dir, true) if File.directory?(@vmc_knife_data_dir)
-  end
-
 end

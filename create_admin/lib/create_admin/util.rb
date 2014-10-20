@@ -65,6 +65,23 @@ module CreateAdmin
       CreateAdmin::Log.warn(e)
     end
   end
+  
+  def self.get_build_number
+    sql = "select io_build_number from io_system_setting where io_active='t';"
+    begin
+      build_num = nil
+      query(sql) {|res|
+        build_num = res.getvalue(0, 0)
+      }
+      return if build_num.nil?
+
+      nums = build_num.split('.').concat([0, 0, 0])
+      return "#{nums[0]}.#{nums[1]}.#{nums[2]}"
+    rescue => e
+      CreateAdmin::Log.warn('can not get the build number, the active system setting may not available.')
+      CreateAdmin::Log.warn(e)
+    end
+  end
 
   def self.get_base_url(url)
     return if url.nil? || url.empty?
