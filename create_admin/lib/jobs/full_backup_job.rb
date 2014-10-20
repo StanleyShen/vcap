@@ -99,7 +99,13 @@ class ::Jobs::FullBackupJob
         FileUtils.rm(cdn_zip_path)
       end
 
-      ts_filename = File.stat(archive).mtime.strftime("%a-%d-%b-%Y-%H%M")+"#{@file_suffix}#{@backup_ext}"
+      build_num = CreateAdmin.get_build_number
+      ts_filename = if build_num
+        File.stat(archive).mtime.strftime("%a-%d-%b-%Y-%H%M") + "-#{build_num}" + "#{@file_suffix}#{@backup_ext}"
+      else
+        File.stat(archive).mtime.strftime("%a-%d-%b-%Y-%H%M")+"#{@file_suffix}#{@backup_ext}"
+      end
+
       File.rename(archive, "#{@backup_home}/#{ts_filename}")
 
       call_extensible_backup(client, archive)
