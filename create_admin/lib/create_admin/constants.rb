@@ -24,7 +24,8 @@ module CreateAdmin
     'app_instances' => Jobs::AppInstances,
     'change_app_instance' => Jobs::ChangeAppInstance,
     'apps_version' => Jobs::AppsVersion,
-    'refresh_license' => ::Jobs::RefreshLicense
+    'refresh_license' => Jobs::RefreshLicense,
+    'general_info' => Jobs::GeneralInfo
   }
 
   EXCLUSIVE_JOBS = {
