@@ -12,6 +12,7 @@ events {
 }
 
 http {
+  ssl_protocols  TLSv1;  # don.t use SSLv3 ref: POODLE
   include       mime.types;
   default_type  text/html;
   server_tokens off;
