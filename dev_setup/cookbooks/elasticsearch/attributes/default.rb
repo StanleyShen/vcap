@@ -49,3 +49,8 @@ default.elasticsearch[:discovery][:zen][:minimum_master_nodes] = 1
 #
 default.elasticsearch[:gateway][:type] = 'local'
 default.elasticsearch[:gateway][:expected_nodes] = 2
+  
+# === LOGGING
+#
+default.elasticsearch[:logging][:file][:max_backup_index] = 10
+default.elasticsearch[:logging][:file][:max_file_size] = '10MB'
