@@ -32,3 +32,5 @@ elasticsearch:
   gateway.expected_nodes: <%= node.elasticsearch[:gateway][:expected_nodes] %>
   discovery.zen.ping.multicast.enabled: <%= node.elasticsearch[:discovery][:zen][:ping][:multicast][:enabled] %>
   discovery.zen.minimum_master_nodes: <%= node.elasticsearch[:discovery][:zen][:minimum_master_nodes] %>
+  logging.file.max_backup_index: <%= node.elasticsearch[:logging][:file][:max_backup_index] %>
+  logging.file.max_file_size: <%= node.elasticsearch[:logging][:file][:max_file_size] %>
