@@ -60,15 +60,6 @@ EOH
       end
     end
 
-    bash "Update rubygems" do
-      user node[:deployment][:user]
-      group node[:deployment][:group]
-
-      code <<-EOH
-        sudo -i -u #{node[:deployment][:user]} #{File.join(ruby_path, "bin", "gem")} update --system
-      EOH
-    end
-
     gem_package "bundler" do
       options "--config-file #{ruby_path}/lib/chef.gemrc"
       retries 4
