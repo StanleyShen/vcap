@@ -81,6 +81,7 @@ module CreateAdmin
       CreateAdmin::Log.warn('can not get the build number, the active system setting may not available.')
       CreateAdmin::Log.warn(e)
     end
+    nil
   end
 
   def self.get_base_url(url)
