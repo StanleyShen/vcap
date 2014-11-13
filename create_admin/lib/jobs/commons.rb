@@ -14,7 +14,7 @@ module Jobs::Commons
   APP_VERSION_PATH = "app/#{VERSION_FILE}"
   
   def intalio_host_name
-    intalio_app = admin_instance.app_info('intalio', false)
+    intalio_app = admin_instance.app_info('data', false)
     intalio_app[:uris].first
   end
 
