@@ -1,6 +1,7 @@
 require 'rubygems'
 
 require 'jobs/job'
+require 'jobs/stop_apps'
 require 'route53/dns_gateway_client'
 require 'vmc/vmcapphelpers'
 require 'vmc/vmchelpers'
