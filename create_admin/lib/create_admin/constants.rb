@@ -68,9 +68,4 @@ module CreateAdmin
 
   # constand to indicate the connection is closed
   CONNECTION_EOF = ::CreateAdmin::ConnetionClosedFlag.new
-  # applications name
-  INTALIO_APP_NAME = ENV['INTALIO_APP_NAME'] || 'data'
-  ADMIN_APP_NAME = ENV['ADMIN_APP_NAME'] || 'admin'
-  OAUTH_APP_NAME = ENV['OAUTH_APP_NAME'] || 'oauth'
-  CDN_APP_NAME = ENV['CDN_APP_NAME'] || 'cdn'
 end

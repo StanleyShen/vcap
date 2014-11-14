@@ -201,7 +201,7 @@ class ::CreateAdmin::AdminInstance
     res = []
     apps.each{|k, v| 
       name = v['name']
-      res << name if name != CreateAdmin::CDN_APP_NAME && name != CreateAdmin::ADMIN_APP_NAME && name != CreateAdmin::OAUTH_APP_NAME
+      res << name if name != app_name(:cdn) && name != app_name(:admin) && name != app_name(:oauth)
     }
     res 
   end
@@ -264,6 +264,33 @@ class ::CreateAdmin::AdminInstance
     app[:state] = 'STOPPED'
     vmc_client(false).update_app(app_name, app)
     app_info(app_name, false)[:state] == 'STOPPED'
+  end
+  
+  # just to check whether central applicaition existed 
+  def cluster_vm?
+    begin
+      vmc_client.app_info('central')
+    rescue VMC::Client::NotFound => e
+      # doesn't exist, non-cluster then
+      return false
+    end
+    true
+  end
+
+  # return the app name.
+  def app_name(app_id)
+    name = nil
+    case app_id
+      when :intalio
+        name = cluster_vm? ? ENV['INTALIO_CLUSTER_APP_NAME'] : ENV['INTALIO_NON_CLUSTER_APP_NAME']
+      when :oauth
+        name = ENV['OAUTH_APP_NAME'] || 'oauth'
+      when :admin
+        name = ENV['ADMIN_APP_NAME'] || 'admin'
+      when :cdn
+        name = ENV['CDN_APP_NAME'] || 'cdn'
+    end
+    name
   end
 
   private

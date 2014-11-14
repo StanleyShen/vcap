@@ -26,7 +26,7 @@ class ::Jobs::RefreshLicense
       return failed({'_code' => 'not_activated'}, true)
     end
     
-    intalio_info = @admin_instance.app_info(CreateAdmin::INTALIO_APP_NAME)
+    intalio_info = @admin_instance.app_info(@admin_instance.app_name(:intalio))
     return failed({'message' => 'No intalio Instance is running.', '_code' => 'intalio_app_not_available'}) if intalio_info[:runningInstances] <= 0
 
     # license from license server

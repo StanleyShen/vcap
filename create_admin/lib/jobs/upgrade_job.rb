@@ -59,11 +59,11 @@ class ::Jobs::UpgradeJob
     # force to refresh the manifest
     @manifest = @admin_instance.manifest(true)
     @client = @admin_instance.vmc_client()
-    @admin_env = @admin_instance.app_info(CreateAdmin::ADMIN_APP_NAME, true)[:env]
+    @admin_env = @admin_instance.app_info(@admin_instance.app_name(:admin), true)[:env]
     @app_download_path = "#{ENV['HOME']}/intalio/downloads/"
     
     if @app_names.nil?
-      @apps = @admin_instance.governed_apps || CreateAdmin::INTALIO_APP_NAME
+      @apps = @admin_instance.governed_apps || @admin_instance.app_name(:intalio)
     else
       @apps = @app_names.split(',')
     end
