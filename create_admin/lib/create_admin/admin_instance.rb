@@ -201,7 +201,7 @@ class ::CreateAdmin::AdminInstance
     res = []
     apps.each{|k, v| 
       name = v['name']
-      res << name if name != 'cdn' && name != 'admin' && name != 'oauth'
+      res << name if name != CreateAdmin.CDN_APP_NAME && name != CreateAdmin.ADMIN_APP_NAME && name != CreateAdmin.OAUTH_APP_NAME
     }
     res 
   end

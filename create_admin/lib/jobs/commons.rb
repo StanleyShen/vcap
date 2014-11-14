@@ -2,6 +2,7 @@ require 'uri'
 
 require 'create_admin/admin_instance'
 require 'create_admin/http_proxy'
+require "create_admin/log"
 
 module Jobs
   module Commons; end
@@ -9,13 +10,17 @@ end
 
 module Jobs::Commons
   include HttpProxy
+  include ::CreateAdmin::Log
 
   VERSION_FILE = 'version_built.properties'
   APP_VERSION_PATH = "app/#{VERSION_FILE}"
   
   def intalio_host_name
-    intalio_app = admin_instance.app_info('data', false)
-    intalio_app[:uris].first
+    intalio_app = admin_instance.app_info(CreateAdmin.INTALIO_APP_NAME, false)
+    return intalio_app[:uris].first if (intalio_app)
+
+    error("Can't find the #{CreateAdmin.INTALIO_APP_NAME} application info.")
+    return 'NOT_AVAILABLE'
   end
 
   def app_instances(apps)
