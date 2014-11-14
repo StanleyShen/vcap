@@ -57,7 +57,7 @@ class ::Jobs::FullBackupJob
         if dir['backup'] == true || dir['backup'] == 'true'
           full_path_to_backup =   "#{@tmp_dir}/#{name}#{backup_ext}"
 
-          configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /^#{name}$/, {:file_names=> full_path_to_backup, :app_name=> CreateAdmin.INTALIO_APP_NAME, :data_only=>true})
+          configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /^#{name}$/, {:file_names=> full_path_to_backup, :app_name=> CreateAdmin::INTALIO_APP_NAME, :data_only=>true})
           at(inc_step, total, "#{name} backup started")
           configurer.export()
 
@@ -127,7 +127,7 @@ class ::Jobs::FullBackupJob
 
   private
   def call_extensible_backup(client, filepath)
-    app_name_intalio = CreateAdmin.INTALIO_APP_NAME
+    app_name_intalio = CreateAdmin::INTALIO_APP_NAME
     debug "Preparing to call extensible backup"
 
     app_stats = client.app_stats(app_name_intalio)

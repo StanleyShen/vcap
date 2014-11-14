@@ -36,7 +36,7 @@ class ::Jobs::GeneralInfo
   end
   
   def intalio_running?
-    intalio_instances = @client.app_instances(CreateAdmin.INTALIO_APP_NAME)
+    intalio_instances = @client.app_instances(CreateAdmin::INTALIO_APP_NAME)
     return false if intalio_instances.empty?
     instances = intalio_instances[:instances]
     running_ins = instances.select{|t|
@@ -47,7 +47,7 @@ class ::Jobs::GeneralInfo
   
   # the host name is the intalio app uris
   def host_name
-    intalio_app = @admin_instance.app_info(CreateAdmin.INTALIO_APP_NAME, false)
+    intalio_app = @admin_instance.app_info(CreateAdmin::INTALIO_APP_NAME, false)
     intalio_app[:uris].first
   end
   
