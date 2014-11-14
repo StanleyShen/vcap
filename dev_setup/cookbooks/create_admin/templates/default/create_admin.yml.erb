@@ -1,7 +1,8 @@
 pid: /var/vcap/sys/run/create_admin.pid
 port: <%= node[:create_admin][:port] %>
 env:
-  INTALIO_APP_NAME: <%= node[:create_admin][:intalio_app] %>
+  INTALIO_CLUSTER_APP_NAME: <%= node[:create_admin][:intalio_cluster_app] %>
+  INTALIO_NON_CLUSTER_APP_NAME: <%= node[:create_admin][:intalio_non_cluster_app] %>
   ADMIN_APP_NAME: <%= node[:create_admin][:admin_app] %>
   OAUTH_APP_NAME: <%= node[:create_admin][:oauth_app] %>
   CDN_APP_NAME: <%= node[:create_admin][:cdn_app] %>

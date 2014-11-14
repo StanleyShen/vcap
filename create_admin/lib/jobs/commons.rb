@@ -16,10 +16,10 @@ module Jobs::Commons
   APP_VERSION_PATH = "app/#{VERSION_FILE}"
   
   def intalio_host_name
-    intalio_app = admin_instance.app_info(CreateAdmin::INTALIO_APP_NAME, false)
+    intalio_app = admin_instance.app_info(CreateAdmin.instance.app_name(:intalio), false)
     return intalio_app[:uris].first if (intalio_app)
 
-    error("Can't find the #{CreateAdmin::INTALIO_APP_NAME} application info.")
+    error("Can't find the #{CreateAdmin.instance.app_name(:intalio)} application info.")
     return 'NOT_AVAILABLE'
   end
 

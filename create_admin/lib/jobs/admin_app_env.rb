@@ -23,6 +23,11 @@ class ::Jobs::AdminApplicationEnv
     manifest = @admin_instance.manifest
     res['default_user'] = manifest['default_user'] || ''
 
+    # the intalio app name
+    res['INTALIO_APP_NAME'] = @admin_instance.app_name(:intalio)
+
+    # cluster vm ?
+    res['CLUSTER_VM'] = @admin_instance.cluster_vm?
     send_data(res, true)
   end
 end
