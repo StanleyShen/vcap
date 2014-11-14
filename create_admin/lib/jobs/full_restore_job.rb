@@ -93,7 +93,7 @@ class ::Jobs::FullRestoreJob
               debug "Backing up latest #{name}"
 
               full_path_to_backup =   "#{@current_tmp_dir}/#{name}#{backup_ext}"
-              configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /^#{name}$/, {:file_names=> full_path_to_backup, :app_name=>'intalio', :data_only=>true})
+              configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /^#{name}$/, {:file_names=> full_path_to_backup, :app_name=> CreateAdmin.INTALIO_APP_NAME, :data_only=>true})
               at(inc_step, total, "#{name} backup started")
 
               configurer.export()
@@ -162,7 +162,7 @@ class ::Jobs::FullRestoreJob
           end
 
           debug "Restoring #{name} backup from #{full_path_to_backup}"
-          configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /^#{name}$/, {:file_names=>full_path_to_backup, :app_name=>'intalio', :data_only=>true})
+          configurer = VMC::KNIFE::RecipesConfigurationApplier.new(manifest, client, nil, nil, /^#{name}$/, {:file_names=>full_path_to_backup, :app_name=> CreateAdmin.INTALIO_APP_NAME, :data_only=>true})
           at(inc_step, total, "#{name} restore in progress")
 
           configurer.import()

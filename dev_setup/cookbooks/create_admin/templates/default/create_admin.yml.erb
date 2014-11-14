@@ -1,6 +1,10 @@
 pid: /var/vcap/sys/run/create_admin.pid
 port: <%= node[:create_admin][:port] %>
 env:
+  INTALIO_APP_NAME: <%= node[:create_admin][:intalio_app] %>
+  ADMIN_APP_NAME: <%= node[:create_admin][:admin_app] %>
+  OAUTH_APP_NAME: <%= node[:create_admin][:oauth_app] %>
+  CDN_APP_NAME: <%= node[:create_admin][:cdn_app] %>
   SSL_CERT_DIR: /etc/ssl/certs
   VMC_KNIFE_DEFAULT_RECIPE: /home/ubuntu/cloudfoundry/intalio_recipe.json
 logging:

@@ -24,7 +24,7 @@ class ::Jobs::DNSUpdateJob
   
   def run()
     debug 'Performing hostname update'
-    intalio_info = @admin_instance.app_info('intalio', false)
+    intalio_info = @admin_instance.app_info(CreateAdmin.INTALIO_APP_NAME, false)
     org_hostname = intalio_info[:uris].first
     # refresh the manifest of memory first
     @admin_instance.manifest(true)

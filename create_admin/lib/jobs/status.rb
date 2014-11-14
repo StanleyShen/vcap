@@ -43,7 +43,7 @@ class ::Jobs::StatusJob
   
   # the host name is the intalio app uris
   def host_name
-    intalio_app = @admin_instance.app_info('intalio', false)
+    intalio_app = @admin_instance.app_info(CreateAdmin.INTALIO_APP_NAME, false)
     intalio_app[:uris].first
   end
   

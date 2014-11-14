@@ -11,8 +11,6 @@ class ::Jobs::AppInstances
   
   def run
     manifest = @admin_instance.manifest(false)
-    error(" apps are.... #{manifest['recipes'].first['applications'].values.collect{|v| v['name']}}")
-
     apps = @apps.nil? ? manifest['recipes'].first['applications'].values.collect{|v| v['name']} : @apps.split(',')
 
     completed({
