@@ -18,6 +18,7 @@ class ::Jobs::GeneralInfo
     hostname = intalio_host_name
     
     apps = @manifest['recipes'].first['applications'].values.collect{|v| v['name']}
+    oldest_intalio = oldest_running_intalio
 
     completed({
       'ip_address' => published_ip,
@@ -25,7 +26,8 @@ class ::Jobs::GeneralInfo
       'license' => get_license_terms(hostname),
       'backup_info' => get_backup_info,
       'current_version' => CreateAdmin.get_build_number,
-      'app_intalio_running' => intalio_running?
+      'app_intalio_running' => !oldest_intalio.nil?,
+      'oldest_intalio_uptime' => (oldest_intalio && oldest_intalio['uptime'])
     })
   end
   
@@ -35,14 +37,23 @@ class ::Jobs::GeneralInfo
     @client = @admin_instance.vmc_client(false)
   end
   
-  def intalio_running?
-    intalio_instances = @client.app_instances(@admin_instance.app_name(:intalio))
-    return false if intalio_instances.empty?
-    instances = intalio_instances[:instances]
-    running_ins = instances.select{|t|
-      t[:state] == 'RUNNING'
+  def oldest_running_intalio
+    intalio_instances = @admin_instance.app_status(@admin_instance.app_name(:intalio))
+    return if intalio_instances.empty?
+
+    res = nil
+    intalio_instances.each{|s|
+      next if s['state'] != 'RUNNING'
+      if res.nil?
+        res = s
+        next
+      end
+
+      if s['uptime'] > res['uptime']
+        res = s
+      end
     }
-    !running_ins.empty?
+    res
   end
   
   # the host name is the intalio app uris
