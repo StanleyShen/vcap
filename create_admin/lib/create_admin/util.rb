@@ -66,14 +66,14 @@ module CreateAdmin
     end
   end
   
-  def self.get_build_number
+  def self.get_build_number(include_patch_num = false)
     sql = "select io_build_number from io_system_setting where io_active='t';"
     begin
       build_num = nil
       query(sql) {|res|
         build_num = res.getvalue(0, 0)
       }
-      return if build_num.nil?
+      return build_num if include_patch_num
 
       nums = build_num.split('.').concat([0, 0, 0])
       return "#{nums[0]}.#{nums[1]}.#{nums[2]}"
