@@ -18,14 +18,14 @@ class ::Jobs::GeneralInfo
     hostname = intalio_host_name
     
     apps = @manifest['recipes'].first['applications'].values.collect{|v| v['name']}
-    oldest_intalio = oldest_running_intalio
+    oldest_intalio = oldest_running_app
 
     completed({
       'ip_address' => published_ip,
       'hostname' => hostname,
       'license' => get_license_terms(hostname),
       'backup_info' => get_backup_info,
-      'current_version' => CreateAdmin.get_build_number,
+      'current_version' => CreateAdmin.get_build_number(true),
       'app_intalio_running' => !oldest_intalio.nil?,
       'oldest_intalio_uptime' => (oldest_intalio && oldest_intalio['uptime'])
     })
@@ -37,12 +37,17 @@ class ::Jobs::GeneralInfo
     @client = @admin_instance.vmc_client(false)
   end
   
-  def oldest_running_intalio
-    intalio_instances = @admin_instance.app_status(@admin_instance.app_name(:intalio))
-    return if intalio_instances.empty?
+  def oldest_running_app
+    create_apps = @admin_instance.governed_apps
+
+    all_instancs = []
+    create_apps.each{|app|
+      all_instancs.concat(@admin_instance.app_status(app))
+    }
+    return if all_instancs.empty?
 
     res = nil
-    intalio_instances.each{|s|
+    all_instancs.each{|s|
       next if s['state'] != 'RUNNING'
       if res.nil?
         res = s
