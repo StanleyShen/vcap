@@ -73,7 +73,7 @@ class ::Jobs::GeneralInfo
   end
   
   def get_backup_info
-    last_backup, last_scheduled_backup = nil, 0
+    last_backup, last_scheduled_backup = nil, 0 # millseconds
 
     base_dir = CreateAdmin.instance.backup_home
     if File.directory?(base_dir)
@@ -109,13 +109,14 @@ class ::Jobs::GeneralInfo
     }
 
     last_failure, next_backup = nil, nil
-     
-    backup_settings = backup_instance.get_backup_setting    
+
+    backup_settings = backup_instance.get_backup_setting
     unless backup_settings.nil? || backup_settings.period == 0
-      start_time = backup_settings.schedule_start_time
-      backup_time = (last_scheduled_backup.to_i > 0 && last_scheduled_backup/1000 > start_time) ? last_scheduled_backup/1000 : start_time
+      start_time = backup_instance.schedule_start_time # seconds
+      backup_time = (last_scheduled_backup.to_i > 0 && last_scheduled_backup/1000 > start_time) ? last_scheduled_backup/1000 : start_time # seconds
 
       past_failures = backup_instance.backup_failures
+      period = backup_settings.period  # seconds
       if past_failures > 0
         new_period = period + (period * past_failures)
         next_backup = round_backup.call(backup_time + new_period, period)

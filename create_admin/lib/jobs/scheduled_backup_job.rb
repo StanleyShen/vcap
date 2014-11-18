@@ -57,7 +57,6 @@ class ScheduledBackup
   private
   
   def initialize(options = {})
-    @manifest_path = options['manifest']
     @backup_home = CreateAdmin.instance.backup_home
     @running_threads = []
     @backup_failures = 0
@@ -140,7 +139,7 @@ class ScheduledBackup
 
     warn "Max storage exceeded!!! Please increase max storage setting or delete old backup archives." if max_storage_exceeded?(identifier)
 
-    job_params = {'manifest' => @manifest_path, 'suffix' => identifier}
+    job_params = {'suffix' => identifier}
 
     debug "Preparing to create backup"
     @backup_job_started = true

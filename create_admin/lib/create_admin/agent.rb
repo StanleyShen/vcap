@@ -106,7 +106,7 @@ class ::CreateAdmin::ConnectionHandler
     begin
       process_queue_data(CreateAdmin::CONNECTION_EOF)
     rescue => e
-      error("Encount exception when sent the connecton EOF flag.")
+      error("Encounter exception when sent the connection EOF flag.")
       error(e)
     end
     if @job && @instance_id
@@ -154,9 +154,9 @@ class ::CreateAdmin::ConnectionHandler
       begin
         @job.process_non_cmd_data(@queue_data)
       rescue =>e
-        error("Encount exception when process the non-command data.")
+        error("Encounter exception when process the non-command data.")
         error e
-        failed("Encount exception when process the non-command data, message: #{e.message}")
+        failed("Encounter exception when process the non-command data, message: #{e.message}")
       end
     }
     
@@ -194,9 +194,9 @@ class ::CreateAdmin::ConnectionHandler
         @job.run()
         process_queue_data(nil, false) if more_data && !more_data.empty?
       rescue =>e
-        error("Encount exception when runing the job: #{@debug_str}.")
+        error("Encounter exception when running the job: #{@debug_str}.")
         error e
-        failed("Encount exception when runing the job: #{@debug_str}, message: #{e.message}")
+        failed("Encounter exception when running the job: #{@debug_str}, message: #{e.message}")
       end
     }
   end
