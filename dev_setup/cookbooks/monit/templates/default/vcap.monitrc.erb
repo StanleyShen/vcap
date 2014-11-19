@@ -16,9 +16,6 @@
          as uid <%= node[:deployment][:user] %> and with gid <%= node[:deployment][:group] %>
          with timeout 10 seconds
     if memory is greater than 500 MB then restart
-    <% if group == 'controller' || group == 'db' %>
-    depends on postgresql
-    <% end %>
 
   <% end %>
 <% end %>
