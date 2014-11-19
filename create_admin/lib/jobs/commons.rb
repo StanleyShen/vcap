@@ -31,7 +31,7 @@ module Jobs::Commons
         instances[app] = [{'state' => 'STOPPED'}]
       else
         instances[app] = app_instances
-      end       
+      end
     }
     instances
   end
