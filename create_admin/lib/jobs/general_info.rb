@@ -126,6 +126,6 @@ class ::Jobs::GeneralInfo
       end
     end
     
-    return {'last_backup' => last_backup, 'next_backup' => next_backup, 'backup_failure' => last_failure}
+    return {'last_backup' => last_backup, 'next_backup' => next_backup, 'backup_failure' => last_failure, 'no_backup_setting' => (backup_settings.nil? || backup_settings.period == 0)}
   end
 end
