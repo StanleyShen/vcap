@@ -13,7 +13,7 @@ class ScheduledBackup
   include DataService::PostgresSvc
   include ::CreateAdmin::Log
 
-  attr_reader :schedule_start_time, :backup_failures, :backup_job_started
+  attr_reader :schedule_start_time, :backup_failures, :backup_job_started, :is_backup_job_running
 
   def bootstrap_schedule()
     setting = get_backup_setting
@@ -98,6 +98,7 @@ class ScheduledBackup
     @backup_setting = setting
     @schedule_start_time = Time.now.to_i
     @backup_job_started = false
+    @is_backup_job_running = false
     schedule_backup(setting)
   end
 
@@ -124,12 +125,19 @@ class ScheduledBackup
     options[:at] = at unless setting.at.nil?
     debug "Creating new scheduled backup for every #{setting.period} seconds at #{at}"
     Clockwork.every(period.send(:seconds), "Backup intalio", options) {
-      debug "Running backup for every #{setting.label} at #{at}"
-      begin
-        start_backup_job(setting.identifier)
-      rescue Exception => e
-        error "Caught exception #{e.message}"
-        error e.backtrace
+      # avoid to run current job if previous job is still running
+      unless @is_backup_job_running
+        @is_backup_job_running = true
+  
+        debug "Running backup for every #{setting.label} at #{at}"
+        begin
+          start_backup_job(setting.identifier)
+        rescue Exception => e
+          error "Caught exception #{e.message}"
+          error e.backtrace
+        ensure
+          @is_backup_job_running = false
+        end
       end
     }
   end
