@@ -21,14 +21,15 @@ module DataService
     def query(sql, pg_cred = nil)
       begin
         conn = get_postgres_db(pg_cred)
-        raise 'failed to get the pg connetion with cred #{pg_cred}.' if conn.nil?
+        raise "failed to get the pg connetion with cred #{pg_cred}." if conn.nil?
 
         conn.exec(sql) {|result|
-          yield(result)
+          yield(result) if result.num_tuples > 0
         }
       rescue Exception => e        
         CreateAdmin::Log.error("Failed to query sql: #{sql}\nerror message: #{e.message}")
         CreateAdmin::Log.error(e.backtrace)
+        nil
       ensure
         conn.close if conn
       end
@@ -40,11 +41,12 @@ module DataService
         raise 'failed to get the pg connetion with cred#{pg_cred}' if conn.nil?
         
         conn.exec_params(sql, paras) {|result|
-          yield(result)
+          yield(result) if result.num_tuples > 0
         }
       rescue Exception => e  
         CreateAdmin::Log.error("Failed to query sql: #{sql}, with paras: #{paras}\nerror message: #{e.message}")
         CreateAdmin::Log.error(e.backtrace)
+        nil
       ensure
         conn.close if conn
       end

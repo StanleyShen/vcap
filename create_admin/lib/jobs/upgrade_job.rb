@@ -5,6 +5,7 @@ require 'zip/zip'
 
 require 'tmpdir'
 require 'uri'
+require 'fileutils'
 
 require 'jobs/job'
 require 'create_admin/util'
@@ -26,15 +27,7 @@ class ::Jobs::UpgradeJob
     options = options || {}
 
     @app_names = options['apps']
-    @data_archive_name = options['data_archive_name']
-    @is_dev = options['is_dev'] || false
-
-    @data_archive_name ||= 'data_internal.zip' if @is_dev
-    @pre_script_name = options['pre_archive_name']
-    @post_script_name = options['post_archive_name']
-
     @version_built_name = 'version_built.properties'
-    @major = options['major'] || true
   end
 
   def run
@@ -42,7 +35,6 @@ class ::Jobs::UpgradeJob
 
     begin
       do_download()
-      do_unzip()
       do_update()
 
       completed('successfully upgraded.')
@@ -67,16 +59,10 @@ class ::Jobs::UpgradeJob
     else
       @apps = @app_names.split(',')
     end
-
-    @data_archive_name = @data_archive_name || @manifest['boot_data_url'] || 'data_external.zip'
-    @pre_script_name = @pre_script_name || @manifest['pre_script_url'] || 'pre.zip'
-    @post_script_name = @post_script_name || @manifest['post_script_url'] || 'post.zip'
-
-    @data_downloaded_path = @manifest['boot_data'] || "#{ENV['HOME']}/intalio/boot_data"
   
-    # two steps for each app download, two step for data download, four steps for script download, two steps for data unzip, four steps for script unzip, 9 steps for each app update
+    # two steps for each app download, 9 steps for each app update
     @iteration = 0
-    @total_steps = @apps.size * 2 + 2 + 4 + 2 + 4  + @apps.size * 9
+    @total_steps = @apps.size * 2 + @apps.size * 9
   end
   
   def output_status(message, step = 1)
@@ -95,7 +81,7 @@ class ::Jobs::UpgradeJob
   def do_download()
     begin
       # application download path
-#      FileUtils.rm_rf(@app_download_path) it allows to resume downloading for one specific applicaiton
+      FileUtils.rm_rf(@app_download_path)
       FileUtils.mkdir_p(@app_download_path)
 
       repo_url = get_repo_url
@@ -114,7 +100,7 @@ class ::Jobs::UpgradeJob
         #1
         output_status("Start to download #{app} from url: #{app_download_url}")
           
-        threads << Thread.new(app, file_path, app_download_url){
+        threads << Thread.new(app, file_path, app_download_url) {
           # appliation archive
           app_status[app] = download(file_path, app_download_url)
 
@@ -144,111 +130,9 @@ class ::Jobs::UpgradeJob
         send_data({k => v})
       }
       raise "Download failed, please check the log for detail message." if raise_exception
-
-      # application download path
-      FileUtils.rm_rf(@data_downloaded_path)
-      FileUtils.mkdir_p(@data_downloaded_path)
-
-      #3
-      # download the data
-      download_url = URI(@data_archive_name).relative? ? URI::join(repo_url, @data_archive_name).to_s : @data_archive_name
-      file_path = File.join(@data_downloaded_path, download_url[/([^\/]*$)/])
-      output_status("Start to download data from url: #{download_url}")
-      data_status = download(file_path, download_url)
-      raise "Download failed, please check the log for detail message." if data_status['download'] == false
-      #4
-      output_status(data_status)
-
-      if (@major)
-        # pre script
-        download_url = URI(@pre_script_name).relative? ? URI::join(repo_url, @pre_script_name).to_s : @pre_script_name
-        file_path = File.join(@data_downloaded_path, download_url[/([^\/]*$)/])
-        #1
-        output_status("Start to download pre script from url: #{download_url}")
-        status = download(file_path, download_url)
-        #2
-        output_status(status)
-
-        # post script
-        download_url = URI(@post_script_name).relative? ? URI::join(repo_url, @post_script_name).to_s : @post_script_name
-        file_path = File.join(@data_downloaded_path, download_url[/([^\/]*$)/])
-        #3
-        output_status("Start to download post script from url: #{download_url}")
-        status = download(file_path, download_url)
-        #4
-        output_status(status)
-      else
-        output_status("Script downloading is skipped.", 4)
-      end
     rescue Exception => e
       error 'Failed to download apps'
       raise e
-    end
-  end
-
-  def do_unzip()
-    #1
-    archive_name = @data_archive_name[/([^\/]*$)/]
-    output_status("Start to unzip the archive #{archive_name}")
-
-    data_archive = File.join(@data_downloaded_path, archive_name)
-    if File.exists?(data_archive)
-      Zip::ZipFile.open(data_archive) do |zipfile|
-        zipfile.each { |f|
-          zipfile.extract(f, "#{@data_downloaded_path}/#{f.name}")
-        }
-      end
-    end
-    #2
-    output_status("Archive #{archive_name} is unzipped")
-    
-    # clean the pre and post script
-    pre_target_folder = File.join(@data_downloaded_path, 'pre')
-    post_target_folder = File.join(@data_downloaded_path, 'post')
-
-    FileUtils.rm_rf(pre_target_folder)
-    FileUtils.rm_rf(post_target_folder)
-    @major = true
-    if @major
-      #3
-      archive_name = @pre_script_name[/([^\/]*$)/]
-      output_status("Start to unzip the pre script #{archive_name}")
-
-      pre_archive = File.join(@data_downloaded_path, archive_name)
-      if File.exists?(pre_archive)
-        FileUtils.mkdir_p(pre_target_folder)
-
-        Zip::ZipFile.open(pre_archive) do |zipfile|
-          zipfile.each { |f|
-            zipfile.extract(f, "#{pre_target_folder}/#{f.name}") do
-              true
-            end
-          }
-        end
-      end
-      #4
-      output_status("Pre script #{archive_name} is unzipped.")
-
-      #5
-      archive_name = @post_script_name[/([^\/]*$)/]
-      output_status("Start to unzip the post script #{archive_name}")
-
-      post_archive = File.join(@data_downloaded_path, archive_name)
-      if File.exists?(post_archive)
-        FileUtils.mkdir_p(post_target_folder)
-
-        Zip::ZipFile.open(post_archive) do |zipfile|
-          zipfile.each { |f|
-            zipfile.extract(f, "#{post_target_folder}/#{f.name}") do
-              true
-            end
-          }
-        end
-      end
-      #6
-      output_status("Post script #{archive_name} is unzipped.")
-    else
-      output_status("Skip to unzip the script.", 4)
     end
   end
 
