@@ -24,6 +24,7 @@ module CreateAdmin
     'app_instances' => Jobs::AppInstances,
     'change_app_instance' => Jobs::ChangeAppInstance,
     'apps_version' => Jobs::AppsVersion,
+    'current_apps_version' => Jobs::CurrentAppsVersion,
     'refresh_license' => Jobs::RefreshLicense,
     'general_info' => Jobs::GeneralInfo
   }
