@@ -111,8 +111,9 @@ class ::Jobs::GeneralInfo
     last_failure, next_backup = nil, nil
 
     backup_settings = backup_instance.get_backup_setting
-    unless backup_settings.nil? || backup_settings.period == 0
-      start_time = backup_instance.schedule_start_time # seconds
+    if backup_settings && backup_settings.period > 0
+      # it is possible the schedule isn't started yet...(in progress).
+      start_time = backup_instance.schedule_start_time || Time.now.to_i# seconds
       backup_time = (last_scheduled_backup.to_i > 0 && last_scheduled_backup/1000 > start_time) ? last_scheduled_backup/1000 : start_time # seconds
 
       past_failures = backup_instance.backup_failures
