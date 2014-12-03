@@ -28,7 +28,7 @@ class ::Jobs::StatusJob
     completed({
       'ip_address' => published_ip,
       'hostname' => hostname,
-      'license' => get_license_terms(hostname),
+      'license' => get_license_terms(),
       'backup_info' => get_backup_info,
       'instances' =>  app_instances(apps),
       'current_version' => CreateAdmin.get_build_number
