@@ -16,14 +16,14 @@ class ::Jobs::GeneralInfo
     init_variables
 
     hostname = intalio_host_name
-    
+
     apps = @manifest['recipes'].first['applications'].values.collect{|v| v['name']}
     oldest_intalio = oldest_running_app
 
     completed({
       'ip_address' => published_ip,
       'hostname' => hostname,
-      'license' => get_license_terms(hostname),
+      'license' => get_license_terms(),
       'backup_info' => get_backup_info,
       'current_version' => CreateAdmin.get_build_number(true),
       'app_intalio_running' => !oldest_intalio.nil?,

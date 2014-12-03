@@ -83,6 +83,103 @@ module CreateAdmin
     end
     nil
   end
+  
+  def self.active_user_num(exclude_system_user = true)
+    sql = "select count(*) as t_count from io_user where io_active = true and io_deleted = false";
+    if (exclude_system_user)
+      sql += " and io_uuid != '764f0869-8b2a-4e43-8f23-88f593863eff'";
+    end
+    
+    num = query(sql) {|res|
+      res.getvalue(0, 0)
+    }
+    num
+  end
+  
+  # note: the caller must begin the transaction
+  def self.create_large_object(data, conn)
+    oid = conn.lo_creat(PG::Constants::INV_WRITE)
+    lo_desc = conn.lo_open(oid, PG::Constants::INV_WRITE)
+    conn.lo_write(lo_desc, data)
+
+    [lo_desc, oid]
+  end
+  
+  def self.create_record(table, data, conn = nil)
+    now = Time.now.iso8601
+    columns, vals = [], []
+  
+    data.each{|k, v|
+      columns << k
+      vals << v
+    }
+
+    if (data['io_created_on'].nil?)
+      columns << 'io_created_on'
+      vals << now
+    end
+
+    if (data['io_updated_on'].nil?)
+      columns << 'io_updated_on'
+      vals << now
+    end
+
+    if (data['io_created_by'].nil?)
+      columns << 'io_created_by'
+      vals << '764f0869-8b2a-4e43-8f23-88f593863eff' # system user
+    end
+
+    if (data['io_updated_by'].nil?)
+      columns << 'io_updated_by'
+      vals << '764f0869-8b2a-4e43-8f23-88f593863eff'
+    end
+
+    if (data['io_active'].nil?)
+      columns << 'io_active'
+      vals << true
+    end
+
+    if (data['io_deleted'].nil?)
+      columns << 'io_deleted'
+      vals << false
+    end
+    
+    if (data['io_owner'].nil?)
+      columns << 'io_owner'
+      vals << '764f0869-8b2a-4e43-8f23-88f593863eff'
+    end
+
+    gen_id = data['io_uuid'].nil?
+    columns << 'io_uuid' if gen_id
+    
+    sql = "INSERT INTO " + table + "(" + columns.join(',') + ") VALUES ("
+    ps = []
+    vals.each_with_index{|v, idx|
+      ps.push("$#{idx+1}");
+    }
+
+    sql = sql + ps.join(",")
+  
+    sql = sql + ',uuid_generate_v4()' if gen_id
+    sql = sql + ') RETURNING io_uuid'
+    
+    begin
+      create_conn = conn.nil?
+      conn = get_postgres_db if create_conn
+      conn.set_error_verbosity(PG::PQERRORS_VERBOSE)
+
+      conn.prepare('stmt', sql)
+      res = conn.exec_prepared('stmt', vals)
+      res.getvalue(0, 0)
+    rescue => e
+      CreateAdmin::Log.error("Failed to create record for table #{table} with data #{data}, message: #{e.message}")
+      raise e
+    ensure
+      if create_conn && conn
+        conn.close
+      end
+    end
+  end
 
   def self.get_base_url(url)
     return if url.nil? || url.empty?
