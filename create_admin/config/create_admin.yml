@@ -1,0 +1,6 @@
+port: 58080
+env:
+  SSL_CERT_DIR: /etc/ssl/certs
+  VMC_KNIFE_DEFAULT_RECIPE: /home/ubuntu/cloudfoundry/intalio_recipe.json
+logging:
+  level: debug
