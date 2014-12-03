@@ -322,7 +322,7 @@ class ::CreateAdmin::AdminInstance
   def refresh_manifest(manifest_path = nil)
     @vmc_client = nil
 
-    manifest = manifest_path || ENV['VMC_KNIFE_DEFAULT_RECIPE']
+    manifest_path = manifest_path || ENV['VMC_KNIFE_DEFAULT_RECIPE']
     @manifest = load_manifest(manifest_path)
   end
 
