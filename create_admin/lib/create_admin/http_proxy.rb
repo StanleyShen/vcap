@@ -21,25 +21,14 @@ module HttpProxy
       req.basic_auth(user, password)
     end
     
-    result = nil
+    result, digest_auth = nil, false
     http.request(req){|res|
       if res.code == '401'
         # unauthorized, check whether it is one digest authtication
-        if res['www-authenticate'] && res['www-authenticate'].start_with?("Digest")
-          digest_auth = Net::HTTP::DigestAuth.new
-          auth = digest_auth.auth_header url, res['www-authenticate'], 'GET'
-          
-          # create a new request with the Authorization header
-          req = Net::HTTP::Get.new url.request_uri
-          req.add_field 'Authorization', auth
-  
-          # re-issue request with Authorization
-          if block_given?
-            http.request(req) {|res2| yield(res2)}
-          else
-            result = http.request(req)
-          end
-        end
+        digest_auth = res['www-authenticate'] && res['www-authenticate'].start_with?("Digest")
+      end
+      if digest_auth
+        result = res
       else
         if block_given?
           yield(res)
@@ -49,6 +38,22 @@ module HttpProxy
       end
     }
     
+    if (digest_auth)
+      digest_auth = Net::HTTP::DigestAuth.new
+      auth = digest_auth.auth_header url, result['www-authenticate'], 'GET'
+      
+      # create a new request with the Authorization header
+      req = Net::HTTP::Get.new url.request_uri
+      req.add_field 'Authorization', auth
+
+      # re-issue request with Authorization
+      if block_given?
+        http.request(req) {|res2| yield(res2)}
+      else
+        result = http.request(req)
+      end
+    end
+
     return result
   end
 end
