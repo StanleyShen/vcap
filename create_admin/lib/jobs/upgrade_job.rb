@@ -312,10 +312,10 @@ class ::Jobs::UpgradeJob
 
                 debug "#{url} download progress #{percent}%"
             end
-            info = "Download #{url} successfully"
-            downloaded = true
-            debug info
           end
+          info = "Download #{url} successfully"
+          downloaded = true
+          debug info
         else
           info = "Failed to download #{url}. Got response code #{resp.code}"
           error info
