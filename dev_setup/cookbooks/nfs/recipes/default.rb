@@ -132,9 +132,6 @@ bash "shared files for nfs" do
   mkdir -p /var/vcap/services/nfs/cloudfoundry
   cp -r /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/config #{node[:nfs][:server_path]}/cloudfoundry
 
-  rm /home/ubuntu/cloudfoundry/intalio_recipe.json
-  ln -s #{node[:nfs][:client_path]}/intalio_recipe.json /home/ubuntu/cloudfoundry/intalio_recipe.json
-  
   rm -rf /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/config
   ln -s #{node[:nfs][:client_path]}/cloudfoundry/config /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/config
   
