@@ -1,0 +1,49 @@
+#! /bin/bash
+#
+# /sbin/ensure-nfs-mounted
+#
+
+MAX_COUNT=120 # Maximum number of mount attempts -before giving up
+
+ensure_nfsmount() 
+{
+  local count=0
+  while true
+  do
+    if mount | grep "type nfs" | awk '{print $3}' | grep -q -E "^$1\$"
+    then
+      # Share is mounted - OK
+      return 0
+    else
+      mount "$1"
+      count=$((count+1))
+      if [ $count -gt $MAX_COUNT ]
+      then
+        echo "Failed to mount NFS share $1 - giving up!" 1>&2
+        return 9
+      elif [ $count -gt 1 ]
+      then
+        echo "Failed to mount NFS share $1 ($count) - will retry in a second" 1>&2
+        sleep 2
+      fi
+    fi
+  done
+}
+
+mountpoints=$(cat /etc/fstab | grep  -v -E "^[[:space:]]*#.*" | grep nfs | awk '{print $2}')
+for mp in $mountpoints
+do
+  if ! ensure_nfsmount $mp
+  then
+    # we failed
+    initctl emit -n nfsshares-not-mounted
+    exit $?
+  fi
+done
+
+# all done!
+
+initctl emit -n nfsshares-mounted
+monit reload
+
+exit 0
