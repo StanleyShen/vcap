@@ -25,8 +25,6 @@ execute "test-monit-config" do
   action :nothing
 end
 
-node[:monit][:config_file] = File.join(node[:deployment][:config_path], "vcap.monitrc")
-
 case node['platform']
 when "ubuntu"
   bash "Upgrade to monit-5.3" do
@@ -170,17 +168,9 @@ template "/etc/monit/config.d/daemon.monitrc" do
   end
 end
 
-execute "vcap_monitrc" do
-  command "sudo ln -sf /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/config/vcap.monitrc /etc/monit/config.d/vcap.monitrc"
-  action :nothing
-end
-
-template node[:monit][:config_file] do
-  path node[:monit][:config_file]
+template "/etc/monit/config.d/vcap.monitrc" do
   source "vcap.monitrc.erb"
   action :create
   notifies :run, "execute[test-monit-config]", :immediately
-  notifies :run, 'execute[vcap_monitrc]', :immediately
-  owner node[:deployment][:user]
   mode 0644
 end
