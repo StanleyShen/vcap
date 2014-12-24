@@ -58,6 +58,12 @@ directory node[:nfs][:client_path] do
   action :create
 end
 
+template "#{node[:nfs][:server_path]}/.mounted" do
+  source "mounted"
+  mode 0644
+  action :create
+end
+
 package "nfs-kernel-server" do
   action :install
 end
@@ -112,6 +118,12 @@ end
 
 template "/etc/init/nfs-umount.conf" do
   source "nfs-umount.conf"
+  mode 0644
+  action :create
+end
+
+template "/etc/monit/config.d/nfs.monitrc" do
+  source "nfs.monitrc.erb"
   mode 0644
   action :create
 end
