@@ -11,8 +11,7 @@ module CloudFoundryPostgres
     end
   end
   def pg_server_command(cmd='restart')
-    / \d*.\d*/ =~ `pg_config --version`
-    pg_major_version = $&.strip
+    pg_major_version = get_pg_major_version
     # Cant use service resource as service name needs to be statically defined
     # For pg_major_version >= 9.0 the version does not appear in the name
     postgresql_ctl = File.join("", "etc", "init.d", "postgresql-#{pg_major_version}")
@@ -29,10 +28,7 @@ module CloudFoundryPostgres
     when "ubuntu"
       ruby_block "Update PostgreSQL config for db=#{db} user=#{user} ip_and_mask=#{ip_and_mask} pass_encrypt=#{pass_encrypt} connection_type=#{connection_type}" do
         block do
-          pg_config_version=`pg_config --version`.strip
-          raise "pg_config --version did not return a thing" unless pg_config_version
-          / \d*.\d*/ =~ pg_config_version
-          pg_major_version = $&.strip
+          pg_major_version = get_pg_major_version
 
           # Update pg_hba.conf
           pg_hba_conf_file = File.join("", "etc", "postgresql", pg_major_version, "main", "pg_hba.conf")
@@ -152,8 +148,7 @@ Chef::Log.warn("Code to create the template #{template_db_name} #{code}")
     when "ubuntu"
       bash "Setup PostgreSQL database template #{db_template_name} with the extension #{extension_name}" do
         user "postgres"
-        / \d*.\d*/ =~ `pg_config --version`
-        pg_major_version = $&.strip
+        pg_major_version = get_pg_major_version
         if pg_major_version == '9.0'
         code <<-EOH
 extension_sql_path="/usr/share/postgresql/9.0/contrib/#{extension_name}.sql"
@@ -208,9 +203,8 @@ EOH
   def get_pg_major_version()
     case node['platform']
     when "ubuntu"
-      / \d*.\d*/ =~ `pg_config --version`
-      pg_major_version = $&.strip
-      return pg_major_version
+      version = `psql --version`
+      return version.scan(/\d+/)[0..1].join(".")
     else
       Chef::Log.error("PostgreSQL config update is not supported on this platform.")
     end
