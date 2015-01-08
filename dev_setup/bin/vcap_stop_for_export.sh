@@ -136,7 +136,7 @@ sudo apt-get purge \
         zlib1g-dev
 
 if [ ! -f "/usr/bin/ruby" ]; then
-  sudo ln -s /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/deploy/rubies/ruby-1.9.2-p320/bin/ruby /usr/bin/ruby
+  sudo ln -s /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/deploy/rubies/ruby-1.9.3-p547/bin/ruby /usr/bin/ruby
 fi
 
 # reset the password of the ubuntu user to ubuntu:
