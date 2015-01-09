@@ -44,6 +44,5 @@ done
 # all done!
 
 initctl emit -n nfsshares-mounted
-monit reload
 
 exit 0
