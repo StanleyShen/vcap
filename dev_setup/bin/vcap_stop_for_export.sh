@@ -493,6 +493,13 @@ rm ~/.*_history
 echo "update VM time"
 sudo ntpdate pool.ntp.org
 
+echo "remove SSH keys? (required before exporting OVF/AMI) default yes?"
+read response
+if [ -z "$response" ]; then
+  if [[ -e "/home/ubuntu/.ssh/authorized_keys" ]]; then
+    echo "" > /home/ubuntu/.ssh/authorized_keys
+  fi
+fi
 
 df -h
 echo "Secure delete (required before we can export the VM image) default yes?"
