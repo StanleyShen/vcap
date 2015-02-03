@@ -503,13 +503,6 @@ if [ -z "$response" ]; then
   fi
 fi
 
-echo "Turn off swap for optimum disk cleanup (default yes)?"
-read response
-if [ -z "$response" ]; then
-  sudo swapoff -a
-  sudo rm /tmp/simple_swap*
-fi
-
 echo "Secure delete (required before we can export the VM image) default yes?"
 read response
 if [ -z "$response" ]; then
@@ -522,6 +515,7 @@ sudo sfill -v -f -z -l  /
     sudo du -sh /var/lib/postgresql/
     sudo du -sh /var/vcap*
     sudo du -sh /tmp/*
+
     history -c
     sudo poweroff
   fi
