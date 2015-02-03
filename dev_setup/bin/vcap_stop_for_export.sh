@@ -378,7 +378,6 @@ sudo apt-get install
 
 sudo apt-get autoremove -y --force-yes
 sudo apt-get clean
-sudo apt-get autoclean
 
 rm -rf /home/ubuntu/cloudfoundry/backup
 sudo rm -rf /var/www/nginx/logs/*
@@ -504,7 +503,6 @@ if [ -z "$response" ]; then
   fi
 fi
 
-df -h
 echo "Secure delete (required before we can export the VM image) default yes?"
 read response
 if [ -z "$response" ]; then
@@ -512,6 +510,12 @@ sudo sfill -v -f -z -l  /
   echo "All ready to export from the hypervisor. Shutdown now?"
   read response
   if [ -z "$response" ]; then
+    df -h
+    sudo du -sh /home/ubuntu/cloudfoundry/
+    sudo du -sh /var/lib/postgresql/
+    sudo du -sh /var/vcap*
+    sudo du -sh /tmp/*
+
     history -c
     sudo poweroff
   fi
