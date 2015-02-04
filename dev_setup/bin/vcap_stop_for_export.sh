@@ -7,7 +7,7 @@ echo "delete encrypted keys"
 rm ~/cloudfoundry/io_encryption_key
 
 # teach current shell about CloudFoundry tools
-source ~/.bashrc
+source /home/ubuntu/.cloudfoundry_deployment_local
 
 echo "update intalio version for welcome screen"
 intalio_version=`vmc_knife info-apps intalio | grep "Version installed:" | awk -F '[;:,]' '{print $2}'`;
