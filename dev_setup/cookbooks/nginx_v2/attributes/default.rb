@@ -3,8 +3,7 @@ include_attribute "deployment"
 default[:router][:config_file] = "router.yml"
 #default[:router][:client_inactivity_timeout] = 60
 
-default[:nginx_v2][:version] = "0.8.54"
-default[:nginx_v2][:id]  = "eyJzaWciOiJYaGxvTGFpVktXR3B6MExZVDBBdFNod3RDdzg9Iiwib2lkIjoi%0ANGU0ZTc4YmNhMjFlMTIyMjA0ZTRlOTg2MzkyNmIxMDUwMThmMmNiNGFiNjki%0AfQ==%0A"
+default[:nginx_v2][:version] = "1.1.18"
 default[:nginx_v2][:patch_id] = "eyJzaWciOiJkVGp2bjEyMXZYT0VWUHFUQjhrdjZ3Zk56WHc9Iiwib2lkIjoi%0ANGU0ZTc4YmNhNjFlMTIyMDA0ZTRlOGVjNmI0NGI2MDUwMThmM2JmMGMzOTQi%0AfQ==%0A"
 default[:nginx_v2][:pcre_id]  = "eyJzaWciOiJidU8zVW4rMEE5SVpYdkIxakpTb1NmNkV4N0k9Iiwib2lkIjoi%0ANGU0ZTc4YmNhMTFlMTIyMDA0ZTRlOGVjNjQ4NDMxMDUwMThmNDFjMDA1NWMi%0AfQ==%0A"
 default[:nginx_v2][:module_upload_id]  = "eyJzaWciOiJNU2VoeXVtVTZabDQxaHNLT2xLTFhka2hpTVU9Iiwib2lkIjoi%0ANGU0ZTc4YmNhNjFlMTIxMjA0ZTRlODZlZWJlNTkxMDUwMThmMmU0YWYzNTUi%0AfQ==%0A"
@@ -13,7 +12,6 @@ default[:nginx_v2][:module_devel_kit_id]  = "eyJzaWciOiJPZ0dPL3BBbmszOS96MWYvWFN
 default[:nginx_v2][:module_lua_id]  = "eyJzaWciOiIrODdSUXRTbUFINm5Sd3NNcFc2YlFDSVNPUXM9Iiwib2lkIjoi%0ANGU0ZTc4YmNhNTFlMTIyMDA0ZTRlOGVjNjg0MDc3MDUwMThmMmQ2ZGVhZTci%0AfQ==%0A"
 default[:nginx_v2][:path]    = File.join(node[:deployment][:home], "deploy", "nginx", "nginx-#{nginx_v2[:version]}")
 default[:nginx_v2][:vcap_log] = File.join(node[:deployment][:home], "sys", "log", "vcap.access.log")
-default[:nginx_v2][:checksums][:source] = "12e28efb9a54452fa6e579e08ce7c864e49d6ea6104cc2b3de5a4416ead90593"
 default[:nginx_v2][:checksums][:patch] = "0d4b26aab43fce6f1cdd1f2d0c578b82b14af9497366c99018f97479df20fceb"
 default[:nginx_v2][:checksums][:pcre_source] = "710d506ceb98305b2bd26ba93725acba03f8673765aba5a5598110cac7dbf5c3"
 default[:nginx_v2][:checksums][:module_upload_source] = "b1c26abe0427180602e257627b4ed21848c93cc20cefc33af084983767d65805"
