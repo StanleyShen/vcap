@@ -74,13 +74,6 @@ when "ubuntu"
       source "http://nginx.org/download/nginx-#{nginx_version}.tar.gz"
       action :create_if_missing
     end
-	
-    nginx_patch = File.join(node[:deployment][:setup_cache], "zero_byte_in_cstr_20120315.patch")
-    cf_remote_file nginx_patch do
-      owner node[:deployment][:user]
-      id node[:nginx_v2][:patch_id]
-      checksum node[:nginx_v2][:checksums][:patch]
-    end
 
     pcre_tarball = File.join(node[:deployment][:setup_cache], "pcre-8.12.tar.gz")
     cf_remote_file pcre_tarball do
@@ -187,7 +180,6 @@ when "ubuntu"
         git clone https://github.com/agentzh/chunkin-nginx-module.git --depth 1
 
         cd nginx-#{nginx_version}
-        patch -p0 < #{nginx_patch}
 
         LUA_LIB=#{lua_path}/lib LUA_INC=#{lua_path}/include ./configure \
           --prefix=#{nginx_path} \
