@@ -11,11 +11,13 @@ default[:nginx_v2][:module_devel_kit_id]  = "eyJzaWciOiJPZ0dPL3BBbmszOS96MWYvWFN
 default[:nginx_v2][:module_lua_id]  = "eyJzaWciOiIrODdSUXRTbUFINm5Sd3NNcFc2YlFDSVNPUXM9Iiwib2lkIjoi%0ANGU0ZTc4YmNhNTFlMTIyMDA0ZTRlOGVjNjg0MDc3MDUwMThmMmQ2ZGVhZTci%0AfQ==%0A"
 default[:nginx_v2][:path]    = File.join(node[:deployment][:home], "deploy", "nginx", "nginx-#{nginx_v2[:version]}")
 default[:nginx_v2][:vcap_log] = File.join(node[:deployment][:home], "sys", "log", "vcap.access.log")
+default[:nginx_v2][:checksums][:source] = "bf040821f3ffa3c733e14894b427eed119316561ab6617e5f0b13aa6353aa3ae"
 default[:nginx_v2][:checksums][:pcre_source] = "710d506ceb98305b2bd26ba93725acba03f8673765aba5a5598110cac7dbf5c3"
 default[:nginx_v2][:checksums][:module_upload_source] = "b1c26abe0427180602e257627b4ed21848c93cc20cefc33af084983767d65805"
 default[:nginx_v2][:checksums][:module_headers_more_source] = "10587007913805a5193e3104e81fd180a5c52bf7c3f5a5746081660916619bde"
 default[:nginx_v2][:checksums][:module_devel_kit_source] = "bf5540d76d1867b4411091f16c6c786fd66759099c59483c76c68434020fdb02"
-default[:nginx_v2][:checksums][:module_lua_source] = "249042d34a44dddd0ab06a37066fc9a09b692cef5f317d5e86f18d838bb0323f"
+default[:nginx_v2][:checksums][:module_lua_source] = "0802110ee2428642baab24f2b8bd6d82c0396c4f9afd023b26534adfb48f5760"
+default[:nginx_v2][:checksums][:module_sticky_source] = "6c18334d29d055bf9f21d59f9e9fb093e4dad017577f54b37c9358d315b05587"
 
 default[:lua][:version] = "5.1.4"
 default[:lua][:simple_version] = lua[:version].match(/\d+\.\d+/).to_s # something like 5.1

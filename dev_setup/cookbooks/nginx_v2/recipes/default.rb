@@ -72,6 +72,7 @@ when "ubuntu"
     remote_file nginx_tarball do
       owner node[:deployment][:user]
       source "http://nginx.org/download/nginx-#{nginx_version}.tar.gz"
+      checksum node[:nginx_v2][:checksums][:source]
       action :create_if_missing
     end
 
@@ -107,6 +108,7 @@ when "ubuntu"
     remote_file nginx_lua_tarball do
       owner node[:deployment][:user]
       source "https://github.com/openresty/lua-nginx-module/archive/v0.5.13.tar.gz"
+      checksum node[:nginx_v2][:checksums][:module_lua_source]
       action :create_if_missing
     end
 	
@@ -114,6 +116,7 @@ when "ubuntu"
     remote_file nginx_sticky_module do
       owner node[:deployment][:user]
       source "https://nginx-sticky-module.googlecode.com/files/nginx-sticky-module-1.1.tar.gz"
+      checksum node[:nginx_v2][:checksums][:module_sticky_source]
       action :create_if_missing
     end
 
