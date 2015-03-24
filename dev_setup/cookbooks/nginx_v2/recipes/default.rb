@@ -69,17 +69,11 @@ when "ubuntu"
 
     # Nginx related packages
     nginx_tarball = File.join(node[:deployment][:setup_cache], "nginx-#{nginx_version}.tar.gz")
-    cf_remote_file nginx_tarball do
+    remote_file nginx_tarball do
       owner node[:deployment][:user]
-      id node[:nginx_v2][:id]
+      source "http://nginx.org/download/nginx-#{nginx_version}.tar.gz"
       checksum node[:nginx_v2][:checksums][:source]
-    end
-
-    nginx_patch = File.join(node[:deployment][:setup_cache], "zero_byte_in_cstr_20120315.patch")
-    cf_remote_file nginx_patch do
-      owner node[:deployment][:user]
-      id node[:nginx_v2][:patch_id]
-      checksum node[:nginx_v2][:checksums][:patch]
+      action :create_if_missing
     end
 
     pcre_tarball = File.join(node[:deployment][:setup_cache], "pcre-8.12.tar.gz")
@@ -110,17 +104,19 @@ when "ubuntu"
       checksum node[:nginx_v2][:checksums][:module_devel_kit_source]
     end
 
-    nginx_lua_tarball = File.join(node[:deployment][:setup_cache], "nginx-lua.v0.3.1rc24.tar.gz")
-    cf_remote_file nginx_lua_tarball do
+    nginx_lua_tarball = File.join(node[:deployment][:setup_cache], "lua-nginx-module-0.5.13.tar.gz")
+    remote_file nginx_lua_tarball do
       owner node[:deployment][:user]
-      id node[:nginx_v2][:module_lua_id]
+      source "https://github.com/openresty/lua-nginx-module/archive/v0.5.13.tar.gz"
       checksum node[:nginx_v2][:checksums][:module_lua_source]
+      action :create_if_missing
     end
-
+	
     nginx_sticky_module = File.join(node[:deployment][:setup_cache], "nginx-sticky-module-1.1.tar.gz")
     remote_file nginx_sticky_module do
       owner node[:deployment][:user]
       source "https://nginx-sticky-module.googlecode.com/files/nginx-sticky-module-1.1.tar.gz"
+      checksum node[:nginx_v2][:checksums][:module_sticky_source]
       action :create_if_missing
     end
 
@@ -187,7 +183,6 @@ when "ubuntu"
         git clone https://github.com/agentzh/chunkin-nginx-module.git --depth 1
 
         cd nginx-#{nginx_version}
-        patch -p0 < #{nginx_patch}
 
         LUA_LIB=#{lua_path}/lib LUA_INC=#{lua_path}/include ./configure \
           --prefix=#{nginx_path} \
@@ -198,7 +193,7 @@ when "ubuntu"
           --add-module=../nginx_upload_module-2.2.0 \
           --add-module=../headers-more-v0.15rc1 \
           --add-module=../simpl-ngx_devel_kit-bc97eea \
-          --add-module=../chaoslawful-lua-nginx-module-4d92cb1 \
+          --add-module=../lua-nginx-module-0.5.13 \
           --add-module=../nginx-sticky-module-1.1
 
         make
