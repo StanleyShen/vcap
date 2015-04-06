@@ -124,3 +124,12 @@ cf_pg_setup_db(node[:postgresql_node][:database],
                [ "GRANT SELECT ON pg_authid to #{node[:postgresql_node][:server_root_user]}" ])
 
 
+# we need database root for cleaning up error message in postgresql log file
+cf_pg_setup_db('root',
+               node[:postgresql_node][:server_root_user],
+               node[:postgresql_node][:server_root_password],
+               'SUPERUSER', # superuser necessary to read pg_stat_activity see http://blog.kimiensoftware.com/2011/05/querying-pg_stat_activity-and-insufficient-privilege-291
+               'CREATEDB CREATEROLE', # will create the roles and databases for postgresnode,
+               'template1',
+               # the extra grants are not necessary now that we are a superuser.
+               [ "GRANT SELECT ON pg_authid to #{node[:postgresql_node][:server_root_user]}" ])
