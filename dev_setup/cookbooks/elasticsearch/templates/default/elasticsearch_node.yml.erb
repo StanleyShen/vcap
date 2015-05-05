@@ -23,7 +23,6 @@ tcp_port_range:
 logging:
   level: debug
 elasticsearch:
-  cluster.name: <%= node.elasticsearch[:cluster][:name] %>
   node.master: true
   node.data: true
   index.number_of_shards: <%= node.elasticsearch[:index][:number_of_shards] %>
