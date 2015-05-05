@@ -1,4 +1,3 @@
-require "uuidtools"
 include_attribute "deployment"
 
 # === GATEWAY
@@ -31,7 +30,7 @@ default.elasticsearch[:index][:number_of_shards] = 1
 
 # === CLUSTER
 #
-default.elasticsearch[:cluster][:name] = UUIDTools::UUID.random_create.to_s
+# default.elasticsearch[:cluster][:name] = UUIDTools::UUID.random_create.to_s
 
 # === LIMITS
 #
