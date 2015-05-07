@@ -168,7 +168,7 @@ http {
       if ($uri ~ "/sec/(.*)$") {
         set $appbase  "/sec";
       }
-      proxy_set_header appbase $appbase;
+      proxy_set_header X-APP-Base $appbase;
    
       if ($http_user_agent = "HTTP-Monitor/1.1") {
         set $health_monitor T;
@@ -305,7 +305,7 @@ http {
       if ($uri ~ "/sec/(.*)$") {
         set $appbase  "/sec";
       }
-      proxy_set_header appbase $appbase;
+      proxy_set_header X-APP-Base $appbase;
 
       if ($http_user_agent = "HTTP-Monitor/1.1") {
         set $health_monitor T;
