@@ -60,7 +60,7 @@ http {
         proxy_set_header            X-HTTP-HOST $http_host;
           
         set $app_id 3;
-        proxy_pass http://intalio.local/admin;
+        proxy_pass http://admin.intalio.local;
         
       }
   }
@@ -89,11 +89,21 @@ http {
           proxy_set_header            X-HTTP-HOST $http_host;
                 
           set $app_id 2;
-          proxy_pass http://intalio.local/oauth;
+          proxy_pass http://oauth.intalio.local;
       }
 
   }
   
+  server {
+      listen       8003;
+
+      location / {
+          access_log   /home/ubuntu/cloudfoundry/.deployments/intalio_devbox/log/nginx/nginx_router_cdn_app_access.log;
+          set $app_id 4;
+          proxy_pass http://cdn.intalio.local;
+      }
+
+  }
 
 <% if node[:nginx][:ssl][:only_ssl] %>
     server {
@@ -150,7 +160,7 @@ http {
       proxy_connect_timeout       <%= node[:nginx][:proxy_connect_timeout] %>;
       proxy_send_timeout          <%= node[:nginx][:proxy_send_timeout] %>;
       proxy_read_timeout          <%= node[:nginx][:proxy_read_timeout] %>;
-      proxy_pass_request_body on;
+
       set $health_monitor '';
       set $app_id 0;
       if ($http_user_agent = "HTTP-Monitor/1.1") {
@@ -194,7 +204,7 @@ http {
         set $timestamp 0;
         set $trace '';
         set $sticky '';
-        set $new_uri '';
+
         access_by_lua '
           local uls = require ("uls")
 
@@ -210,7 +220,8 @@ http {
           uls.post_process_subrequest(ngx, res)
         ';
 
-        proxy_pass http://$backend_addr$new_uri$is_args$args;
+        proxy_pass http://$backend_addr;
+
         # Handling response from backend servers
         header_filter_by_lua '
           local uls = require ("uls")
@@ -269,7 +280,6 @@ http {
       proxy_connect_timeout       <%= node[:nginx][:proxy_connect_timeout] %>;
       proxy_send_timeout          <%= node[:nginx][:proxy_send_timeout] %>;
       proxy_read_timeout          <%= node[:nginx][:proxy_read_timeout] %>;
-      proxy_pass_request_body on;
 
       set $health_monitor '';
       set $app_id 0;
@@ -314,7 +324,6 @@ http {
         set $timestamp 0;
         set $trace '';
         set $sticky '';
-        set $new_uri '';
 
         access_by_lua '
           local uls = require ("uls")
@@ -331,7 +340,8 @@ http {
           uls.post_process_subrequest(ngx, res)
         ';
 
-        proxy_pass http://$backend_addr$new_uri$is_args$args;
+        proxy_pass http://$backend_addr;
+
         # Handling response from backend servers
         header_filter_by_lua '
           local uls = require ("uls")
