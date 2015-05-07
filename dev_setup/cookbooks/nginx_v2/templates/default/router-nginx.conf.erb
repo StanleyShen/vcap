@@ -153,6 +153,23 @@ http {
       proxy_pass_request_body on;
       set $health_monitor '';
       set $app_id 0;
+
+      set $appbase '';
+      if ($uri = "/admin") {
+        set $appbase  "/admin";
+      }
+      if ($uri ~ "/admin/(.*)$") {
+        set $appbase  "/admin";
+      }
+
+      if ($uri = "/sec") {
+        set $appbase "/sec";
+      }
+      if ($uri ~ "/sec/(.*)$") {
+        set $appbase  "/sec";
+      }
+      proxy_set_header X-APP-Base $appbase;
+   
       if ($http_user_agent = "HTTP-Monitor/1.1") {
         set $health_monitor T;
       }
@@ -273,6 +290,23 @@ http {
 
       set $health_monitor '';
       set $app_id 0;
+
+      set $appbase '';
+      if ($uri = "/admin") {
+        set $appbase  "/admin";
+      }
+      if ($uri ~ "/admin/(.*)$") {
+        set $appbase  "/admin";
+      }
+
+      if ($uri = "/sec") {
+        set $appbase "/sec";
+      }
+      if ($uri ~ "/sec/(.*)$") {
+        set $appbase  "/sec";
+      }
+      proxy_set_header X-APP-Base $appbase;
+
       if ($http_user_agent = "HTTP-Monitor/1.1") {
         set $health_monitor T;
       }
