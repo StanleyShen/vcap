@@ -13,7 +13,7 @@ default[:cloudfoundry][:git][:vcap][:enable_submodules] = true
 default[:cloudfoundry][:git][:vcap_java][:repo] = "https://github.com/intalio/vcap-java.git"
 default[:cloudfoundry][:git][:vcap_java][:branch] = "master"
 default[:cloudfoundry][:git][:vcap_services][:repo] = "https://github.com/intalio/vcap-services.git"
-default[:cloudfoundry][:git][:vcap_services][:branch] = "master"
+default[:cloudfoundry][:git][:vcap_services][:branch] = "4.0"
 
 default[:cloudfoundry][:git][:router][:repo] = "https://github.com/intalio/router.git"
 default[:cloudfoundry][:git][:router][:branch] = "4.0"
