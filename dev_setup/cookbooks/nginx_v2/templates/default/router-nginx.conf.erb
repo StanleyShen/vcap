@@ -253,7 +253,7 @@ http {
     add_header Strict-Transport-Security "max-age=31536000; includeSubdomains";
 
     # Forward secrecy settings
-    ssl_dhparam  <%= node[:nginx][:ssl][:config_dir] %>/ <%= node[:nginx_v2][:dh_params] %>;
+    ssl_dhparam  <%= node[:nginx][:ssl][:config_dir] %>/<%= node[:nginx_v2][:dh_params] %>;
     ssl_session_cache    shared:SSL:10m;
     ssl_session_timeout  10m;
     ssl_prefer_server_ciphers on;
