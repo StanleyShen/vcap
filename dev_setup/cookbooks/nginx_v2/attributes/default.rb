@@ -20,6 +20,7 @@ default[:nginx_v2][:checksums][:module_upload_source] = "b1c26abe0427180602e2576
 default[:nginx_v2][:checksums][:module_headers_more_source] = "10587007913805a5193e3104e81fd180a5c52bf7c3f5a5746081660916619bde"
 default[:nginx_v2][:checksums][:module_devel_kit_source] = "bf5540d76d1867b4411091f16c6c786fd66759099c59483c76c68434020fdb02"
 default[:nginx_v2][:checksums][:module_lua_source] = "249042d34a44dddd0ab06a37066fc9a09b692cef5f317d5e86f18d838bb0323f"
+default[:nginx_v2][:dh_params] = "dhparam2048.pem"
 
 default[:lua][:version] = "5.1.4"
 default[:lua][:simple_version] = lua[:version].match(/\d+\.\d+/).to_s # something like 5.1
