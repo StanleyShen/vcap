@@ -18,6 +18,16 @@ remote_file nodejs_tarball_path do
   action :create_if_missing
 end
 
+bash "Delete Nodejs if present" do
+  user node[:deployment][:user]
+  code <<-EOH
+  rm -rf #{node[:nodejs][:path]} || true
+  EOH
+  only_if do
+    ::File.exists?(node[:nodejs][:path])
+  end
+end
+
 bash "Install Nodejs #{node[:nodejs][:version]}" do
   cwd File.join("", "tmp")
   user node[:deployment][:user]
@@ -25,8 +35,5 @@ bash "Install Nodejs #{node[:nodejs][:version]}" do
   tar xvzf #{nodejs_tarball_path}
   mv node-v#{node[:nodejs][:version]}-linux-x64 #{node[:nodejs][:path]}
   EOH
-  not_if do
-    ::File.exists?(node[:nodejs][:path])
-  end
 end
 
