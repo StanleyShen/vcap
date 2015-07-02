@@ -384,8 +384,19 @@ http {
         # Handling response from backend servers
         header_filter_by_lua '
           local uls = require ("uls")
-
           uls.post_process_response(ngx)
+
+          cookie_val = ngx.header["Set-Cookie"]
+          if cookie_val then
+            if (type(cookie_val) == "table") then
+              for k,v in pairs(cookie_val) do
+                cookie_val[k] = v..";secure"
+              end
+              ngx.header["Set-Cookie"] = cookie_val
+            else
+              ngx.header["Set-Cookie"] = cookie_val..";secure"
+            end
+          end
         ';
       }
     }
