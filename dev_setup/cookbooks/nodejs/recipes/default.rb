@@ -37,3 +37,9 @@ bash "Install Nodejs #{node[:nodejs][:version]}" do
   EOH
 end
 
+bash "Install scrypt #{node[:scrypt][:version]} module" do
+  user 'root'
+  code <<-EOH
+  export PATH=$PATH:#{node[:nodejs][:path]}/bin; #{node[:nodejs][:path]}/bin/npm install -g scrypt@#{node[:scrypt][:version]}
+  EOH
+end
