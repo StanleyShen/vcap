@@ -1,0 +1,3 @@
+check filesystem nfs_client path <%= node[:nfs][:client_path] %>/.mounted
+  start = "/sbin/ensure-nfs-mounted"
+  stop = "/sbin/ensure-nfs-umounted"
