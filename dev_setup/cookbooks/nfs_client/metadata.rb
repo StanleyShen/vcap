@@ -1,0 +1,8 @@
+name             "nfs_client"
+maintainer       "Intalio Inc"
+maintainer_email "eng-support@intalio.com"
+license          "Apache 2.0"
+description      "Installs/Configures network client file system"
+version          "4.0"
+depends "deployment"
+depends "nfs_server"
