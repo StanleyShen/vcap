@@ -10,19 +10,22 @@ package "python-software-properties"
 java_bin_path= "/usr/bin/java"
 java_version_str=`echo $(#{java_bin_path} -version 2>&1)`.strip if File.exists?(java_bin_path)
 expected_version=node[:java][:expected_version] if node[:java]
-expected_version||="1.7.0"
+expected_version||="1.8.0"
 expected_version_found=`echo $(#{java_bin_path} -version 2>&1) | grep #{expected_version}` if File.exists?(java_bin_path)
 
 case node['platform']
 when "ubuntu"
 
-  # for ubuntu-11.10 and more recent versions, java-6 is more difficult to install.
-  node[:java][:apt].split(" ").each do |pkg|
-    package pkg do
-      not_if do
-        expected_version_found
-      end
-    end
+  bash "Install Java #{expected_version}" do
+    user "root"
+    code <<-EOH
+	if [ -z ${expected_version_found} ]
+        then
+          sudo add-apt-repository ppa:openjdk-r/ppa -y
+          sudo apt-get update
+          sudo apt-get install openjdk-8-jdk -y
+    fi
+    EOH
   end
 
   ruby_block "reload_client_config" do
