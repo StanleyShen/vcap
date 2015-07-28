@@ -28,12 +28,11 @@ bash "Delete Nodejs if present" do
   end
 end
 
-bash "Install Nodejs #{node[:nodejs][:version]}" do
+bash "Install Nodejs #{node[:nodejs][:version]}" do  
+  user 'root'
   cwd File.join("", "tmp")
-  user node[:deployment][:user]
   code <<-EOH
-  tar xvzf #{nodejs_tarball_path}
-  mv node-v#{node[:nodejs][:version]}-linux-x64 #{node[:nodejs][:path]}
+  tar xf #{nodejs_tarball_path} -C #{node[:nodejs][:path]} --strip-components=1
   EOH
 end
 

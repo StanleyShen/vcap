@@ -1,3 +1,4 @@
+name  "dea"
 maintainer       "VMWare"
 maintainer_email "support@vmware.com"
 license          "Apache 2.0"
@@ -9,7 +10,7 @@ depends "cloudfoundry"
 depends "deployment"
 
 # not sure if we can write some ruby in here so we know what recipes we actually depend on.
-depends "java"
+depends "java", "= 0.0.2"
 depends "erlang"
-depends "nodejs"
+depends "nodejs", "= 0.0.2"
 depends "php"
