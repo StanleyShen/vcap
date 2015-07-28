@@ -30,8 +30,8 @@ end
 
 bash "Install Nodejs #{node[:nodejs][:version]}" do  
   user 'root'
-  cwd File.join("", "tmp")
   code <<-EOH
+  mkdir -p #{node[:nodejs][:path]}
   tar xf #{nodejs_tarball_path} -C #{node[:nodejs][:path]} --strip-components=1
   EOH
 end
