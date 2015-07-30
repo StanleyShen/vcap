@@ -10,7 +10,7 @@ depends "cloudfoundry"
 depends "deployment"
 
 # not sure if we can write some ruby in here so we know what recipes we actually depend on.
-depends "java", "= 0.0.1"
+depends "java", "= 0.0.2"
 depends "erlang"
 depends "nodejs", "= 0.0.2"
 depends "php"
