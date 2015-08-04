@@ -115,7 +115,8 @@ http {
     # end of http-chunkin
 
     listen       80;
-    add_header  X-FRAME-OPTIONS 'SAMEORIGIN';
+    add_header X-FRAME-OPTIONS 'SAMEORIGIN';
+    add_header X-Xss-Protection '1; mode=block';
     client_max_body_size 1024M;
     server_name  _;
     server_name_in_redirect off;
@@ -260,9 +261,9 @@ http {
     server_name  _;
     server_name_in_redirect off;
 
+    add_header X-Xss-Protection '1; mode=block';
     # Add HSTS settings
     add_header Strict-Transport-Security "max-age=31536000; includeSubdomains";
-
     # Forward secrecy settings
     ssl_dhparam  <%= node[:nginx][:ssl][:config_dir] %>/<%= node[:nginx_v2][:dh_params] %>;
     ssl_session_cache    shared:SSL:10m;
