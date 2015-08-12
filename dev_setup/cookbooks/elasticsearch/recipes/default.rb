@@ -14,6 +14,7 @@ end
 bash "Install Elasticsearch #{node.elasticsearch[:version]}" do
   user node[:deployment][:user]
   code <<-EOH
+  rm -rf #{node.elasticsearch[:install_path]}
   mkdir -p #{install_path}
   tar xvzf #{es_tarball_path} -C #{install_path}  --strip-components=1
   EOH

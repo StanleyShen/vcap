@@ -1,3 +1,4 @@
+name             "elasticsearch"
 maintainer       "VMware"
 maintainer_email "support@vmware.com"
 license          "Apache 2.0"
