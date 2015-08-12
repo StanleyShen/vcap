@@ -1,3 +1,4 @@
+name             "cloudfoundry"
 maintainer       "VMWare"
 maintainer_email "support@vmware.com"
 license          "Apache 2.0"
