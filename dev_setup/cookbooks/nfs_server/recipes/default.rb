@@ -13,27 +13,6 @@ service "monit" do
   end
 end
 
-bash "stop vcap" do
-  user node[:deployment][:user] 
-  environment ({'HOME' => "/home/#{node[:deployment][:user]}",
-                'USER' => "#{node[:deployment][:user]}"})
-  cwd "/home/#{node[:deployment][:user]}"
-  code "#{node[:deployment][:vcap_exec]} stop"
-
-  only_if do
-    ::File.exists?("#{node[:deployment][:vcap_exec]}")
-  end
-end
-
-bash "Umount NFS" do
-  code <<-EOH
-if grep -qs '#{node[:nfs][:client_path]}' /proc/mounts; then
-    echo "#{node[:nfs][:client_path]} was mounted."
-    umount -l #{node[:nfs][:client_path]}
-fi
-EOH
-end
-
 directory node[:nfs][:server_path] do
   owner node[:deployment][:user]
   group node[:deployment][:group]
@@ -52,7 +31,6 @@ package "nfs-kernel-server" do
   action :install
 end
 
-
 bash "Update /etc/exports" do
   code <<-EOH
 file=/etc/exports
@@ -63,37 +41,6 @@ else
   echo $string | sudo tee -a $file
 fi
 EOH
-end
-
-# always make sure the nfs is mounted
-template "/sbin/ensure-nfs-mounted" do
-  source "ensure-nfs-mounted"
-  mode 0755
-  action :create
-end
-
-template "/sbin/ensure-nfs-umounted" do
-  source "ensure-nfs-umounted"
-  mode 0755
-  action :create
-end
-
-template "/etc/init/nfs-upstart-fixer.conf" do
-  source "nfs-upstart-fixer.conf"
-  mode 0644
-  action :create
-end
-
-template "/etc/init/nfs-umount.conf" do
-  source "nfs-umount.conf"
-  mode 0644
-  action :create
-end
-
-template "/etc/monit/config.d/nfs.monitrc" do
-  source "nfs.monitrc.erb"
-  mode 0644
-  action :create
 end
 
 service "nfs-kernel-server" do
@@ -112,18 +59,6 @@ mkdir -p #{node[:nfs][:client_path]}
 rm -rf #{node[:nfs][:client_path]}
 ln -s #{node[:nfs][:server_path]} #{node[:nfs][:client_path]}
 EOH
-end
-
-bash "stop vcap" do
-  user node[:deployment][:user] 
-  environment ({'HOME' => "/home/#{node[:deployment][:user]}",
-                'USER' => "#{node[:deployment][:user]}"})
-  cwd "/home/#{node[:deployment][:user]}"
-  code "#{node[:deployment][:vcap_exec]} restart"
-
-  only_if do
-    ::File.exists?("#{node[:deployment][:vcap_exec]}")
-  end
 end
 
 service "monit" do
