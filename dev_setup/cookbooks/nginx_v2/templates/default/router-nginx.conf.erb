@@ -116,10 +116,12 @@ http {
 
     listen       80;
     add_header X-FRAME-OPTIONS 'SAMEORIGIN';
-    add_header X-Xss-Protection '1; mode=block';
     client_max_body_size 1024M;
     server_name  _;
     server_name_in_redirect off;
+
+    proxy_hide_header X-Xss-Protection;
+    add_header X-Xss-Protection '1; mode=block';
 
     #TODO: how to make this internal location totally transparent to outside
     location = /vcapuls {
@@ -261,7 +263,9 @@ http {
     server_name  _;
     server_name_in_redirect off;
 
+    proxy_hide_header X-Xss-Protection;
     add_header X-Xss-Protection '1; mode=block';
+	
     # Add HSTS settings
     add_header Strict-Transport-Security "max-age=31536000; includeSubdomains";
     # Forward secrecy settings
