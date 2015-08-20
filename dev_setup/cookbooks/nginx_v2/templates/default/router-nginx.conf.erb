@@ -16,6 +16,8 @@ http {
   include       mime.types;
   default_type  text/html;
   server_tokens off;
+  charset_types *;
+  charset UTF-8;
 
   log_format main  '$host - [$time_local] '
                    '"$request" $status $bytes_sent '
