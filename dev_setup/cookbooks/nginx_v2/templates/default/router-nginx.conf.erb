@@ -117,7 +117,7 @@ http {
     # end of http-chunkin
 
     listen       80;
-    add_header X-FRAME-OPTIONS 'SAMEORIGIN';
+    more_set_headers  'X-FRAME-OPTIONS: SAMEORIGIN';
     client_max_body_size 1024M;
     server_name  _;
     server_name_in_redirect off;
@@ -258,7 +258,7 @@ http {
     # end of http-chunkin
 
     listen      443;
-    add_header  X-FRAME-OPTIONS 'SAMEORIGIN';
+    more_set_headers  'X-FRAME-OPTIONS: SAMEORIGIN';
     ssl         on;
     ssl_certificate <%= node[:nginx][:ssl][:config_dir] %>/<%= node[:nginx][:ssl][:basename] %>.crt;
     ssl_certificate_key <%= node[:nginx][:ssl][:config_dir] %>/<%= node[:nginx][:ssl][:basename] %>.key;
