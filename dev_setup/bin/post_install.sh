@@ -36,4 +36,4 @@ gem install vmc_knife
 vcap start router
 vcap start cloud_controller
 vmc target api.intalio.priv:9022
-vmc register system@intalio.com --password gold
+vmc register system@servicemax.com --password servicemax
